@@ -1,2 +1,3 @@
-# fuastlibraries
+# faust-libraries
+
 Faust Libraries
