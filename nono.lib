@@ -1,0 +1,9 @@
+halaphon = sp.spat(4, hramp, hdist) : halmeters
+  with{
+    hramp = os.lf_sawpos(1.0/(hslider("[01] h1 time", 3.0, -23.0, 23.0, 0.01)));
+    hdist = hslider("[02] h1 distance", 1, 0, 1, 0.01);
+    h1(v) = vgroup("Ch %v", hmeter);
+    halmeters = vgroup("h1 meters", par(i, 4, h1(i)));
+    hmeter(x)		= attach(x, envelop(x) : hbargraph("[05][unit:dB] Meter", -70, +5));
+    envelop = abs : max ~ -(1.0/ma.SR) : max(ba.db2linear(-70)) : ba.linear2db;
+};

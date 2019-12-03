@@ -1,44 +1,64 @@
+insel = ingroup(ba.selectn(18,channel) : hmeter) : _
+  with{
+    ingroup(x) = vgroup("[01] INPUT", x);
+    hmeter(x)		= attach(x, envelop(x) : hbargraph("[02] INPUT METER [unit:dB]", -70, +5));
+    envelop = abs : max ~ -(1.0/ma.SR) : max(ba.db2linear(-70)) : ba.linear2db;
+    channel = nentry("[01] Input Channel Selector
+                    [style:menu{'Analog IN 1':0;
+                    'Analog IN 2':1;
+                    'Analog IN 3':2;
+                    'Analog IN 4':3;
+                    'Analog IN 5':4;
+                    'Analog IN 6':5;
+                    'Analog IN 7':6;
+                    'Analog IN 8':7;
+                    'Analog IN 9':8;
+                    'Analog IN 10':9;
+                    'ADAT IN 1':10;
+                    'ADAT IN 2':11;
+                    'ADAT IN 3':12;
+                    'ADAT IN 4':13;
+                    'ADAT IN 5':14;
+                    'ADAT IN 6':15;
+                    'ADAT IN 7':16;
+                    'ADAT IN 8':17}]", 0, 0, 18, 1) : int;
+};
+
 //================= Tweaked from faust examples ===============
-hmeter(x)	= attach(x, envelop(x) : hbargraph("[2][unit:dB]", -46, +5));
-vmeter(x)	= attach(x, envelop(x) : vbargraph("[2][unit:dB]", -46, +5));
-envelop = abs : max ~ -(1.0/ma.SR) : max(ba.db2linear(-46)) : ba.linear2db;
+// hmeter(x)	= attach(x, envelop(x) : hbargraph("[2][unit:dB]", -46, +5));
+// vmeter(x)	= attach(x, envelop(x) : vbargraph("[2][unit:dB]", -46, +5));
+// envelop = abs : max ~ -(1.0/ma.SR) : max(ba.db2linear(-46)) : ba.linear2db;
 
-preeq =  ba.bypass1(hip,fi.highpass(2,HP)) : ba.bypass1(lop,fi.lowpass(2,LP))
+presec = pregroup(ba.bypass1(lop,fi.lowpass(2,hcut)) : ba.bypass1(hip,fi.highpass(2,lcut))) : hgroup("[07]PHASE & GAIN" , *(gain) : rpol)
 with{
-  pre_group(x) = hgroup("Filters", x);
-
-  hp_group(x) = pre_group(hgroup("[1] High Pass", x));
-  hip = hp_group(1-checkbox("[0] Hipass [tooltip: When this is checked the Hipass filter has effect]"));
-  HP = hp_group(nentry("[1] [unit:Hz]", 100, 0, 1000, 1));
-
-  lp_group(x) = pre_group(hgroup("[2] Low Pass", x));
-  lop = lp_group(1-checkbox("[0] Lowpass [tooltip: When this is checked the Lowpass filter has effect]"));
-  LP = lp_group(nentry("[1] [unit:Hz]", 8000, 1000, 20000, 1));
+  pregroup(x) = hgroup("[02] PRE SECTION", x);
+  lop = 1 - checkbox("[03] HC");
+  hcut = hslider ("[04] High Cut [unit:Hz] [style:knob] [scale:exp]", 8000, 20, 20000, 0.1) : si.smoo;
+  hip = 1 - checkbox("[01] LC");
+  lcut = hslider ("[02] Low Cut [unit:Hz] [style:knob] [scale:exp]", 500, 20, 20000, 0.1) : si.smoo;
+  rpol = *(1 - (checkbox("[05] Reverse Phase")*(2)));
+  gain = hslider("[06] Gain [unit:dB] [style:knob]", 0, -24, +24, 0.1) : ba.db2linear : si.smoo;
 };
 
-studioeq = fi.low_shelf(LL,FL) : fi.peak_eq(LP1,FP1,BP1) : fi.peak_eq(LP2,FP2,BP2) : fi.high_shelf(LH,FH)
+peq = fi.low_shelf(LL, FL) : fi.peak_eq(LP1, FP1, BP1) : fi.peak_eq(LP2, FP2, BP2) : fi.high_shelf(LH, FH)
 with{
-  eq_group(x) = hgroup("[0] EQ",x);
-
-  ls_group(x) = eq_group(vgroup("[1] Low Shelf",x));
-	LL = ls_group(vslider("[0] Gain [unit:dB] [style:knob] [tooltip: Amount of low-frequency boost or cut in decibels]",0,-40,40,0.1));
-	FL = ls_group(vslider("[1] Freq [unit:Hz] [style:knob] [scale:log] [tooltip: Transition-frequency from boost (cut) to unity gain]",200,1,5000,1));
-
-	pq1_group(x) = eq_group(vgroup("[2] Band 1 [tooltip: Parametric Equalizer sections from filters.lib]",x));
-	LP1 = pq1_group(vslider("[0] Gain 1 [unit:dB] [style:knob][tooltip: Amount of local boost or cut in decibels]",0,-40,40,0.1));
-	FP1 = pq1_group(vslider("[1] Freq 1 [unit:PK] [style:knob] [tooltip: Peak Frequency in Piano Key (PK) units (A440 = 49PK)]",49,1,100,1)) : si.smooth(0.999) : ba.pianokey2hz;
-	Q1  = pq1_group(vslider("[2] Q 1 [style:knob] [scale:log] [tooltip: Quality factor (Q) of the peak = center-frequency/bandwidth]",40,1,1000,0.1));
-
+	eq_group(x) = vgroup("[03] PARAMETRIC EQ",x);
+	hs_group(x) = eq_group(hgroup("[01] High Shelf", x));
+	LH = hs_group(vslider("[00] Gain [unit:dB] [style:knob]", 0,-36,36,.1) : si.smoo);
+	FH = hs_group(vslider("[01] Freq [unit:Hz] [style:knob]", 8000,100,19999,1) : si.smoo);
+	pq1_group(x) = eq_group(hgroup("[02] Band", x));
+	LP1 = pq1_group(vslider("[00] Gain 1 [unit:dB] [style:knob]",0,-36,36,0.1) : si.smoo);
+	FP1 = pq1_group(vslider("[01] Freq 1 [unit:Hz] [style:knob]", 2500,0,20000,1)) : si.smoo;
+	Q1  = pq1_group(vslider("[02] Q 1 [style:knob] [scale:log]",40,1,1000,0.1) : si.smoo);
 	BP1 = FP1/Q1;
-
-  pq2_group(x) = eq_group(vgroup("[3] Band 2 [tooltip: Parametric Equalizer sections from filters.lib]",x));
-	LP2 = pq2_group(vslider("[0] Gain 2 [unit:dB] [style:knob][tooltip: Amount of local boost or cut in decibels]",0,-40,40,0.1));
-	FP2 = pq2_group(vslider("[1] Freq 2 [unit:PK] [style:knob] [tooltip: Peak Frequency in Piano Key (PK) units (A440 = 49PK)]",49,1,100,1)) : si.smooth(0.999) : ba.pianokey2hz;
-	Q2  = pq2_group(vslider("[2] Q 2 [style:knob] [scale:log] [tooltip: Quality factor (Q) of the peak = center-frequency/bandwidth]",40,1,1000,0.1));
-
+  pq2_group(x) = eq_group(hgroup("[03] Band", x));
+	LP2 = pq2_group(vslider("[00] Gain 2 [unit:dB] [style:knob]", 0,-36,36,0.1));
+	FP2 = pq2_group(vslider("[01] Freq 2 [unit:Hz] [style:knob]", 500,0,20000,1)) : si.smoo;
+	Q2  = pq2_group(vslider("[02] Q 2 [style:knob] [scale:log]", 40,1,1000,0.1) : si.smoo);
 	BP2 = FP2/Q2;
-
-	hs_group(x) = eq_group(vgroup("[4] High Shelf [tooltip: A high shelf provides a boost or cut above some frequency]",x));
-	LH = hs_group(vslider("[0] Gain [unit:dB] [style:knob] [tooltip: Amount of high-frequency boost or cut in decibels]",0,-40,40,.1));
-	FH = hs_group(vslider("[1] Freq [unit:Hz] [style:knob] [scale:log] [tooltip: Transition-frequency from boost (cut) to unity gain]",8000,20,10000,1));
+	ls_group(x) = eq_group(hgroup("[04] Low Shelf",x));
+	LL = ls_group(vslider("[00] Gain [unit:dB] [style:knob]", 0,-36,36,0.1) : si.smoo);
+	FL = ls_group(vslider("[01] Freq [unit:Hz] [style:knob]", 200,20,5000,1): si.smoo);
 };
+
+chstrip = insel : presec : peq;
