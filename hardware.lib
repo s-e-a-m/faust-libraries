@@ -1,0 +1,94 @@
+//-------------------------------------------- RME FireFace 800 - INPUT SELECTOR
+//-------------------------------------------------------------------- 18 INPUTS
+ff800 = ba.selectn(18,channel) : hmeter : _
+  with{
+    hmeter(x)		= attach(x, an.amp_follower(0.150, x) : ba.linear2db : hbargraph("[02] INPUT LEVEL [unit:dB]", -70, +6));
+    envelop = abs : max ~ -(1.0/ma.SR) : max(ba.db2linear(-70)) : ba.linear2db;
+    channel = nentry("[01] RME FF800 - Input Channel Selector
+                    [style:menu{'Analog IN 1':0;
+                    'Analog IN 2':1;
+                    'Analog IN 3':2;
+                    'Analog IN 4':3;
+                    'Analog IN 5':4;
+                    'Analog IN 6':5;
+                    'Analog IN 7':6;
+                    'Analog IN 8':7;
+                    'Analog IN 9':8;
+                    'Analog IN 10':9;
+                    'ADAT IN 1':10;
+                    'ADAT IN 2':11;
+                    'ADAT IN 3':12;
+                    'ADAT IN 4':13;
+                    'ADAT IN 5':14;
+                    'ADAT IN 6':15;
+                    'ADAT IN 7':16;
+                    'ADAT IN 8':17}]", 0, 0, 18, 1) : int;
+  };
+
+//-------------------------------------------- RME FireFace UFX - INPUT SELECTOR
+
+// insel = ba.selectn(18,channel) : hmeter : _
+//   with{
+//     hmeter(x)		= attach(x, an.amp_follower(0.150, x) : ba.linear2db : hbargraph("[02] METER [unit:dB]", -70, +5));
+//     envelop = abs : max ~ -(1.0/ma.SR) : max(ba.db2linear(-70)) : ba.linear2db;
+//     channel = nentry("[01] Input Channel Selector
+//                     [style:menu{'Analog IN 1':0;
+//                     'Analog IN 2':1;
+//                     'Analog IN 3':2;
+//                     'Analog IN 4':3;
+//                     'Analog IN 5':4;
+//                     'Analog IN 6':5;
+//                     'Analog IN 7':6;
+//                     'Analog IN 8':7;
+//                     'Analog IN 9':8;
+//                     'Analog IN 10':9;
+//                     'ADAT IN 1':10;
+//                     'ADAT IN 2':11;
+//                     'ADAT IN 3':12;
+//                     'ADAT IN 4':13;
+//                     'ADAT IN 5':14;
+//                     'ADAT IN 6':15;
+//                     'ADAT IN 7':16;
+//                     'ADAT IN 8':17}]", 0, 0, 18, 1) : int;
+//   };
+
+
+//--------------------------------------------------------------------- MIDI GUI
+//----------------------------------------------------------- BEHRINGER BCF 2000
+g81 = vslider("[08] [midi:ctrl 88]", 0, -70, +6, 0.1) : ba.db2linear : si.smoo;
+g82 = vslider("[08] [midi:ctrl 88]", 0, -70, +6, 0.1) : ba.db2linear : si.smoo;
+g83 = vslider("[08] [midi:ctrl 88]", 0, -70, +6, 0.1) : ba.db2linear : si.smoo;
+g84 = vslider("[08] [midi:ctrl 88]", 0, -70, +6, 0.1) : ba.db2linear : si.smoo;
+g85 = vslider("[08] [midi:ctrl 88]", 0, -70, +6, 0.1) : ba.db2linear : si.smoo;
+g86 = vslider("[08] [midi:ctrl 88]", 0, -70, +6, 0.1) : ba.db2linear : si.smoo;
+g87 = vslider("[08] [midi:ctrl 88]", 0, -70, +6, 0.1) : ba.db2linear : si.smoo;
+g88 = vslider("[08] [midi:ctrl 88]", 0, -70, +6, 0.1) : ba.db2linear : si.smoo;
+
+bcf2000 = hgroup("BEHRINGER BCF 2000", par(i, 8, channel(i)))
+  with{
+    knob1(v) = vslider("[01][style:knob] Knob %f [midi:ctrl %f]", 0,0,127,1)
+      with{f = v+(1);};
+    pushknob1(v) = checkbox("[02]Push Knob %f [midi:ctrl %f]")
+      with{f = v+(33);};
+    knob2(v) = vslider("[03][style:knob] Knob %f [midi:ctrl %f]", 0,0,127,1)
+      with{f = v+(9);};
+    pushknob2(v) = checkbox("[04]Push Knob %f [midi:ctrl %f]")
+      with{f = v+(41);};
+    knob3(v) = vslider("[05][style:knob] Knob %f [midi:ctrl %f]", 0,0,127,1)
+      with{f = v+(17);};
+    pushknob3(v) = checkbox("[06]Push Knob %f [midi:ctrl %f]")
+      with{f = v+(49);};
+    knob4(v) = vslider("[07][style:knob] Knob %f [midi:ctrl %f]", 0,0,127,1)
+      with{f = v+(25);};
+    pushknob4(v) = checkbox("[08]Push Knob %f [midi:ctrl %f]")
+      with{f = v+(57);};
+    button1(v) = checkbox("[09]Button %f [midi:ctrl %f]")
+      with{f = v+(65);};
+    button2(v) = checkbox("[10]Button %f [midi:ctrl %f]")
+      with{f = v+(73);};
+    fader(v) = vslider("[11]ctrl %f [midi:ctrl %f]", 0,0,127,1)
+      with{f = v+(81);};
+    channel(v) = vgroup("ch %f", knob1(v), pushknob1(v), knob2(v), pushknob2(v), knob3(v), pushknob3(v),  knob4(v), pushknob4(v), button1(v), button2(v), fader(v))
+      with{f = v+(81);};    
+  };
+// process = bcf2000;
