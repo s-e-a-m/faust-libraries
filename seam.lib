@@ -1,7 +1,6 @@
-insel = ingroup(ba.selectn(18,channel) : hmeter) : _
+insel = ba.selectn(18,channel) : hmeter : _
   with{
-    ingroup(x) = vgroup("[01] INPUT", x);
-    hmeter(x)		= attach(x, envelop(x) : hbargraph("[02] INPUT METER [unit:dB]", -70, +5));
+    hmeter(x)		= attach(x, an.amp_follower(0.150, x) : ba.linear2db : hbargraph("[02] METER [unit:dB]", -70, +5));
     envelop = abs : max ~ -(1.0/ma.SR) : max(ba.db2linear(-70)) : ba.linear2db;
     channel = nentry("[01] Input Channel Selector
                     [style:menu{'Analog IN 1':0;
@@ -22,27 +21,28 @@ insel = ingroup(ba.selectn(18,channel) : hmeter) : _
                     'ADAT IN 6':15;
                     'ADAT IN 7':16;
                     'ADAT IN 8':17}]", 0, 0, 18, 1) : int;
-};
+  };
 
 //================= Tweaked from faust examples ===============
 // hmeter(x)	= attach(x, envelop(x) : hbargraph("[2][unit:dB]", -46, +5));
 // vmeter(x)	= attach(x, envelop(x) : vbargraph("[2][unit:dB]", -46, +5));
 // envelop = abs : max ~ -(1.0/ma.SR) : max(ba.db2linear(-46)) : ba.linear2db;
 
-presec = pregroup(ba.bypass1(lop,fi.lowpass(2,hcut)) : ba.bypass1(hip,fi.highpass(2,lcut))) : hgroup("[07]PHASE & GAIN" , *(gain) : rpol)
+presec = pregroup(ba.bypass1(lop,fi.lowpass(2,hcut)) : ba.bypass1(hip,fi.highpass(2,lcut))) : hgroup("[07]PHASE and GAIN" , *(gain) : *(rpol))
 with{
-  pregroup(x) = hgroup("[02] PRE SECTION", x);
-  lop = 1 - checkbox("[03] HC");
-  hcut = hslider ("[04] High Cut [unit:Hz] [style:knob] [scale:exp]", 8000, 20, 20000, 0.1) : si.smoo;
-  hip = 1 - checkbox("[01] LC");
-  lcut = hslider ("[02] Low Cut [unit:Hz] [style:knob] [scale:exp]", 500, 20, 20000, 0.1) : si.smoo;
-  rpol = *(1 - (checkbox("[05] Reverse Phase")*(2)));
-  gain = hslider("[06] Gain [unit:dB] [style:knob]", 0, -24, +24, 0.1) : ba.db2linear : si.smoo;
+  pregroup(x) = hgroup("[03] PRE SECTION", x);
+  lop = 1 - checkbox("[03] HiCut");
+  hcut = vslider("[04] High Cut [unit:Hz] [style:knob]", 8000, 20, 20000, 0.1) : si.smoo;
+  hip = 1 - checkbox("[01] LoCut");
+  lcut = vslider("[02] Low Cut [unit:Hz] [style:knob]", 500, 20, 20000, 0.1) : si.smoo;
+  rpol = 1 - ((checkbox("[05] Reverse Phase")*(2)));
+  gain = vslider("[06] Gain [unit:dB] [style:knob]", 0, -24, +24, 0.1) : ba.db2linear : si.smoo;
 };
 
-peq = fi.low_shelf(LL, FL) : fi.peak_eq(LP1, FP1, BP1) : fi.peak_eq(LP2, FP2, BP2) : fi.high_shelf(LH, FH)
+peq = ba.bypass1(eq, (fi.low_shelf(LL, FL) : fi.peak_eq(LP1, FP1, BP1) : fi.peak_eq(LP2, FP2, BP2) : fi.high_shelf(LH, FH)))
 with{
-	eq_group(x) = vgroup("[03] PARAMETRIC EQ",x);
+	eq_group(x) = vgroup("[04] PARAMETRIC EQ",x);
+  eq = eq_group(1 - checkbox("[00] EQ ON"));
 	hs_group(x) = eq_group(hgroup("[01] High Shelf", x));
 	LH = hs_group(vslider("[00] Gain [unit:dB] [style:knob]", 0,-36,36,.1) : si.smoo);
 	FH = hs_group(vslider("[01] Freq [unit:Hz] [style:knob]", 8000,100,19999,1) : si.smoo);
@@ -61,4 +61,4 @@ with{
 	FL = ls_group(vslider("[01] Freq [unit:Hz] [style:knob]", 200,20,5000,1): si.smoo);
 };
 
-chstrip = insel : presec : peq;
+chstrip = vgroup("[00] INPUT SECTION", insel : presec : peq);
