@@ -1,4 +1,5 @@
 import("hardware.lib");
+import("gerzon.lib");
 
 //------------------------------------------------ INPUT CHANNEL GENERIC CONTROL
 //------------------------------------------------ SELECT THE HARDWARE INTERFACE

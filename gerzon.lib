@@ -1,7 +1,7 @@
 //################################ ambisonic.lib ###############################
-// Faust Ambisonic library. Its official prefix is `am`.
+// Faust Ambisonic library. Its official prefix is `mg`.
 //##############################################################################
-// A library of ambisonic elements for Faust organized in 5 sections:
+// A library of Michael Gerzon's concepts for Faust organized in 5 sections:
 //
 // * Michael Gerzon early works
 // * A to B and viceversa matrix
@@ -30,7 +30,7 @@
 // ```
 //##############################################################################
 
-am = library("ambisonic.lib");
+mg = library("gerzon.lib");
 ma = library("maths.lib");
 fi = library("filters.lib");
 ba = library("basics.lib");
@@ -312,7 +312,7 @@ lr2bfmt(L,R) = W,X,Y,Z
 bdmodule = fi.highshelf(2,1.76,350),
            fi.highshelf(2,-1.25,350),
            fi.highshelf(2,-1.25,350),
-           * (0.0) : am.bamodule;
+           * (0.0) : mg.bamodule;
 
 //------------------------------------------------------------------------------
 // DECODER FOR BMX ENCODED SIGNALS
@@ -337,7 +337,7 @@ bdmodule = fi.highshelf(2,1.76,350),
 // LF,RF,LB,RB
 //
 //------------------------------------------------------------------------------
-bmxmodule(L,R) = M+S, M, S, 0 : am.bamodule
+bmxmodule(L,R) = M+S, M, S, 0 : mg.bamodule
   with{
     M = 0.5 * (L + R) : fi.lowshelf(2,-3.98,350);
     S = 0.5 * (L - R) : fi.lowshelf(2,2.04,350);
@@ -477,8 +477,7 @@ brotate(W,X,Y,Z) = W1, X1, Y1, Z1
 //------------------------------------------------------------------------------
 // THREE CHANNEL STEREO
 //------------------------------------------------------------------------------
-// ... a method of obtaining a genuine surround stereo effect from suitable
-// conventional two-channel stereo recordings
+// Three channel pan-pot with low frequency phase correlation
 //
 // #### Reference
 // Studio Sound, June 1990
@@ -487,10 +486,10 @@ brotate(W,X,Y,Z) = W1, X1, Y1, Z1
 // #### Usage
 //
 // ```
-// _ : lcrpan : _,_,_
+// _,_ : lcrpan : _,_,_
 // ```
 //
-// Where pot is a number between -0.5 and 0.5
+// Where the first input is the signal to be moved and the second is pot, a number between -0.5 and 0.5
 // pot = vslider("[1][style:knob][unit:deg]", 0.0, -45.0, 45.0, 0.1) / (90.0) : si.smoo;
 //
 // Where the four outpust are respectively:
