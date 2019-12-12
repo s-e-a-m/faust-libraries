@@ -89,6 +89,12 @@ bcf2000 = hgroup("BEHRINGER BCF 2000", par(i, 8, channel(i)))
     fader(v) = vslider("[11]ctrl %f [midi:ctrl %f]", 0,0,127,1)
       with{f = v+(81);};
     channel(v) = vgroup("ch %f", knob1(v), pushknob1(v), knob2(v), pushknob2(v), knob3(v), pushknob3(v),  knob4(v), pushknob4(v), button1(v), button2(v), fader(v))
-      with{f = v+(81);};    
+      with{f = v+(81);};
   };
 // process = bcf2000;
+
+miditester = hgroup("MIDITESTER", par(i, 127, fader(i)))
+  with{
+    fader(v) = vslider("ctrl %3f [midi:ctrl %3f]", 0,0,127,1)
+      with{f = v+(1);};
+  };
