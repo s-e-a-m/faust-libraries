@@ -30,11 +30,6 @@
 // ```
 //##############################################################################
 
-mg = library("gerzon.lib");
-ma = library("maths.lib");
-fi = library("filters.lib");
-ba = library("basics.lib");
-
 declare name "Faust Ambisonic Element Library";
 declare version "0.1";
 declare author "Giuseppe Silvi";

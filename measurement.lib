@@ -1,0 +1,90 @@
+//################################ ambisonic.lib ###############################
+// Faust Ambisonic library. Its official prefix is `mg`.
+//##############################################################################
+// A library of Michael Gerzon's concepts for Faust organized in 5 sections:
+//
+// * Michael Gerzon early works
+// * A to B and viceversa matrix
+// * Encoders
+// * Decoders
+// * Tools
+//
+//******************************************************************************
+// written by Giuseppe Silvi - 2019
+// based on Michael Gerzon early works
+//
+//******************************************************************************
+// It should be used using the `[...]` environment:
+//
+// ```
+// [...] = library("libraryName");
+// process = [...].functionCall;
+// ```
+//
+// Another option is to import `stdfaust.lib` which already contains the `[...]`
+// environment:
+//
+// ```
+// import("stdfaust.lib");
+// process = [...].functionCall;
+// ```
+//##############################################################################
+
+declare name "Faust Ambisonic Element Library";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare license "CC4";
+
+//------------------------------------------------------------------ SEAM METERS
+//------------------------------------------------------------------ PEAK METERS
+pvmeter(x) = attach(x, an.amp_follower(0.150, x) : ba.linear2db : vbargraph("[99][unit:dB]", -70, +6));
+phmeter(x) = attach(x, an.amp_follower(0.150, x) : ba.linear2db : hbargraph("[99][unit:dB]", -70, +6));
+//------------------------------------------------------------------- RMS METERS
+svmeter(x) = attach(x, RMS(1000, x) : ba.linear2db : vbargraph("[99][unit:dB]", -70, +6));
+shmeter(x) = attach(x, RMS(1000, x) : ba.linear2db : hbargraph("[99][unit:dB]", -70, +6));
+
+//==============================================================================
+//--------------------------------------------------------------------- LOUDNESS
+//-------------------------------------------------------------------------- RMS
+// Taken from Faust manual
+// Root Mean Square of n consecutive samples
+RMS(n) = square : mean(n) : sqrt;
+// Square of a signal
+square(x) = x * x;
+// Mean of n consecutive samples of a signal (uses fixpoint to avoid the
+// accumulation of rounding errors)
+mean(n) = float2fix : integrate(n) : fix2float : /(n);
+// Sliding sum of n consecutive samples
+integrate(n,x) = x - x@n : +~_;
+// Convertion between float and fix point
+float2fix(x) = int(x*(1<<20));
+fix2float(x) = float(x)/(1<<20);
+// Root Mean Square of 1000 consecutive samples
+// process = no.noise <: vbargraph("normal", 0, 1), (RMS(1000) : vbargraph("rms", 0, 1));
+
+//----------------------------------------------------------------------- BS1770
+// Filter coefficients for stage 1 of the pre-filter to model a spherical head
+// These filter coefficients are for a sampling rate of 48 kHz
+// b0 = 1.53512485958697;
+// b1 = -2.69169618940638;
+// b2 = 1.19839281085285;
+// a1 = -1.69065929318241;
+// a2 = 0.73248077421585;
+pfs1 = fi.highshelf(2,4,1100);
+
+// The second stage of the pre-filter applies a simple high-pass filter
+// The stage weighting curve is specified as a 2nd order filter
+// Filter coefficients for the second stage weighting curve
+// These filter coefficients are for a sampling rate of 48 kHz
+// b0 = 1.0;
+// b1 = −2.0;
+// b2 = 1.0;
+// a1 = −1.99004745483398;
+// a2 = 0.99007225036621;
+pfs2 = fi.highpass(2,55);
+
+tg = ba.sec2samp(0.400);
+
+bs1770 = pfs1 : pfs2 <: _ , int(@(0.75*tg)) : 0.5*(RMS(tg)+RMS(tg));
+
+//--------------------------------------------------------------- LOUDNESS METER

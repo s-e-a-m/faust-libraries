@@ -1,3 +1,40 @@
+//################################ ambisonic.lib ###############################
+// Faust Ambisonic library. Its official prefix is `mg`.
+//##############################################################################
+// A library of Michael Gerzon's concepts for Faust organized in 5 sections:
+//
+// * Michael Gerzon early works
+// * A to B and viceversa matrix
+// * Encoders
+// * Decoders
+// * Tools
+//
+//******************************************************************************
+// written by Giuseppe Silvi - 2019
+// based on Michael Gerzon early works
+//
+//******************************************************************************
+// It should be used using the `[...]` environment:
+//
+// ```
+// [...] = library("libraryName");
+// process = [...].functionCall;
+// ```
+//
+// Another option is to import `stdfaust.lib` which already contains the `[...]`
+// environment:
+//
+// ```
+// import("stdfaust.lib");
+// process = [...].functionCall;
+// ```
+//##############################################################################
+
+declare name "Faust Ambisonic Element Library";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare license "CC4";
+
 halaphon = sp.spat(4, hramp, hdist) : halmeters
   with{
     hramp = os.lf_sawpos(1.0/(hslider("[01] h1 time", 3.0, -23.0, 23.0, 0.01)));

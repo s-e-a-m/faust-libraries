@@ -1,5 +1,43 @@
+//################################ ambisonic.lib ###############################
+// Faust Ambisonic library. Its official prefix is `mg`.
+//##############################################################################
+// A library of Michael Gerzon's concepts for Faust organized in 5 sections:
+//
+// * Michael Gerzon early works
+// * A to B and viceversa matrix
+// * Encoders
+// * Decoders
+// * Tools
+//
+//******************************************************************************
+// written by Giuseppe Silvi - 2019
+// based on Michael Gerzon early works
+//
+//******************************************************************************
+// It should be used using the `[...]` environment:
+//
+// ```
+// [...] = library("libraryName");
+// process = [...].functionCall;
+// ```
+//
+// Another option is to import `stdfaust.lib` which already contains the `[...]`
+// environment:
+//
+// ```
+// import("stdfaust.lib");
+// process = [...].functionCall;
+// ```
+//##############################################################################
+
+declare name "Faust SEAM general lib";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare license "CC4";
+
 import("hardware.lib");
 import("gerzon.lib");
+import("measurement.lib");
 
 //------------------------------------------------ INPUT CHANNEL GENERIC CONTROL
 //------------------------------------------------ SELECT THE HARDWARE INTERFACE
@@ -74,7 +112,3 @@ out(c) = hgroup("[99] OUT%o", vgroup("[97]", outdel : outfbank) : *(gain) : svme
         don = 1 - (checkbox("[96] DEL ON"));
       };
   };
-
-//------------------------------------------------------------------ SEAM METERS
-svmeter(x) = attach(x, an.amp_follower(0.150, x) : ba.linear2db : vbargraph("[99][unit:dB]", -70, +6));
-shmeter(x) = attach(x, an.amp_follower(0.150, x) : ba.linear2db : hbargraph("[99][unit:dB]", -70, +6));

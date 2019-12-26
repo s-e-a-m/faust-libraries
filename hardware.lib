@@ -1,9 +1,44 @@
+//################################ ambisonic.lib ###############################
+// Faust Ambisonic library. Its official prefix is `mg`.
+//##############################################################################
+// A library of Michael Gerzon's concepts for Faust organized in 5 sections:
+//
+// * Michael Gerzon early works
+// * A to B and viceversa matrix
+// * Encoders
+// * Decoders
+// * Tools
+//
+//******************************************************************************
+// written by Giuseppe Silvi - 2019
+// based on Michael Gerzon early works
+//
+//******************************************************************************
+// It should be used using the `[...]` environment:
+//
+// ```
+// [...] = library("libraryName");
+// process = [...].functionCall;
+// ```
+//
+// Another option is to import `stdfaust.lib` which already contains the `[...]`
+// environment:
+//
+// ```
+// import("stdfaust.lib");
+// process = [...].functionCall;
+// ```
+//##############################################################################
+
+declare name "Faust Ambisonic Element Library";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare license "CC4";
+
 //-------------------------------------------- RME FireFace 800 - INPUT SELECTOR
 //-------------------------------------------------------------------- 18 INPUTS
-ff800 = ba.selectn(18,channel) : hmeter : _
+ff800 = ba.selectn(18,channel) : shmeter
   with{
-    hmeter(x)		= attach(x, an.amp_follower(0.150, x) : ba.linear2db : hbargraph("[02] INPUT LEVEL [unit:dB]", -70, +6));
-    envelop = abs : max ~ -(1.0/ma.SR) : max(ba.db2linear(-70)) : ba.linear2db;
     channel = nentry("[01] RME FF800 - Input Channel Selector
                     [style:menu{'Analog IN 1':0;
                     'Analog IN 2':1;
@@ -26,7 +61,6 @@ ff800 = ba.selectn(18,channel) : hmeter : _
   };
 
 //-------------------------------------------- RME FireFace UFX - INPUT SELECTOR
-
 // insel = ba.selectn(18,channel) : hmeter : _
 //   with{
 //     hmeter(x)		= attach(x, an.amp_follower(0.150, x) : ba.linear2db : hbargraph("[02] METER [unit:dB]", -70, +5));
