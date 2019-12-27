@@ -37,11 +37,11 @@ declare license "CC4";
 
 //------------------------------------------------------------------ SEAM METERS
 //------------------------------------------------------------------ PEAK METERS
-pvmeter(x) = attach(x, an.amp_follower(0.150, x) : ba.linear2db : vbargraph("[99][unit:dB]", -70, +6));
-phmeter(x) = attach(x, an.amp_follower(0.150, x) : ba.linear2db : hbargraph("[99][unit:dB]", -70, +6));
+pvmeter(x) = attach(x, an.amp_follower(0.150, x) : ba.linear2db : vbargraph("[90][unit:dB]", -70, +6));
+phmeter(x) = attach(x, an.amp_follower(0.150, x) : ba.linear2db : hbargraph("[90][unit:dB]", -70, +6));
 //------------------------------------------------------------------- RMS METERS
-svmeter(x) = attach(x, RMS(1000, x) : ba.linear2db : vbargraph("[99][unit:dB]", -70, +6));
-shmeter(x) = attach(x, RMS(1000, x) : ba.linear2db : hbargraph("[99][unit:dB]", -70, +6));
+svmeter(x) = attach(x, RMS(1000, x) : ba.linear2db : vbargraph("[90][unit:dB]", -70, +6));
+shmeter(x) = attach(x, RMS(1000, x) : ba.linear2db : hbargraph("[90][unit:dB]", -70, +6));
 
 //==============================================================================
 //--------------------------------------------------------------------- LOUDNESS

@@ -42,15 +42,18 @@ import("measurement.lib");
 //------------------------------------------------ INPUT CHANNEL GENERIC CONTROL
 //------------------------------------------------ SELECT THE HARDWARE INTERFACE
 chstrip = vgroup("[01] INPUT CHANNEL", ff800 : inpeq);
+lrstrip = vgroup("[01] STEREO INPUT CHANNEL", ff800_ST : inpeq, inpeq);
+wxyzrip = vgroup("[01] B-FORMAT INPUT CHANNEL", ff800_WXYZ : inpeq, inpeq, inpeq, inpeq);
 
-inpeq = vgroup("[03] CH SETUP", *(gain) :
-        *(rpol) :
-        ba.bypass1(lop,fi.lowpass(2,hcut)) :
-        ba.bypass1(hip,fi.highpass(2,lcut)) :
-        ba.bypass1(eq, (fi.low_shelf(LL, FL) :
-                        fi.peak_eq(LP1, FP1, BP1) :
-                        fi.peak_eq(LP2, FP2, BP2) :
-                        fi.high_shelf(LH, FH)))) with{
+inpeq = vgroup("[91] CH SETUP", *(gain) :
+  *(rpol) :
+  ba.bypass1(lop,fi.lowpass(2,hcut)) :
+  ba.bypass1(hip,fi.highpass(2,lcut)) :
+  ba.bypass1(eq, (fi.low_shelf(LL, FL) :
+    fi.peak_eq(LP1, FP1, BP1) :
+    fi.peak_eq(LP2, FP2, BP2) :
+    fi.high_shelf(LH, FH))))
+  with{
   // GROUPS
   pregroup(x) = hgroup("[03] PRE SECTION", x);
   pg_group(x) = pregroup(vgroup("[01] PHASE and GAIN", x));
