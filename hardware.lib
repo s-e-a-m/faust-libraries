@@ -39,7 +39,7 @@ declare license "CC4";
 //-------------------------------------------------------------------- 18 INPUTS
 ff800 = ba.selectn(18,channel) : shmeter
   with{
-    channel = nentry("[01] RME FF800 - INPUT CHANNEL SELECTOR
+    channel = nentry("[01] RME FF800 - INPUT SELECTOR
       [style:menu{
       'Analog IN 1':0;
       'Analog IN 2':1;
@@ -68,7 +68,7 @@ ff800_ST = si.bus(18) <: ba.selectn(18,lchannel),
                          ba.selectn(18,rchannel) : shmeter, shmeter
   with{
     rchannel = lchannel+(1);
-    lchannel = nentry("[01] RME FF800 - INPUT CHANNEL SELECTOR
+    lchannel = nentry("[01] RME FF800 - INPUT SELECTOR
       [style:menu{
       'Analog IN 1-2':0;
       'Analog IN 3-4':2;
@@ -93,7 +93,7 @@ ff800_WXYZ = si.bus(18) <: ba.selectn(18,wchannel),
     zchannel = ychannel+(1);
     ychannel = xchannel+(1);
     xchannel = wchannel+(1);
-    wchannel = nentry("[01] RME FF800 - INPUT CHANNEL SELECTOR
+    wchannel = nentry("[01] RME FF800 - INPUT SELECTOR
       [style:menu{
       'Analog IN 1-2-3-4':0;
       'Analog IN 5-6-7-8':4;

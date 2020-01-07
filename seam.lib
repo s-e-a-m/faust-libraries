@@ -38,6 +38,7 @@ declare license "CC4";
 import("hardware.lib");
 import("gerzon.lib");
 import("measurement.lib");
+import("nono.lib");
 
 //------------------------------------------------ INPUT CHANNEL GENERIC CONTROL
 //------------------------------------------------ SELECT THE HARDWARE INTERFACE
@@ -56,7 +57,7 @@ inpeq = vgroup("[91] CH SETUP", *(gain) :
   with{
   // GROUPS
   pregroup(x) = hgroup("[03] PRE SECTION", x);
-  pg_group(x) = pregroup(vgroup("[01] PHASE and GAIN", x));
+  pg_group(x) = pregroup(vgroup("[01] PHASE GAIN", x));
   lc_group(x) = pregroup(vgroup("[02] LOW CUT", x));
   hc_group(x) = pregroup(vgroup("[03] HI CUT", x));
   eq_group(x) = vgroup("[04] PARAMETRIC EQ",x);
@@ -65,15 +66,15 @@ inpeq = vgroup("[91] CH SETUP", *(gain) :
   pq2_group(x) = eq_group(hgroup("[03] Band", x));
   ls_group(x) = eq_group(hgroup("[04] Low Shelf",x));
   // REVERSE POLARITY AND GAIN
-  rpol = pg_group(1 - ((checkbox("[01] Reverse Phase")*(2))));
+  rpol = pg_group(1 - ((checkbox("[01] InvPhase")*(2))));
   gain = pg_group(vslider("[02] Gain [unit:dB] [style:knob]", 0, -24, +24, 0.1)) : ba.db2linear : si.smoo;
   // PRE FILTERS
-  lop = hc_group(1 - checkbox("[03] HiCut"));
-  hcut = hc_group(vslider("[04] High Cut [unit:Hz] [style:knob]", 8000, 20, 20000, 0.1)) : si.smoo;
-  hip = lc_group(1 - checkbox("[01] LoCut"));
-  lcut = lc_group(vslider("[02] Low Cut [unit:Hz] [style:knob]", 500, 20, 20000, 0.1)) : si.smoo;
+  lop = hc_group(1 - checkbox("[03] Cut"));
+  hcut = hc_group(vslider("[04] HiFreq [unit:Hz] [style:knob]", 8000, 20, 20000, 0.1)) : si.smoo;
+  hip = lc_group(1 - checkbox("[01] Cut"));
+  lcut = lc_group(vslider("[02] LoFrew [unit:Hz] [style:knob]", 500, 20, 20000, 0.1)) : si.smoo;
   // PARAMETRIC EQ - TWEAKED FROM FAUST DEMOS
-  eq = eq_group(1 - checkbox("[00] EQ ON"));
+  eq = eq_group(1 - checkbox("[00] EQ"));
 	LH = hs_group(vslider("[00] Gain [unit:dB] [style:knob]", 0,-36,36,.1) : si.smoo);
 	FH = hs_group(vslider("[01] Freq [unit:Hz] [style:knob]", 8000,100,19999,1) : si.smoo);
 	LP1 = pq1_group(vslider("[00] Gain 1 [unit:dB] [style:knob]",0,-36,36,0.1) : si.smoo);
@@ -87,6 +88,8 @@ inpeq = vgroup("[91] CH SETUP", *(gain) :
 	LL = ls_group(vslider("[00] Gain [unit:dB] [style:knob]", 0,-36,36,0.1) : si.smoo);
 	FL = ls_group(vslider("[01] Freq [unit:Hz] [style:knob]", 200,20,5000,1): si.smoo);
 };
+
+lopor = ; // LOP da 2 a 4 ordine
 
 //----------------------------------------------- OUTPUT CHANNEL GENERIC CONTROL
 //------------------------------------------------------------------ OUT CHANNEL
