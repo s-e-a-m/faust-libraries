@@ -89,7 +89,7 @@ inpeq = vgroup("[91] CH SETUP", *(gain) :
 	FL = ls_group(vslider("[01] Freq [unit:Hz] [style:knob]", 200,20,5000,1): si.smoo);
 };
 
-lopor = ; // LOP da 2 a 4 ordine
+//lopor = ; // LOP da 2 a 4 ordine
 
 //----------------------------------------------- OUTPUT CHANNEL GENERIC CONTROL
 //------------------------------------------------------------------ OUT CHANNEL

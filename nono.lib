@@ -50,7 +50,7 @@ with{
 	MAXDELAY = 8192; // sync w delays and prime_power_delays above
 	defdurs = (3.00, 4.0, 6.5, 4.5, 2.0); // NB default durations (sec)
 	deffreqs = (350, 1250, 3500, 8000); // NB-1 default crossover frequencies (Hz)
-	fdn_group(x)  = vgroup("FDN REVERB", x);
+	fdn_group(x)  = vgroup("FDN REV 4", x);
 	freq_group(x)   = fdn_group(hgroup("[1] Crossover Frequencies", x));
 	t60_group(x)    = fdn_group(hgroup("[2] Band Decay Times (T60)", x));
 	path_group(x)   = fdn_group(vgroup("[3] Room Dimensions", x));
@@ -75,7 +75,7 @@ with{
 	MAXDELAY = 8192; // sync w delays and prime_power_delays above
 	defdurs = (43.00, 84.0, 66.5, 44.5, 22.0); // NB default durations (sec)
 	deffreqs = (350, 1250, 3500, 8000); // NB-1 default crossover frequencies (Hz)
-	fdn_group(x)  = vgroup("FDN REVERB", x);
+	fdn_group(x)  = vgroup("FDN REV 80", x);
 	freq_group(x)   = fdn_group(hgroup("[1] Crossover Frequencies", x));
 	t60_group(x)    = fdn_group(hgroup("[2] Band Decay Times (T60)", x));
 	path_group(x)   = fdn_group(vgroup("[3] Room Dimensions", x));
