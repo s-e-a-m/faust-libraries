@@ -11,8 +11,8 @@ import("../seam.lib");
 m2bfmt(x) = W,X,Y,Z
   with{
       encoder(x) = hgroup("BFMT ENCODER", x);
-      azi = encoder(vslider("[01] Azimuth [style:knob]", 0, 0, 360, 0.1) : d2r : si.smoo);
-      elv = encoder(vslider("[01] Elevation [style:knob]", 0, 0, 360, 0.1) : d2r : si.smoo);
+      azi = encoder(vslider("[01] Azimuth [style:knob]", 0, 0, 360, 0.1) : deg2rad : si.smoo);
+      elv = encoder(vslider("[01] Elevation [style:knob]", 0, 0, 360, 0.1) : deg2rad : si.smoo);
       W = x * 0.707;
       X = x * cos(azi) * cos(elv);
       Y = x * sin(azi) * cos(elv);

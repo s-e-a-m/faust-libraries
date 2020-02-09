@@ -10,8 +10,8 @@ import("../seam.lib");
 
 lr2bfmt(L,R) = W,X,Y,Z
   with{
-    azi = (30.0 * (ma.PI / 180.0));
-    elv = (00.0 * (ma.PI / 180.0));
+    azi = 30.0 : deg2rad;
+    elv = 00.0 : deg2rad;
 
     WL = L * 0.707;
     XL = L * cos(azi) * cos(elv);
