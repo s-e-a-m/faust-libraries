@@ -1,4 +1,12 @@
+declare name "MICHAEL GERZON STEREO TO BFORMAT ENCODER";
+declare version "001";
+declare author "Giuseppe Silvi";
+declare license "GNU-GPL-v3";
+declare copyright "(c)SEAM 2019";
+declare description "MICHAEL GERZON STEREO TO BFORMAT ENCODER";
+
 import("stdfaust.lib");
+import("../seam.lib");
 
 lr2bfmt(L,R) = W,X,Y,Z
   with{

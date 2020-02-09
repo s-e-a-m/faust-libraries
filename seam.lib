@@ -40,6 +40,13 @@ import("gerzon.lib");
 import("measurement.lib");
 import("nono.lib");
 
+//------------------------------------------------------------------------- MATH
+//----------------------------------------------------------- DEGREES TO RADIANS
+d2r = *(ma.PI/180);
+
+//----------------------------------------------------------- RADIANS TO DEGREES
+r2d = /(ma.PI*180);
+
 //------------------------------------------------ INPUT CHANNEL GENERIC CONTROL
 //------------------------------------------------ SELECT THE HARDWARE INTERFACE
 chstrip = vgroup("[01] INPUT CHANNEL", ff800 : inpeq);

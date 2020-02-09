@@ -1,4 +1,12 @@
+declare name "MICHAEL GERZON BFORMAT TO PLANAR QUADRAPHONIC";
+declare version "001";
+declare author "Giuseppe Silvi";
+declare license "GNU-GPL-v3";
+declare copyright "(c)SEAM 2019";
+declare description "MICHAEL GERZON BFORMAT TO PLANAR QUADRAPHONIC";
+
 import("stdfaust.lib");
+import("../seam.lib");
 
 bamodule(W, X, Y, Z) = LFU,RFD,RBU,LBD
   with{

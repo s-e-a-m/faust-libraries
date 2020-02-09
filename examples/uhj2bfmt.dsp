@@ -1,4 +1,12 @@
+declare name "MICHAEL GERZON UHJ TO BFORMAT DECODER";
+declare version "001";
+declare author "Giuseppe Silvi";
+declare license "GNU-GPL-v3";
+declare copyright "(c)SEAM 2019";
+declare description "MICHAEL GERZON UHJ TO BFORMAT DECODER";
+
 import("stdfaust.lib");
+import("../seam.lib");
 
 uhj2bfmt(L,R,T,Q) = W,X,Y,Z
   with{
