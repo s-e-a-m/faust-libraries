@@ -41,14 +41,14 @@ import("measurement.lib");
 import("nono.lib");
 
 //------------------------------------------------------------------------- MATH
-//----------------------------------------------------------- DEGREES TO RADIANS
+//-------------------------------------------------------- DEGREES TO RADIANS --
 d2r = *(ma.PI/180);
 
-//----------------------------------------------------------- RADIANS TO DEGREES
+//-------------------------------------------------------- RADIANS TO DEGREES --
 r2d = /(ma.PI*180);
 
 //------------------------------------------------ INPUT CHANNEL GENERIC CONTROL
-//------------------------------------------------ SELECT THE HARDWARE INTERFACE
+//--------------------------------------------- SELECT THE HARDWARE INTERFACE --
 chstrip = vgroup("[01] INPUT CHANNEL", ff800 : inpeq);
 lrstrip = vgroup("[01] STEREO INPUT CHANNEL", ff800_ST : inpeq, inpeq);
 wxyzrip = vgroup("[01] B-FORMAT INPUT CHANNEL", ff800_WXYZ : inpeq, inpeq, inpeq, inpeq);
@@ -99,12 +99,12 @@ inpeq = vgroup("[91] CH SETUP", *(gain) :
 //lopor = ; // LOP da 2 a 4 ordine
 
 //----------------------------------------------- OUTPUT CHANNEL GENERIC CONTROL
-//------------------------------------------------------------------ OUT CHANNEL
+//--------------------------------------------------------------- OUT CHANNEL --
 out(c) = hgroup("[99] OUT%o", vgroup("[97]", outdel : outfbank) : *(gain) : svmeter)
   with{
     o = c+(1);
     gain = vslider("[98] Gain [unit:dB]", 0, -70, +12, 0.01) : ba.db2linear : si.smoo;
-    //------------------------------------------------------------ 8-BAND GRAPHIC EQ
+    //----------------------------------------------------- 8-BAND GRAPHIC EQ --
     mth_octave_filterbank_demo(O) = ba.bypass1(fon, mthoctavefilterbankdemo)
     with{
       eq_group(x) = vgroup("[98] EQ", x);
@@ -117,7 +117,7 @@ out(c) = hgroup("[99] OUT%o", vgroup("[97]", outdel : outfbank) : *(gain) : svme
     	fader(i) = eq_group(vslider("[02] Band%2i [unit:dB][style:knob]", 0, -70, 12, 0.1)) : si.smoo;
     };
     outfbank = mth_octave_filterbank_demo(1); // octave-bands = default
-    //----------------------------------------- OUT DELAY FOR LOPUDSPEALER ALINGMENT
+    //---------------------------------- OUT DELAY FOR LOPUDSPEALER ALINGMENT --
     outdel = ba.bypass1(don, de.delay(maxdel, del))
       with{
         maxdel = 192000;
