@@ -1,6 +1,7 @@
 ### Faust ###
 *.app
 faust.*
+_builds
 
 
 # Created by https://www.gitignore.io/api/tex,osx,macos,linux,latex,jekyll,windows
