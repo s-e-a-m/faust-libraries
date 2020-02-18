@@ -8,15 +8,16 @@ declare description "MICHAEL GERZON MONO TO BFORMAT ENCODER";
 import("stdfaust.lib");
 import("../seam.lib");
 
-m2bfmt(x) = W,X,Y,Z
+// LS and RS are dead channels to create VST routing consistency
+m2bfmt(L,R,LS,RS) = W,X,Y,Z
   with{
       encoder(x) = hgroup("BFMT ENCODER", x);
       azi = encoder(vslider("[01] Azimuth [style:knob]", 0, 0, 360, 0.1) : deg2rad : si.smoo);
       elv = encoder(vslider("[01] Elevation [style:knob]", 0, 0, 360, 0.1) : deg2rad : si.smoo);
-      W = x * 0.707;
-      X = x * cos(azi) * cos(elv);
-      Y = x * sin(azi) * cos(elv);
-      Z = x * sin(elv);
+      W = L * 0.707;
+      X = L * cos(azi) * cos(elv);
+      Y = L * sin(azi) * cos(elv);
+      Z = L * sin(elv);
   };
 
-process = os.osc(1000) : m2bfmt;
+process = m2bfmt;

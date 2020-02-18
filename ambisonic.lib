@@ -1,0 +1,27 @@
+//------------------------------------------------------------------------------
+// MS STEREO TO FIRST ORDER B-FORMAT ENCODER
+//------------------------------------------------------------------------------
+// Converts a Mid-Side Stereo stream into Firts Order B-Format
+//
+// #### Reference
+//
+// #### Usage
+//
+// ```
+// _,_ : ms2bfmt : _,_,_,_
+// ```
+//
+// Where the two inputs are respectively:
+// L,R
+//
+// Where the four outpust are respectively:
+// W,X,Y,Z
+//
+//------------------------------------------------------------------------------
+lr2bfmt(M,S) = W,X,Y,Z
+  with{
+    W = 0.707 * (M + S);
+    X = 0.707 * (XL + XR);
+    Y = S;
+    Z = 0.707 * (ZL + ZR);
+};
