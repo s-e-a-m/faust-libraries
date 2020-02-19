@@ -18,10 +18,54 @@
 // W,X,Y,Z
 //
 //------------------------------------------------------------------------------
-lr2bfmt(M,S) = W,X,Y,Z
+ms2bfmt(M,S) = W,X,Y,Z
   with{
-    W = 0.707 * (M + S);
-    X = 0.707 * (XL + XR);
+    W = 0.5 *((M + S) + (M-S));
+    X = M *(cos(0));
     Y = S;
-    Z = 0.707 * (ZL + ZR);
+    Z = 0.0;
+};
+
+//------------------------------------------------------------------------------
+// FIRST ORDER B-FORMAT TO MONO DECODER
+//------------------------------------------------------------------------------
+// Converts a Firts Order B-Format into mono first order signal
+//
+// #### Reference
+// https://en.wikipedia.org/wiki/Ambisonics
+//
+// The B-format components can be combined to derive virtual microphones with
+// any first-order polar pattern (omnidirectional, cardioid, hypercardioid,
+// figure-of-eight or anything in between) pointing in any direction. Several
+// such microphones with different parameters can be derived at the same time,
+// to create coincident stereo pairs (such as a Blumlein) or surround arrays.
+// A horizontal virtual microphone at horizontal angle Θ \Theta with pattern
+// 0 ≤ p ≤ 1 0 \leq p \leq 1 is given by
+// M(\Theta ,p)=p{\sqrt  {2}}W+(1-p)(\cos \Theta X+\sin \Theta Y).
+// This virtual mic is free-field normalised, which means it has a constant
+// gain of one for on-axis sounds. The illustration on the left shows some
+// examples created with this formula. Virtual microphones can be manipulated
+// in post-production: desired sounds can be picked out, unwanted ones
+// suppressed, and the balance between direct and reverberant sound can be
+// fine-tuned during mixing.
+//
+// #### Usage
+//
+// ```
+// _,_,_,_ : bfmt2m : _
+// ```
+//
+// Where the two inputs are respectively:
+// W,X,Y,Z
+//
+// Where the output is a mono signal with modulable polar pattern:
+// m
+//
+//------------------------------------------------------------------------------
+bfmt2m(W,X,Y,Z) = m
+  with{
+      encoder(x) = hgroup("BFMT MONO-DECODER", x);
+      azi = encoder(vslider("[01] Azimuth [style:knob]", 0, 0, 360, 0.1) : deg2rad : si.smoo);
+      p = encoder(vslider("[02] Polar [style:knob]", 0.5, 0, 1, 0.01) : si.smoo);
+      m = p *(0.707*(W))+((1-p) *((X*cos(azi))+(Y*sin(azi))));
 };
