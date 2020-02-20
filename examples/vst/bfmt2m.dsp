@@ -6,7 +6,7 @@ declare copyright "(c)SEAM 2019";
 declare description "MICHAEL GERZON MONO TO BFORMAT ENCODER";
 
 import("stdfaust.lib");
-import("../seam.lib");
+import("../../seam.lib");
 
 bfmt2m(W,X,Y,Z) = m
   with{

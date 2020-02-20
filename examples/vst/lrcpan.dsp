@@ -7,7 +7,7 @@ declare description "MICHAEL GERZON LRC PANNING";
 declare options "[midi:on]";
 
 import("stdfaust.lib");
-import("../seam.lib");
+import("../../seam.lib");
 
 pot = hslider("[01] LRCPOT", 0, -45, 45, 0.1) : /(90.0) : si.smoo;
 

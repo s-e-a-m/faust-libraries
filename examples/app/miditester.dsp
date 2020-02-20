@@ -7,6 +7,6 @@ declare description "MICHAEL GERZON LCR PANNING";
 declare options "[midi:on]";
 
 import("stdfaust.lib");
-import("../seam.lib");
+import("../../seam.lib");
 
 process = miditester;

@@ -6,7 +6,7 @@ declare copyright "(c)SEAM 2019";
 declare description "MS STEREO TO BFORMAT ENCODER";
 
 import("stdfaust.lib");
-import("../seam.lib");
+import("../../seam.lib");
 
 // LS and RS are dead channels to create VST routing consistency
 ms2bfmt(M,S,LS,RS) = W,X,Y,Z

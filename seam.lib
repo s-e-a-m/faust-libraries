@@ -45,11 +45,11 @@ declare version "0.1";
 declare author "Giuseppe Silvi";
 declare license "CC4";
 
-mg = library("gerzon.lib");
-hw = library("hardware.lib");
-me = library("measurement.lib");
-ms = library("midside.lib");
-ln = library("nono.lib");
+import("gerzon.lib");
+import("hardware.lib");
+import("measurement.lib");
+import("midside.lib");
+import("nono.lib");
 
 //===================================================================== MATH ===
 //==============================================================================

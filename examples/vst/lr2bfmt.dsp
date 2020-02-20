@@ -6,7 +6,7 @@ declare copyright "(c)SEAM 2019";
 declare description "MICHAEL GERZON STEREO TO BFORMAT ENCODER";
 
 import("stdfaust.lib");
-import("../seam.lib");
+import("../../seam.lib");
 
 // LS and RS are dead channels to create VST routing consistency
 lr2bfmt(L,R,LR,RS) = W,X,Y,Z

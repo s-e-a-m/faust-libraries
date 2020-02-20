@@ -38,8 +38,6 @@ code has no obligation to be LGPL or GPL. For example you are free to choose a
 commercial or closed source license or any other license if you decide so.
 *******************************************************************************/
 
-hw = library("harware.lib");
-
 declare name "Faust Hardware Interface Library";
 declare version "0.1";
 declare author "Giuseppe Silvi";
