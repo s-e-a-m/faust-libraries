@@ -104,7 +104,7 @@ left(M,S) = 0.707*(M+S);
 // Where the output is the Right component
 //
 //------------------------------------------------------------------------------
-left(M,S) = 0.707*(M-S);
+right(M,S) = 0.707*(M-S);
 
 //------------------------------------------------------------------------------
 // LR TO MID SIDE MATRIX
@@ -127,3 +127,29 @@ left(M,S) = 0.707*(M-S);
 //
 //------------------------------------------------------------------------------
 ms2lr(M,S) = left(M,S), right(M,S);
+
+//------------------------------------------------------------------------------
+// MIDSIDE PANNER
+//------------------------------------------------------------------------------
+// Mid-Side panpot with phase inntegrity of components
+//
+// #### Reference
+//
+// #### Usage
+//
+// ```
+// _ : mspan : _,_
+// ```
+//
+// Where the input is the mono signal to be panned
+//
+// Where the two outputs are respectively:
+// Mid, Side
+//
+//------------------------------------------------------------------------------
+mspan(x) = m, s
+  with{
+    pot = vslider("[01] Azimuth [style:knob]", 0, -180, 180, 0.1) : deg2rad : si.smoo;
+    m = (0.5 * x) + (0.5 * (x * cos(pot)));
+    s = x *(sin(-pot));
+};
