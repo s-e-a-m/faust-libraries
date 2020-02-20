@@ -1,0 +1,65 @@
+//------------------------------------------------------------------------------
+// LR TO MID MATRIX
+//------------------------------------------------------------------------------
+// Converts an LR stereo image into Mid mono signal describes the frontal
+// directional component of the sound image.
+//
+// #### Reference
+//
+// #### Usage
+//
+// ```
+// _,_ : mid : _
+// ```
+//
+// Where the two inputs are respectively:
+// L,R
+//
+// Where the output is the Mid component
+//
+//------------------------------------------------------------------------------
+mid(L,R) = 0.707*(L+R);
+
+//------------------------------------------------------------------------------
+// LR TO SIDE MATRIX
+//------------------------------------------------------------------------------
+// Converts an LR stereo image into Side mono signal describes the lateral
+// bidirectional component of the sound image.
+//
+// #### Reference
+//
+// #### Usage
+//
+// ```
+// _,_ : side : _
+// ```
+//
+// Where the two inputs are respectively:
+// L,R
+//
+// Where the output is the Side component
+//
+//------------------------------------------------------------------------------
+side(L,R) = 0.707*(L-R);
+
+//------------------------------------------------------------------------------
+// LR TO MID SIDE MATRIX
+//------------------------------------------------------------------------------
+// Converts a LR Stereo image into Mid-Side Stereo
+//
+// #### Reference
+//
+// #### Usage
+//
+// ```
+// _,_ : lr2ms : _,_
+// ```
+//
+// Where the two inputs are respectively:
+// L,R
+//
+// Where the two outputs are respectively:
+// Mid, Side
+//
+//------------------------------------------------------------------------------
+lr2ms(L,R) = mid(L,R), side(L,R);
