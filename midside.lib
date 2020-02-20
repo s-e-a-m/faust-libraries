@@ -63,3 +63,67 @@ side(L,R) = 0.707*(L-R);
 //
 //------------------------------------------------------------------------------
 lr2ms(L,R) = mid(L,R), side(L,R);
+
+//------------------------------------------------------------------------------
+// MID-SIDE TO L MATRIX
+//------------------------------------------------------------------------------
+// Converts an MidSide stereo image into Left mono signal.
+//
+// #### Reference
+//
+// #### Usage
+//
+// ```
+// _,_ : left : _
+// ```
+//
+// Where the two inputs are respectively:
+// M,S
+//
+// Where the output is the Left component
+//
+//------------------------------------------------------------------------------
+left(M,S) = 0.707*(M+S);
+
+//------------------------------------------------------------------------------
+// MID-SIDE TO R MATRIX
+//------------------------------------------------------------------------------
+// Converts an MidSide stereo image into Left mono signal.
+//
+// #### Reference
+//
+// #### Usage
+//
+// ```
+// _,_ : right : _
+// ```
+//
+// Where the two inputs are respectively:
+// M,S
+//
+// Where the output is the Right component
+//
+//------------------------------------------------------------------------------
+left(M,S) = 0.707*(M-S);
+
+//------------------------------------------------------------------------------
+// LR TO MID SIDE MATRIX
+//------------------------------------------------------------------------------
+// Converts a LR Stereo image into Mid-Side Stereo
+//
+// #### Reference
+//
+// #### Usage
+//
+// ```
+// _,_ : lr2ms : _,_
+// ```
+//
+// Where the two inputs are respectively:
+// L,R
+//
+// Where the two outputs are respectively:
+// Mid, Side
+//
+//------------------------------------------------------------------------------
+ms2lr(M,S) = left(M,S), right(M,S);
