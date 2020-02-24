@@ -225,7 +225,7 @@ bamodule(W, X, Y, Z) = LFU,RFD,RBU,LBD
 // #### Usage
 //
 // ```
-// _ : m2bfmt : _,_,_,_
+// _ : bfmt : _,_,_,_
 // ```
 //
 // where

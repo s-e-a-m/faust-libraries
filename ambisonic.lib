@@ -87,14 +87,14 @@ ms2bfmt = (_ <: _,_), _;
 // W,X,Y,Z
 //
 //------------------------------------------------------------------------------
-lrms2bfmt = sdmx : ms2bfmt;
+sdmx2bfmt = sdmx : ms2bfmt;
 
 //================================================================= DECODERS ===
 //==============================================================================
 //------------------------------------------------------------------------------
 // FIRST ORDER B-FORMAT TO MONO DECODER
 //------------------------------------------------------------------------------
-// Converts a Firts Order B-Format into mono first order signal
+// Converts a First Order B-Format into mono first order signal
 //
 // #### Reference
 // https://en.wikipedia.org/wiki/Ambisonics
@@ -133,4 +133,34 @@ bfmt2m(W,X,Y,Z) = m
       azi = encoder(vslider("[01] Azimuth [style:knob]", 0, 0, 360, 0.1) : deg2rad : si.smoo);
       p = encoder(vslider("[02] Polar [style:knob]", 0.5, 0, 1, 0.01) : si.smoo);
       m = p *(0.707*(W))+((1-p) *((X*cos(azi))+(Y*sin(azi))));
+};
+
+//------------------------------------------------------------------------------
+// FIRST ORDER B-FORMAT TO REGULAR POLYGON
+//------------------------------------------------------------------------------
+// Converts a First Order B-Format n mono first order signal on the edge of a
+// polygon
+//
+// #### Reference
+// https://en.wikipedia.org/wiki/Ambisonics
+//
+// #### Usage
+//
+// ```
+// _,_,_,_ : bfmt2m : _
+// ```
+//
+// Where the two inputs are respectively:
+// W,X,Y,Z
+//
+// Where the output is a mono signal with modulable polar pattern:
+// m
+//
+//------------------------------------------------------------------------------
+bfmt2poly(n,W,X,Y,Z) = polygon
+  with{
+      azi(n) = 360/(n) : deg2rad;
+      p = 0.5;
+      m = p *(0.707*(W))+((1-p)*((X*cos(azi))+(Y*sin(azi))));
+      polygon(n) = par(i, n, m);
 };
