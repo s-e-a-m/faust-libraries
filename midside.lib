@@ -63,7 +63,7 @@ declare version "0.1";
 // Where the output is the Mid component
 //
 //------------------------------------------------------------------------------
-mid(L,R) = 0.707*(L+R);
+mid(L,R) = 0.5*(L+R);
 
 //------------------------------------------------------------------------------
 // LR TO SIDE MATRIX
@@ -85,7 +85,7 @@ mid(L,R) = 0.707*(L+R);
 // Where the output is the Side component
 //
 //------------------------------------------------------------------------------
-side(L,R) = 0.707*(L-R);
+side(L,R) = 0.5*(L-R);
 
 //------------------------------------------------------------------------------
 // LR TO MID SIDE MATRIX
@@ -128,7 +128,7 @@ lr2ms(L,R) = mid(L,R), side(L,R);
 // Where the output is the Left component
 //
 //------------------------------------------------------------------------------
-left(M,S) = 0.707*(M+S);
+left(M,S) = 0.5*(M+S);
 
 //------------------------------------------------------------------------------
 // MID-SIDE TO R MATRIX
@@ -149,7 +149,7 @@ left(M,S) = 0.707*(M+S);
 // Where the output is the Right component
 //
 //------------------------------------------------------------------------------
-right(M,S) = 0.707*(M-S);
+right(M,S) = 0.5*(M-S);
 
 //------------------------------------------------------------------------------
 // LR TO MID SIDE MATRIX
@@ -186,7 +186,7 @@ ms2lr(M,S) = left(M,S), right(M,S);
 // ```
 //
 //------------------------------------------------------------------------------
-nsum = 0.707*(_+_);
+nsum = 0.5*(_+_);
 
 //------------------------------------------------------------------------------
 // NORMALIZED DIFFERENCE BETWEEN TWO SIGNALS
@@ -201,7 +201,7 @@ nsum = 0.707*(_+_);
 // ```
 //
 //------------------------------------------------------------------------------
-ndif = 0.707*(_-_);
+ndif = 0.5*(_-_);
 
 //------------------------------------------------------------------------------
 // BIDIRECTIONAL LR-MS MATRIX
@@ -244,7 +244,61 @@ sdmx = _,_ <: nsum, ndif;
 // Mid, Side
 //
 //------------------------------------------------------------------------------
-mspan(x) = m, s
+mspan(x,pot) = m, s
+  with{
+    //pot = vslider("[01] Azimuth [style:knob]", 0, -180, 180, 0.1) : deg2rad : si.smoo;
+    m = (0.5 * x) + (0.5 * (x * cos(pot)));
+    s = x *(sin(-pot));
+};
+
+//------------------------------------------------------------------------------
+// STEREO PANNING FOR TWO LEFT AND RIGHT LOUDSPEAKER LISTENING
+//------------------------------------------------------------------------------
+// Mid-Side panpot with phase inntegrity of components to LR matrix
+//
+// #### Reference
+//
+// British Patent Specification 394, 325 - ALAN DOWER BLUMLEIN
+//
+// The invention also consists in a system of sound transmission wherein the
+// sound is receive by two or more microphones, wherein at low frequencies
+// difference in the phase of sound pressure at the microphone is reproduced as
+// difference in volume at the loud speaker
+//
+// #### Usage
+//
+// ```
+// _ : mspan_lr : _,_
+// ```
+//
+// Where the input is the mono signal to be panned
+//
+// Where the two outputs are respectively:
+// Mid, Side
+//
+//------------------------------------------------------------------------------
+mspan_lr = mspan : sdmx;
+
+//------------------------------------------------------------------------------
+// MIDSIDE PANNER
+//------------------------------------------------------------------------------
+// Mid-Side panpot with phase inntegrity of components
+//
+// #### Reference
+//
+// #### Usage
+//
+// ```
+// _ : mspan : _,_
+// ```
+//
+// Where the input is the mono signal to be panned
+//
+// Where the two outputs are respectively:
+// Mid, Side
+//
+//------------------------------------------------------------------------------
+mspanx(x) = m, s
   with{
     pot = vslider("[01] Azimuth [style:knob]", 0, -180, 180, 0.1) : deg2rad : si.smoo;
     m = (0.5 * x) + (0.5 * (x * cos(pot)));
