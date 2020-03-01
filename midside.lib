@@ -238,17 +238,18 @@ sdmx = _,_ <: nsum, ndif;
 // _ : mspan : _,_
 // ```
 //
-// Where the input is the mono signal to be panned
+// Where the first input is the mono signal to be panned, the second the radians
+// rad = vslider("[01] Azimuth [style:knob]", 0, -180, 180, 0.1) : deg2rad : si.smoo;
+// deg2rad is a seam.lib function
 //
 // Where the two outputs are respectively:
 // Mid, Side
 //
 //------------------------------------------------------------------------------
-mspan(x,pot) = m, s
+mspan(x,rad) = m, s
   with{
-    //pot = vslider("[01] Azimuth [style:knob]", 0, -180, 180, 0.1) : deg2rad : si.smoo;
-    m = (0.5 * x) + (0.5 * (x * cos(pot)));
-    s = x *(sin(-pot));
+    m = (0.5 * x) + (0.5 * (x * cos(rad)));
+    s = x *(sin(-rad));
 };
 
 //------------------------------------------------------------------------------
