@@ -9,8 +9,8 @@ import("stdfaust.lib");
 //import("../../seam.lib");
 
 deg2rad = *(ma.PI/180);
-nsum = 0.707*(_+_);
-ndif = 0.707*(_-_);
+nsum = 0.5*(_+_);
+ndif = 0.5*(_-_);
 sdmx = _,_ <: nsum, ndif;
 
 mspan(x) = m, s
