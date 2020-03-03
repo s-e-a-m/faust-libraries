@@ -279,29 +279,3 @@ mspan(x,rad) = m,s
 //
 //------------------------------------------------------------------------------
 mspan_lr = mspan : sdmx;
-
-//------------------------------------------------------------------------------
-// MIDSIDE PANNER
-//------------------------------------------------------------------------------
-// Mid-Side panpot with phase inntegrity of components
-//
-// #### Reference
-//
-// #### Usage
-//
-// ```
-// _ : mspan : _,_
-// ```
-//
-// Where the input is the mono signal to be panned
-//
-// Where the two outputs are respectively:
-// Mid, Side
-//
-//------------------------------------------------------------------------------
-mspanx(x) = m, s
-  with{
-    pot = vslider("[01] Azimuth [style:knob]", 0, -180, 180, 0.1) : deg2rad : si.smoo;
-    m = (0.5 * x) + (0.5 * (x * cos(pot)));
-    s = x *(sin(-pot));
-};

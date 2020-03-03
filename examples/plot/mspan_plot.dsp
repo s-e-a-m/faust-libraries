@@ -9,6 +9,6 @@ import("stdfaust.lib");
 import("../../seam.lib");
 
 pisweep = (os.lf_trianglepos(1)*360)-180;
-pot = pisweep : deg2rad ;//vslider("[01] Azimuth [style:knob]", 0, -180, 180, 0.1) : deg2rad : si.smoo;
+rad = pisweep : deg2rad;
 
-process = 1, pot : mspan_lr;
+process = 1, rad : mspan;
