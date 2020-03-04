@@ -1,9 +1,9 @@
-declare name "MID SIDE PANNER - LEFT RIGHT LOUDSPEAKER";
+declare name "MID SIDE PANNER - LEFT RIGHT LOUDSPEAKER - LEFT CHANNEL IN FEEDBACK";
 declare version "001";
 declare author "Giuseppe Silvi";
 declare license "GNU-GPL-v3";
 declare copyright "(c)SEAM 2019";
-declare description "MID SIDE PANNER - LEFT RIGHT LOUDSPEAKER";
+declare description "MID SIDE PANNER - LEFT RIGHT LOUDSPEAKER - LEFT CHANNEL IN FEEDBACK";
 
 import("stdfaust.lib");
 import("../../seam.lib");
@@ -16,4 +16,4 @@ lrpan(x,pot) 	= l,r
     r = sqrt(1-pot)*x;
 };
 
-process = 1, pot : lrpan;
+process = 1, pot : (+,_ : lrpan)~*(1);
