@@ -11,4 +11,4 @@ import("../../seam.lib");
 pisweep = (os.lf_trianglepos(1)*360)-180;
 pot = pisweep : deg2rad ;
 
-process = 1, pot : (+,_ : mspan_lr)~*(1);
+process = 1, pot : (+,_ : mspan_lr)~*(1), (pot/ma.PI);
