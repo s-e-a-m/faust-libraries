@@ -8,7 +8,6 @@ declare description "MID SIDE PANNER - LEFT RIGHT LOUDSPEAKER - LEFT CHANNEL IN 
 import("stdfaust.lib");
 import("../../seam.lib");
 
-pisweep = (os.lf_trianglepos(1)*360)-180;
-pot = pisweep : deg2rad ;
+radsweep = (os.lf_trianglepos(1)*360)-180 : deg2rad;
 
-process = 1, pot : (+,_ : mspan_lr)~*(1), (pot/ma.PI);
+process =  1,0,(radsweep <:_,_) : (+,_,_ : mspan_lr)~*(1), _/ma.PI;
