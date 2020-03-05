@@ -9,7 +9,5 @@ import("stdfaust.lib");
 import("../../seam.lib");
 
 main(x) = hgroup("Mid-Side Panner", x);
-p = main(vslider("[01] Pat Bal [style:knob]", 0, 0, 1, 0.01)) : si.smoo;
-rad = main(vslider("[02] Azimuth [style:knob]", 0, -180, 180, 0.1)) : deg2rad : si.smoo;
 
-process = _,p,rad : mspan_lr;
+process = _,main(p),main(rad) : mspan_lr;

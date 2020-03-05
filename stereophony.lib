@@ -306,8 +306,8 @@ mspan_lr = mspan(p,rad) : sdmx;
 // Mid, Side
 //
 //------------------------------------------------------------------------------
-lrpanq(x,pot) 	= l,r
+lrpanq(x,p) 	= l,r
   with{
-    l = sqrt(1-pot)*x;
-    r = sqrt(pot)*x;
+    l = sqrt(1-p)*x;
+    r = sqrt(p)*x;
 };

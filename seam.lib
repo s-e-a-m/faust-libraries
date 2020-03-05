@@ -1,12 +1,12 @@
 //################################################################# seam.lib ###
 //
-// The SEAM main library. Its official prefix is `sm`.
+// The SEAM main library.
 //
+// * BASIC FUNCTIONS
 // * MATH
+// * UNDER FINGERS VARIABLES
 // * LOGIC
 // * CHANNEL STRIP
-// *
-// *
 //
 //##############################################################################
 
@@ -38,8 +38,8 @@ code has no obligation to be LGPL or GPL. For example you are free to choose a
 commercial or closed source license or any other license if you decide so.
 *******************************************************************************/
 
-declare name "Faust SEAM general lib";
-declare version "0.1";
+declare name "Faust SEAM main lib";
+declare version "0.2";
 declare author "Giuseppe Silvi";
 declare license "CC4";
 
@@ -47,8 +47,8 @@ import("ambisonic.lib");
 import("gerzon.lib");
 import("hardware.lib");
 import("measurement.lib");
-import("midside.lib");
 import("nono.lib");
+import("stereophony.lib");
 
 //========================================================== BASIC FUNCTIONS ===
 //==============================================================================
@@ -59,9 +59,19 @@ lsweep = ba.sweep((ma.SR/2)-1,1);
 //==============================================================================
 //------------------------------------------------------- DEGREES TO RADIANS ---
 deg2rad = *(ma.PI/180);
-
 //------------------------------------------------------- RADIANS TO DEGREES --–
 rad2deg = /(ma.PI*180);
+
+//================================================== UNDER FINGERS VARIABLES ===
+//==============================================================================
+//------------------------------------------------------------------ RADIANS --–
+// Radians expressed by degrees from -180 (sx) to 180 (dx) by decimal steps
+//------------------------------------------------------------------------------
+rad = vslider("[02]Azimuth[style:knob]",0,-180,180,0.1) : deg2rad : si.smoo;
+//----------------------------------------------------------------- P FACTOR --–
+// P slider from 0 to 1 by centesimal steps
+//------------------------------------------------------------------------------
+p = vslider("[01]P[style:knob]", 0, 0, 1, 0.01) : si.smoo;
 
 //==================================================================== LOGIC ===
 //==============================================================================
