@@ -8,4 +8,4 @@ declare description "LR QUADRATIC PANNER";
 import("stdfaust.lib");
 import("../../seam.lib");
 
-process = lrpanq;
+process = _,p : lrpanq;

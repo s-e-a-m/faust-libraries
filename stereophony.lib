@@ -56,7 +56,7 @@ declare version "0.1";
 // ```
 //
 //------------------------------------------------------------------------------
-nsum = 0.5*(_+_);
+nsum = 0.5*(_+_); //0.618
 
 //------------------------------------------------------------------------------
 // NORMALIZED DIFFERENCE BETWEEN TWO SIGNALS
@@ -167,7 +167,7 @@ mspan_lr(x,p,rad) = mspan(x,p,rad) : sdmx;
 // #### Usage
 //
 // ```
-// _ : lrpanq(pot) : _,_
+// _ : lrpanq(p) : _,_
 // ```
 //
 // Where the input is the mono signal to be panned
