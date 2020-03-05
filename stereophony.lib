@@ -41,138 +41,8 @@ commercial or closed source license or any other license if you decide so.
 declare name "Faust MidSide processing Library";
 declare version "0.1";
 
-//=================================================================== MATRIX ===
+//========================================================== SUM DIFF MATRIX ===
 //==============================================================================
-//------------------------------------------------------------------------------
-// LR TO MID MATRIX
-//------------------------------------------------------------------------------
-// Converts an LR stereo image into Mid mono signal describes the frontal
-// directional component of the sound image.
-//
-// #### Reference
-//
-// #### Usage
-//
-// ```
-// _,_ : mid : _
-// ```
-//
-// Where the two inputs are respectively:
-// L,R
-//
-// Where the output is the Mid component
-//
-//------------------------------------------------------------------------------
-mid(L,R) = 0.5*(L+R);
-
-//------------------------------------------------------------------------------
-// LR TO SIDE MATRIX
-//------------------------------------------------------------------------------
-// Converts an LR stereo image into Side mono signal describes the lateral
-// bidirectional component of the sound image.
-//
-// #### Reference
-//
-// #### Usage
-//
-// ```
-// _,_ : side : _
-// ```
-//
-// Where the two inputs are respectively:
-// L,R
-//
-// Where the output is the Side component
-//
-//------------------------------------------------------------------------------
-side(L,R) = 0.5*(L-R);
-
-//------------------------------------------------------------------------------
-// LR TO MID SIDE MATRIX
-//------------------------------------------------------------------------------
-// Converts a LR Stereo image into Mid-Side Stereo
-//
-// #### Reference
-//
-// #### Usage
-//
-// ```
-// _,_ : lr2ms : _,_
-// ```
-//
-// Where the two inputs are respectively:
-// L,R
-//
-// Where the two outputs are respectively:
-// Mid, Side
-//
-//------------------------------------------------------------------------------
-lr2ms(L,R) = mid(L,R), side(L,R);
-
-//------------------------------------------------------------------------------
-// MID-SIDE TO L MATRIX
-//------------------------------------------------------------------------------
-// Converts an MidSide stereo image into Left mono signal.
-//
-// #### Reference
-//
-// #### Usage
-//
-// ```
-// _,_ : left : _
-// ```
-//
-// Where the two inputs are respectively:
-// M,S
-//
-// Where the output is the Left component
-//
-//------------------------------------------------------------------------------
-left(M,S) = 0.5*(M+S);
-
-//------------------------------------------------------------------------------
-// MID-SIDE TO R MATRIX
-//------------------------------------------------------------------------------
-// Converts an MidSide stereo image into Left mono signal.
-//
-// #### Reference
-//
-// #### Usage
-//
-// ```
-// _,_ : right : _
-// ```
-//
-// Where the two inputs are respectively:
-// M,S
-//
-// Where the output is the Right component
-//
-//------------------------------------------------------------------------------
-right(M,S) = 0.5*(M-S);
-
-//------------------------------------------------------------------------------
-// LR TO MID SIDE MATRIX
-//------------------------------------------------------------------------------
-// Converts a LR Stereo image into Mid-Side Stereo
-//
-// #### Reference
-//
-// #### Usage
-//
-// ```
-// _,_ : lr2ms : _,_
-// ```
-//
-// Where the two inputs are respectively:
-// L,R
-//
-// Where the two outputs are respectively:
-// Mid, Side
-//
-//------------------------------------------------------------------------------
-ms2lr(M,S) = left(M,S), right(M,S);
-
 //------------------------------------------------------------------------------
 // NORMALIZED SUM BETWEEN TWO SIGNALS
 //------------------------------------------------------------------------------
@@ -204,11 +74,12 @@ nsum = 0.5*(_+_);
 ndif = 0.5*(_-_);
 
 //------------------------------------------------------------------------------
-// BIDIRECTIONAL LR-MS MATRIX
+// BIDIRECTIONAL MATRIX LR <-> MS
 //------------------------------------------------------------------------------
-// LR and MS interchange matrix
+// Left Right and Mid-Side stereo interchange matrix
 //
 // #### Reference
+// Blumlein…
 //
 // #### Usage
 //
@@ -217,7 +88,6 @@ ndif = 0.5*(_-_);
 // ```
 //
 // When the two inputs are LR the outs are MS
-//
 // When the two inputs are MS the outs are LR
 //
 //------------------------------------------------------------------------------
@@ -255,7 +125,7 @@ mspan(x,p,rad) = m,s
 //------------------------------------------------------------------------------
 // STEREO PANNING FOR TWO LEFT AND RIGHT LOUDSPEAKER LISTENING
 //------------------------------------------------------------------------------
-// Mid-Side panpot with phase inntegrity of components to LR matrix
+// Mid-Side panpot with phase integrity of components to LR matrix
 //
 // #### Reference
 //
@@ -278,7 +148,7 @@ mspan(x,p,rad) = m,s
 // Mid, Side
 //
 //------------------------------------------------------------------------------
-mspan_lr = mspan(p,rad) : sdmx;
+mspan_lr(x,p,rad) = mspan(x,p,rad) : sdmx;
 
 //------------------------------------------------------------------------------
 // STEREO PANNING FOR TWO LEFT AND RIGHT LOUDSPEAKER LISTENING
@@ -306,7 +176,7 @@ mspan_lr = mspan(p,rad) : sdmx;
 // Mid, Side
 //
 //------------------------------------------------------------------------------
-lrpanq(x,p) 	= l,r
+lrpanq(x,p) = l,r
   with{
     l = sqrt(1-p)*x;
     r = sqrt(p)*x;
