@@ -10,10 +10,4 @@ import("../../seam.lib");
 
 pot = os.lf_trianglepos(1) : 1-(_);
 
-lrpan(x,pot) 	= l,r
-  with{
-    l = sqrt(1-pot)*x;
-    r = sqrt(pot)*x;
-};
-
-process = 1, pot : (+,_ : lrpan)~*(1), (pot*350);
+process = 1, pot : (+,_ : lrpanq)~*(1), (pot*350);

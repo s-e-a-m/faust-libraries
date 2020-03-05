@@ -235,7 +235,7 @@ sdmx = _,_ <: nsum, ndif;
 // #### Usage
 //
 // ```
-// _ : mspan : _,_
+// _ : mspan(p,rad) : _,_
 // ```
 //
 // Where the first input is the mono signal to be panned, the second the radians
@@ -246,9 +246,9 @@ sdmx = _,_ <: nsum, ndif;
 // Mid, Side
 //
 //------------------------------------------------------------------------------
-mspan(x,rad) = m,s
+mspan(x,p,rad) = m,s
   with{
-    m = (0.5*x)+(0.5*(x*cos(rad)));
+    m = (p*x)+((1-p)*(x*cos(rad)));
     s = x*(sin(-rad));
 };
 
@@ -278,4 +278,36 @@ mspan(x,rad) = m,s
 // Mid, Side
 //
 //------------------------------------------------------------------------------
-mspan_lr = mspan : sdmx;
+mspan_lr = mspan(p,rad) : sdmx;
+
+//------------------------------------------------------------------------------
+// STEREO PANNING FOR TWO LEFT AND RIGHT LOUDSPEAKER LISTENING
+//------------------------------------------------------------------------------
+// Mid-Side panpot with phase inntegrity of components to LR matrix
+//
+// #### Reference
+//
+// British Patent Specification 394, 325 - ALAN DOWER BLUMLEIN
+//
+// The invention also consists in a system of sound transmission wherein the
+// sound is receive by two or more microphones, wherein at low frequencies
+// difference in the phase of sound pressure at the microphone is reproduced as
+// difference in volume at the loud speaker
+//
+// #### Usage
+//
+// ```
+// _ : lrpanq(pot) : _,_
+// ```
+//
+// Where the input is the mono signal to be panned
+//
+// Where the two outputs are respectively:
+// Mid, Side
+//
+//------------------------------------------------------------------------------
+lrpanq(x,pot) 	= l,r
+  with{
+    l = sqrt(1-pot)*x;
+    r = sqrt(pot)*x;
+};
