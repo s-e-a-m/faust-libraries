@@ -69,7 +69,7 @@ rad2deg = /(ma.PI*180);
 //------------------------------------------------------------------------------
 rad = vslider("[02]Azimuth[style:knob]",0,-180,180,0.1) : deg2rad : si.smoo;
 //----------------------------------------------------------------- P FACTOR --–
-// P slider from 0 to 1 by centesimal steps
+// P coefficient slider from 0 to 1 by centesimal steps
 //------------------------------------------------------------------------------
 p = vslider("[01]P[style:knob]", 0.5, 0, 1, 0.01) : si.smoo;
 

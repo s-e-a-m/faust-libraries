@@ -1,9 +1,9 @@
 //############################################################## midside.lib ###
 //
-// A library for midside stero processing. Its official prefix is `ms`.
+// A library for sterophonic processing. Its official prefix is `st`.
 //
-// * MATRIX
-// * PANNING
+// * MID-SIDE MATRIX
+// * STEREO PAIRS
 // *
 // *
 // *
@@ -38,7 +38,7 @@ code has no obligation to be LGPL or GPL. For example you are free to choose a
 commercial or closed source license or any other license if you decide so.
 *******************************************************************************/
 
-declare name "Faust MidSide processing Library";
+declare name "Faust Stereophony Library";
 declare version "0.1";
 
 //========================================================== SUM DIFF MATRIX ===
@@ -93,26 +93,23 @@ ndif = 0.5*(_-_);
 //------------------------------------------------------------------------------
 sdmx = _,_ <: nsum, ndif;
 
-//================================================================== PANNING ===
 //==============================================================================
+//=================================================== STEREO PAIRS & PANNING ===
+//=============================================================== COINCIDENT ===
+//==============================================================================
+// MID-SIDE
 //------------------------------------------------------------------------------
-// MIDSIDE PANNER
-//------------------------------------------------------------------------------
-// Mid-Side panpot with phase inntegrity of components
-//
+// The Mid-Side coincident pair polar description
 // #### Reference
-//
 // #### Usage
 //
 // ```
 // _ : mspan(p,rad) : _,_
 // ```
 //
-// Where the first input is the mono signal to be panned, the second is the
+// Where the first input is a mono signal to be panned, the second is the
 // polar coefficient (1 for non-directional, 0.5 for cardioid, 0 for figure-8),
-// the third are the radians
-// rad = vslider("[01] Azimuth [style:knob]", 0, -180, 180, 0.1) : deg2rad : si.smoo;
-// deg2rad is a seam.lib function
+// the third is the angular value expressed in radians -2pi > 0 > 2pi
 //
 // Where the two outputs are respectively:
 // Mid, Side
@@ -122,64 +119,6 @@ midside(x,p,rad) = m,s
   with{
     m = (p*x)+((1-p)*(x*cos(rad)));
     s = x*(sin(-rad));
-};
-
-//------------------------------------------------------------------------------
-// MID-SIDE STEREO PANNING TO LEFT AND RIGHT LOUDSPEAKER LISTENING
-//------------------------------------------------------------------------------
-// Mid-Side panpot with phase integrity of components to LR matrix
-//
-// #### Reference
-//
-// British Patent Specification 394, 325 - ALAN DOWER BLUMLEIN
-//
-// The invention also consists in a system of sound transmission wherein the
-// sound is receive by two or more microphones, wherein at low frequencies
-// difference in the phase of sound pressure at the microphone is reproduced as
-// difference in volume at the loud speaker
-//
-// #### Usage
-//
-// ```
-// _ : mspan_lr(p,rad) : _,_
-// ```
-//
-// Where the input is the mono signal to be panned
-//
-// Where the two outputs are respectively:
-// Mid, Side
-//
-//------------------------------------------------------------------------------
-midside_lr(x,p,rad) = mspan(x,p,rad) : sdmx;
-
-//------------------------------------------------------------------------------
-// CURTIS ROADS CONSTANT POWER PANNING
-//------------------------------------------------------------------------------
-// Mid-Side panpot with phase inntegrity of components
-//
-// #### Reference
-// CMT pg460
-//
-// #### Usage
-//
-// ```
-// _ : mspan(p,rad) : _,_
-// ```
-//
-// Where the first input is the mono signal to be panned, the second is the
-// polar coefficient (1 for non-directional, 0.5 for cardioid, 0 for figure-8),
-// the third are the radians
-// rad = vslider("[01] Azimuth [style:knob]", 0, -180, 180, 0.1) : deg2rad : si.smoo;
-// deg2rad is a seam.lib function
-//
-// Where the two outputs are respectively:
-// Mid, Side
-//
-//------------------------------------------------------------------------------
-crcp(x,rad) = left,right
-  with{
-    left =  x*((sqrt(2)/2)*(cos(rad)+sin(-rad)));
-    right = x*((sqrt(2)/2)*(cos(rad)-sin(-rad)));
 };
 
 //------------------------------------------------------------------------------
@@ -334,19 +273,63 @@ ortf(x,rad) = left,right
     right = ((1*itdr)+(0.5*(itdr*(cos(rad))))+(0.866*(itdr*(sin(rad)))))/2;
 };
 
+//==============================================================================
+//================================================================== PANNING ===
+//==============================================================================
+// MID-SIDE STEREO PANNING TO LEFT AND RIGHT LOUDSPEAKER LISTENING
 //------------------------------------------------------------------------------
-// STEREO PANNING FOR TWO LEFT AND RIGHT LOUDSPEAKER LISTENING
-//------------------------------------------------------------------------------
-// Mid-Side panpot with phase inntegrity of components to LR matrix
-//
+// Mid-Side panner with phase integrity of components to LR matrix
 // #### Reference
-//
 // British Patent Specification 394, 325 - ALAN DOWER BLUMLEIN
-//
 // The invention also consists in a system of sound transmission wherein the
 // sound is receive by two or more microphones, wherein at low frequencies
 // difference in the phase of sound pressure at the microphone is reproduced as
 // difference in volume at the loud speaker
+//
+// #### Usage
+//
+// ```
+// _ : mspan_lr(p,rad) : _,_
+// ```
+//
+// Where the input is the mono signal to be Left and Right panned
+//
+// Where the two outputs are respectively:
+// Mid, Side
+//
+//------------------------------------------------------------------------------
+mspan_lr(x,p,rad) = mspan(x,p,rad) : sdmx;
+
+//------------------------------------------------------------------------------
+// CURTIS ROADS CONSTANT POWER PANNING
+//------------------------------------------------------------------------------
+// Constant Power Panning as described by Curtis Roads in Computer Music Tutorial
+// #### Reference
+// CMT pg460
+//
+// #### Usage
+//
+// ```
+// _ : crcp(rad) : _,_
+// ```
+//
+// Where the first input is the mono signal to be panned
+//
+// Where the two outputs are respectively:
+// Left and Right
+//
+//------------------------------------------------------------------------------
+crcp(x,rad) = left,right
+  with{
+    left = x*((sqrt(2)/2)*(cos(rad)+sin(-rad)));
+    rright = x*((sqrt(2)/2)*(cos(rad)-sin(-rad)));
+};
+
+//------------------------------------------------------------------------------
+// STEREO PANNING FOR TWO LEFT AND RIGHT LOUDSPEAKER LISTENING
+//------------------------------------------------------------------------------
+// Quadratic Amplitude Pannner
+// #### Reference
 //
 // #### Usage
 //
@@ -357,11 +340,11 @@ ortf(x,rad) = left,right
 // Where the input is the mono signal to be panned
 //
 // Where the two outputs are respectively:
-// Mid, Side
+// Left and Right
 //
 //------------------------------------------------------------------------------
-lrquad(x,p) = l,r
+lrquad(x,p) = left,right
   with{
-    l = sqrt(1-p)*x;
-    r = sqrt(p)*x;
+    left = sqrt(1-p)*x;
+    right = sqrt(p)*x;
 };
