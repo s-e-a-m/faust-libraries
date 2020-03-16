@@ -108,7 +108,9 @@ sdmx = _,_ <: nsum, ndif;
 // _ : mspan(p,rad) : _,_
 // ```
 //
-// Where the first input is the mono signal to be panned, the second the radians
+// Where the first input is the mono signal to be panned, the second is the
+// polar coefficient (1 for non-directional, 0.5 for cardioid, 0 for figure-8),
+// the third are the radians
 // rad = vslider("[01] Azimuth [style:knob]", 0, -180, 180, 0.1) : deg2rad : si.smoo;
 // deg2rad is a seam.lib function
 //
@@ -116,14 +118,14 @@ sdmx = _,_ <: nsum, ndif;
 // Mid, Side
 //
 //------------------------------------------------------------------------------
-mspan(x,p,rad) = m,s
+midside(x,p,rad) = m,s
   with{
     m = (p*x)+((1-p)*(x*cos(rad)));
     s = x*(sin(-rad));
 };
 
 //------------------------------------------------------------------------------
-// STEREO PANNING FOR TWO LEFT AND RIGHT LOUDSPEAKER LISTENING
+// MID-SIDE STEREO PANNING TO LEFT AND RIGHT LOUDSPEAKER LISTENING
 //------------------------------------------------------------------------------
 // Mid-Side panpot with phase integrity of components to LR matrix
 //
@@ -139,7 +141,7 @@ mspan(x,p,rad) = m,s
 // #### Usage
 //
 // ```
-// _ : mspan_lr : _,_
+// _ : mspan_lr(p,rad) : _,_
 // ```
 //
 // Where the input is the mono signal to be panned
@@ -148,7 +150,189 @@ mspan(x,p,rad) = m,s
 // Mid, Side
 //
 //------------------------------------------------------------------------------
-mspan_lr(x,p,rad) = mspan(x,p,rad) : sdmx;
+midside_lr(x,p,rad) = mspan(x,p,rad) : sdmx;
+
+//------------------------------------------------------------------------------
+// CURTIS ROADS CONSTANT POWER PANNING
+//------------------------------------------------------------------------------
+// Mid-Side panpot with phase inntegrity of components
+//
+// #### Reference
+// CMT pg460
+//
+// #### Usage
+//
+// ```
+// _ : mspan(p,rad) : _,_
+// ```
+//
+// Where the first input is the mono signal to be panned, the second is the
+// polar coefficient (1 for non-directional, 0.5 for cardioid, 0 for figure-8),
+// the third are the radians
+// rad = vslider("[01] Azimuth [style:knob]", 0, -180, 180, 0.1) : deg2rad : si.smoo;
+// deg2rad is a seam.lib function
+//
+// Where the two outputs are respectively:
+// Mid, Side
+//
+//------------------------------------------------------------------------------
+crcp(x,rad) = left,right
+  with{
+    left =  x*((sqrt(2)/2)*(cos(rad)+sin(-rad)));
+    right = x*((sqrt(2)/2)*(cos(rad)-sin(-rad)));
+};
+
+//------------------------------------------------------------------------------
+// XY 90 DEGREES COINCIDENT PANNER
+//------------------------------------------------------------------------------
+// Mid-Side panpot with phase inntegrity of components
+//
+// #### Reference
+//
+// #### Usage
+//
+// ```
+// _ : mspan(p,rad) : _,_
+// ```
+//
+// Where the first input is the mono signal to be panned, the second is the
+// polar coefficient (1 for non-directional, 0.5 for cardioid, 0 for figure-8),
+// the third are the radians
+// rad = vslider("[01] Azimuth [style:knob]", 0, -180, 180, 0.1) : deg2rad : si.smoo;
+// deg2rad is a seam.lib function
+//
+// Where the two outputs are respectively:
+// Mid, Side
+//
+//------------------------------------------------------------------------------
+xy90(x,rad) = left,right
+  with{
+    left =  ((1.415*x)+(x*(cos(rad)))+(x*(sin(-rad))))/(2.83);
+    right = ((1.415*x)+(x*(cos(rad)))+(x*(sin(rad))))/(2.83);
+};
+
+//------------------------------------------------------------------------------
+// XY 90 DEGREES COINCIDENT PANNER
+//------------------------------------------------------------------------------
+// Mid-Side panpot with phase inntegrity of components
+//
+// #### Reference
+//
+// #### Usage
+//
+// ```
+// _ : mspan(p,rad) : _,_
+// ```
+//
+// Where the first input is the mono signal to be panned, the second is the
+// polar coefficient (1 for non-directional, 0.5 for cardioid, 0 for figure-8),
+// the third are the radians
+// rad = vslider("[01] Azimuth [style:knob]", 0, -180, 180, 0.1) : deg2rad : si.smoo;
+// deg2rad is a seam.lib function
+//
+// Where the two outputs are respectively:
+// Mid, Side
+//
+//------------------------------------------------------------------------------
+xy120(x,rad) = left,right
+  with{
+    left =  ((1*x)+(0.5*(x*(cos(rad))))+(0.866*(x*(sin(-rad)))))/2;
+    right = ((1*x)+(0.5*(x*(cos(rad))))+(0.866*(x*(sin(rad)))))/2;
+};
+
+//------------------------------------------------------------------------------
+// XY 90 DEGREES COINCIDENT PANNER
+//------------------------------------------------------------------------------
+// Mid-Side panpot with phase inntegrity of components
+//
+// #### Reference
+//
+// #### Usage
+//
+// ```
+// _ : mspan(p,rad) : _,_
+// ```
+//
+// Where the first input is the mono signal to be panned, the second is the
+// polar coefficient (1 for non-directional, 0.5 for cardioid, 0 for figure-8),
+// the third are the radians
+// rad = vslider("[01] Azimuth [style:knob]", 0, -180, 180, 0.1) : deg2rad : si.smoo;
+// deg2rad is a seam.lib function
+//
+// Where the two outputs are respectively:
+// Mid, Side
+//
+//------------------------------------------------------------------------------
+xy180(x,rad) = left,right
+  with{
+    left =  (0.5*x)+(0.5*(x*(sin(-rad))));
+    right = (0.5*x)+(0.5*(x*(sin(rad))));
+};
+
+//------------------------------------------------------------------------------
+// BLUMLEIN COINCIDENT PANNER
+//------------------------------------------------------------------------------
+// Mid-Side panpot with phase inntegrity of components
+//
+// #### Reference
+//
+// #### Usage
+//
+// ```
+// _ : mspan(p,rad) : _,_
+// ```
+//
+// Where the first input is the mono signal to be panned, the second is the
+// polar coefficient (1 for non-directional, 0.5 for cardioid, 0 for figure-8),
+// the third are the radians
+// rad = vslider("[01] Azimuth [style:knob]", 0, -180, 180, 0.1) : deg2rad : si.smoo;
+// deg2rad is a seam.lib function
+//
+// Where the two outputs are respectively:
+// Mid, Side
+//
+//------------------------------------------------------------------------------
+blumlein(x,rad) = left,right
+  with{
+    left =  0.707*((x*(cos(rad)))+(x*(sin(-rad))));
+    right = 0.707*((x*(cos(rad)))-(x*(sin(-rad))));
+};
+
+//------------------------------------------------------------------------------
+// ORTF PANNER
+//------------------------------------------------------------------------------
+// Mid-Side panpot with phase inntegrity of components
+//
+// #### Reference
+//
+// #### Usage
+//
+// ```
+// _ : mspan(p,rad) : _,_
+// ```
+//
+// Where the first input is the mono signal to be panned, the second is the
+// polar coefficient (1 for non-directional, 0.5 for cardioid, 0 for figure-8),
+// the third are the radians
+// rad = vslider("[01] Azimuth [style:knob]", 0, -180, 180, 0.1) : deg2rad : si.smoo;
+// deg2rad is a seam.lib function
+//
+// Where the two outputs are respectively:
+// Mid, Side
+//
+//------------------------------------------------------------------------------
+ortf(x,rad) = left,right
+  with{
+    d = 0.17;
+    quad(k) = k*k;
+    nrad = rad+ma.PI;
+    delta(d,nrad) = sqrt(1-(d*cos(nrad))+quad(d)/4)-sqrt(1+(d*cos(nrad))+quad(d)/4);
+    del = pm.l2s(delta);
+    itdl = x : de.fdelay3(1024, max(del(d,nrad), 0) + 1);
+    itdr = x : de.fdelay3(1014, max(-del(d,nrad), 0) + 1);
+    left = ((1*itdl)+(0.5*(itdl*(cos(rad))))+(0.866*(itdl*(sin(-rad)))))/2;
+    right = ((1*itdr)+(0.5*(itdr*(cos(rad))))+(0.866*(itdr*(sin(rad)))))/2;
+};
 
 //------------------------------------------------------------------------------
 // STEREO PANNING FOR TWO LEFT AND RIGHT LOUDSPEAKER LISTENING
@@ -176,7 +360,7 @@ mspan_lr(x,p,rad) = mspan(x,p,rad) : sdmx;
 // Mid, Side
 //
 //------------------------------------------------------------------------------
-lrpanq(x,p) = l,r
+lrquad(x,p) = l,r
   with{
     l = sqrt(1-p)*x;
     r = sqrt(p)*x;
