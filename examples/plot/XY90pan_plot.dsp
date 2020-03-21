@@ -12,4 +12,4 @@ import("../../seam.lib");
 radsweep = (os.lf_trianglepos(1)*360)-180 : deg2rad;
 
 //process = os.osc(700),radsweep : xy90 <: _,_,nsum,ndif;
-process = 1,radsweep : xy90 <: _,_,nsum,ndif;
+process = 1,radsweep : xy90 <: _,_,nsum;

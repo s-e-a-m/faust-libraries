@@ -11,4 +11,4 @@ import("../../seam.lib");
 //radsweep = (os.lf_trianglepos(1)*90)-45 : deg2rad;
 radsweep = (os.lf_trianglepos(1)*360)-180 : deg2rad;
 
-process = 1,radsweep : blumlein <: _,_,+ : _,_,*(0.5);
+process = 1,radsweep : blumlein <: _,_,nsum;

@@ -12,7 +12,7 @@ import("../../seam.lib");
 radsweep = (os.lf_trianglepos(1)*360)-180 : deg2rad;
 radfix = 23 : deg2rad;
 
-//process = os.osc(700),radsweep : ortf <: _,_,nsum,ndif;
+process = 1,radsweep : ortf <: _,_,nsum;
 //process = os.osc(20000),radsweep : ortf <: _,_,nsum,ndif;
 
 band1 = os.osc(20000),radfix : ortf : nsum;// : RMS(1000);
@@ -30,4 +30,4 @@ band10 = os.osc(35),radfix : ortf : nsum;// : RMS(1000);
 
 ortfnoise = no.pink_noise, radfix : ortf <: nsum,ndif;
 
-process = ortfnoise;
+//process = ortfnoise;
