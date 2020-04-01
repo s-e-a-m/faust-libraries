@@ -49,6 +49,7 @@ import("hardware.lib");
 import("measurement.lib");
 import("nono.lib");
 import("stereophony.lib");
+import("vcs3.lib");
 
 //========================================================== BASIC FUNCTIONS ===
 //==============================================================================
