@@ -25,7 +25,7 @@
 <rect x="73.000000" y="57.000000" width="90.300000" height="24.000000" rx="0" ry="0" style="stroke:none;fill:#cccccc;"/>
 <rect x="72.000000" y="56.000000" width="90.300000" height="24.000000" rx="0" ry="0" style="stroke:none;fill:#003366;"/>
 </a>
-<a xlink:href="midside-0x7fd209e09c10.svg">
+<a xlink:href="./midside-0x7fd209e09c10.svg">
 <text x="117.150000" y="70.000000" font-family="Arial" font-size="7" text-anchor="middle" fill="#FFFFFF">midside(x1)(x2)(x3)</text>
 </a>
 <circle cx="74.000000" cy="58.000000" r="1"/>
