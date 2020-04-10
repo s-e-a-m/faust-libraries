@@ -298,7 +298,7 @@ ortf(x,rad) = left,right
 // Mid, Side
 //
 //------------------------------------------------------------------------------
-mspan_lr(x,p,rad) = mspan(x,p,rad) : sdmx;
+mspan_lr(x,p,rad) = midside(x,p,rad) : sdmx;
 
 //------------------------------------------------------------------------------
 // CURTIS ROADS CONSTANT POWER PANNING
