@@ -1,11 +1,11 @@
-//########################################################## measurement.lib ###
+//################################################################# nono.lib ###
 //
-// A library for analise and measure signals. Its official prefix is `me`.
+// A library for the exploration of the Luigi Nono's Live Electronics Instruments
 //
-// * LIVE ELECTRONICS
-// *
-// *
-// *
+// * HARMONIZER
+// * DELAY BANKS
+// * REVERBERATORS
+// * HALAPHON
 // *
 //
 //##############################################################################
