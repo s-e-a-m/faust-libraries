@@ -39,7 +39,9 @@ L ----- + ----- R
   •     |     •
      •  |  •
         B
-```text        
+```        
+
+#### Code
 
 ```bash
 lr2surr(L,R) = F,R,B,L
