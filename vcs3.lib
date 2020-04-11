@@ -55,20 +55,26 @@ declare license "CC4";
 // #### Usage
 //
 // ```
-// vcs3osc1(freq) : _,_
+// vcs3osc1(f,s,sl,pl) : _,_
 // ```
 //
+// Where
+// f is the frequency between 1 and 10000 Hz
+// s is the shape between 0 and 10, sinusoidal at 0.5, halfsin at 0, -half at 10
+// sl is the shaped-sinusoidal amplitude level
+// pl is the sawtooth amplitude level
+//
 // Where the two outputs are respectively:
-// SINE and SAW
+// (SHAPED)SINE and SAW
 //
 //------------------------------------------------------------------------------
 // osc1_g(x) = hgroup("[001]OSCILLATOR 1", x);
 // freq  = osc1_g(vslider("[001]FREQUENCY[style:knob][scale:exp]", 100,1,10000,0.01) : si.smoo);
-vcs3osc1(freq,shape) = sine+wsine, saw
+vcs3osc1(f,s,sl,pl) = sine+wsine, saw
   with{
-    step = freq/ma.SR;
-    phasor(step) = +(step)~ ma.decimal : -(step);
-    sine = sin(phasor(step)*2*ma.PI) : *(0.5*sin(shape*(ma.PI)));
-    wsine = sin(phasor(step)*(-1)*ma.PI) :+(0.5): *(cos(shape*(ma.PI)));
+    step = f/ma.SR;
+    phasor(step) = step : (+ : ma.decimal)~_;
+    sine = sin(phasor(step)*2*ma.PI) : *(0.5*sin(s*(ma.PI)));
+    wsine = sin(phasor(step)*(-1)*ma.PI) : +(0.5) : *(cos(s*(ma.PI)));
     saw = phasor(step)-(0.5);
 };
