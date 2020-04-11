@@ -69,6 +69,10 @@ rad2deg = /(ma.PI*180);
 // Radians expressed by degrees from -180 (sx) to 180 (dx) by decimal steps
 //------------------------------------------------------------------------------
 rad = vslider("[02]Azimuth[style:knob]",0,-180,180,0.1) : deg2rad : si.smoo;
+//------------------------------------------------------------------ RADIANS --–
+// Radians expressed by degrees from -180 (sx) to 180 (dx) by decimal steps
+//------------------------------------------------------------------------------
+frontrad = vslider("[02]Frontal Azimuth[style:knob]",0,-45,45,0.1) : deg2rad : si.smoo;
 //----------------------------------------------------------------- P FACTOR --–
 // P coefficient slider from 0 to 1 by centesimal steps
 //------------------------------------------------------------------------------

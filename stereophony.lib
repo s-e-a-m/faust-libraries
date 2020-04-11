@@ -4,7 +4,7 @@
 //
 // * MID-SIDE MATRIX
 // * STEREO PAIRS
-// *
+// * PANNING
 // *
 // *
 //
@@ -319,10 +319,10 @@ mspan_lr(x,p,rad) = midside(x,p,rad) : sdmx;
 // Left and Right
 //
 //------------------------------------------------------------------------------
-crcp(x,rad) = left,right
+crcppan(x,rad) = left,right
   with{
     left = x*((sqrt(2)/2)*(cos(rad)+sin(-rad)));
-    rright = x*((sqrt(2)/2)*(cos(rad)-sin(-rad)));
+    right = x*((sqrt(2)/2)*(cos(rad)-sin(-rad)));
 };
 
 //------------------------------------------------------------------------------
