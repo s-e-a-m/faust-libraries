@@ -82,3 +82,85 @@ process = sf.oscsin(100) <: itdel, vuvoiced : _, sf.cross(2), _ : *,*;
 //                <: cos, sin;
 //   };
 //
+
+declare name "charlieverb";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare description "CharlieVerb by Giorgio Nottoli";
+
+import("stdfaust.lib");
+
+//charlieverb = _,_ <: (*(g)*fixedgain,*(g)*fixedgain : stereo_freeverb(combfeed, allpassfeed, damping, spatSpread)), *(1-g), *(1-g) :> _,_
+charlieverb = _ <: dry, reverb : mixer;
+    dry = _;
+    reverb = inputfilters(ilop,ihip) : predelay(pdly) : freeverb(combfeed, damping, allpassfeed);
+
+
+
+	allpassfeed = 0.5;
+
+	fixedgain = 0.1;
+	origSR = 44100;
+
+    parameters(x) = hgroup("CharlieVerb",x);
+	knobGroup(x) = parameters(vgroup("[0]",x));
+
+    scaledamp = 0.4;
+	damping = knobGroup(vslider("[0] Damp [style: knob]",0.5, 0, 1, 0.025)*scaledamp*origSR/ma.SR);
+
+    scaleroom = 0.28;
+    offsetroom  = 0.7;
+	combfeed = knobGroup(vslider("[1] Room Size [style: knob]", 0.5, 0, 1, 0.025) * scaleroom * origSR/ma.SR + offsetroom);
+    //process = combfeed;
+
+    // GIUSEPPE ----------------------------------------------------------
+    // INPUT-FILTER
+    fi_g(x) = parameters(hgroup("INPUT FILTERS",x));
+    ihip = fi_g(vslider("HIPASS[style:knob]", 20,20,1000,0.1) : si.smoo);
+    ilop = fi_g(vslider("LOPASS[style:knob]", 20000,1000,20000,0.1) : si.smoo);
+    inputfilters(ilop,ihip) = fi.lowpass(2,ilop) : fi.highpass(2,ihip);
+
+    // PRE-DELAY
+    pdly = fi_g(int(vslider("[01]PREDELAY[style:knob]", 1,1,100,0.1)/1000 : ba.sec2samp));
+    predelay(pdly) = de.delay(ma.SR,pdly);
+
+    // MIXER
+    om_g(x) = parameters(hgroup("[99]OUTPUT MIXER", x));
+    inlev = *(om_g(vslider("[01]INPUT LEVEL", 0,0,1,0.01) : si.smoo));
+    er = *(om_g(vslider("[02]EARLY REFLECTIONS", 0,0,1,0.01) : si.smoo));
+    diff = *(om_g(vslider("[03]DIFFUSION", 0,0,1,0.01) : si.smoo));
+    mixer = inlev, er, diff;
+    // GIUSEPPE ------------------------------------------------------ END
+    //stereo_freeverb(fb1, fb2, damp, spread) =  + <: mono_freeverb(fb1, fb2, damp,0), mono_freeverb(fb1, fb2, damp, spread);
+
+    freeverb(combfeed, damp, allpassfeed) = earlyreflections(combfeed, damp) <: _, diffusion(allpassfeed);
+
+    earlyreflections(fb1, damp) = _ <: par(i,8,lbcf(combtuningL(i),fb1,damp)) :> _;
+    diffusion(allpassfeed) = seq(i,4,fi.allpass_comb(1024, allpasstuningL(i), -allpassfeed));
+
+    // Filters parameters
+    combtuningL(0) = 1116*ma.SR/origSR : int;
+    combtuningL(1) = 1188*ma.SR/origSR : int;
+    combtuningL(2) = 1277*ma.SR/origSR : int;
+    combtuningL(3) = 1356*ma.SR/origSR : int;
+    combtuningL(4) = 1422*ma.SR/origSR : int;
+    combtuningL(5) = 1491*ma.SR/origSR : int;
+    combtuningL(6) = 1557*ma.SR/origSR : int;
+    combtuningL(7) = 1617*ma.SR/origSR : int;
+
+    allpasstuningL(0) = 556*ma.SR/origSR : int;
+    allpasstuningL(1) = 441*ma.SR/origSR : int;
+    allpasstuningL(2) = 341*ma.SR/origSR : int;
+    allpasstuningL(3) = 225*ma.SR/origSR : int;
+    // Lowpass Feedback Combfiler:
+    // https://ccrma.stanford.edu/~jos/pasp/Lowpass_Feedback_Comb_Filter.html
+    aptgn = 225*ma.SR/origSR : int;
+    apgn = fi.allpass_comb(1024, aptgn, -allpassfeed);
+    lbcf(dt, fb, damp) = (+:@(dt) : apgn) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
+    //lbcf(dt, fb, damp) = (+:@(dt)) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
+
+//aptgn = 225*ma.SR/origSR : int;
+//apgn = fi.allpass_comb(1024, aptgn, -fb2);
+//lbcf(dt, fb, damp) = (+:@(dt) : apgn) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
+
+process = charlieverb :> _ <:_,_ ;
