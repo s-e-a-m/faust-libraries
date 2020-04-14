@@ -1,6 +1,6 @@
 //############################################################# hardware.lib ###
 //
-// A library for analise and measure signals. Its official prefix is `me`.
+// A library for real word hardware connection. Its official prefix is `ha`.
 //
 // * AUDIO INTERFACE
 // * MIDI
