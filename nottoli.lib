@@ -164,3 +164,55 @@ charlieverb = _ <: dry, reverb : mixer;
 //lbcf(dt, fb, damp) = (+:@(dt) : apgn) ~ (*(1-damp) : (+ ~ *(damp)) : *(fb));
 
 process = charlieverb :> _ <:_,_ ;
+
+//-------------------------------------------------------------- CHARLIEVERB ---
+//-------------------------------------------------------------- CSOUND --------
+//-------------------------------------------------------------- PORTING -------
+import("stdfaust.lib");
+
+// GLOBAL INTERFACE
+parameters(x) = hgroup("CharlieVerb",x);
+
+// INPUT-FILTER
+fi_g(x) = parameters(vgroup("INPUT FILTERS",x));
+ihip = fi_g(vslider("[01]HIPASS[style:knob][scale:exp]", 20,20,1000,0.1) : si.smoo);
+ilop = fi_g(vslider("[02]LOPASS[style:knob][scale:exp]", 20000,1000,20000,0.1) : si.smoo);
+input_filters(ihip,ilop) = fi.highpass(2,ihip) : fi.lowpass(2,ilop);
+
+// PRE-DELAY
+pdly = fi_g(int(vslider("[03]PREDELAY[style:knob]", 1,1,100,0.1)/1000 : ba.sec2samp));
+mpdl = ba.sec2samp(0.11) : int;
+predelay(pdly) = de.delay(mpdl,pdly);
+
+ifactor = ma.SR/origSR;
+origSR = 44100;
+dry = _;
+
+early_reflections = _;
+diffusion = fragmentation;
+
+//fragmentation (to smare pulses) 3x allpass filters
+//delays
+itfrag1 = (67/25600)*ifactor;
+itfrag2 = (213/25600)*ifactor;
+itfrag3 = (647/25600)*ifactor;
+
+dT = int(vslider("[04]Decay Time[style:knob]", 0.1,0.1,1,0.01) : ba.sec2samp);
+fragmentation = fi.allpass_comb(ma.SR,dT*itfrag1,-(2*itfrag1)) :
+                fi.allpass_comb(ma.SR,dT*itfrag2,-(2*itfrag2)) :
+                fi.allpass_comb(ma.SR,dT*itfrag3,-(2*itfrag3)) ;
+//process = _*0.707<:(_*0.25),(fragmentation * 0.125);
+
+// MIXER
+om_g(x) = parameters(hgroup("[99]OUTPUT MIXER", x));
+inlev = *(om_g(vslider("[01]INPUT LEVEL", 0,0,1,0.01) : si.smoo));
+er = *(om_g(vslider("[02]EARLY REFLECTIONS", 0,0,1,0.01) : si.smoo));
+diff = *(om_g(vslider("[03]DIFFUSION", 0,0,1,0.01) : si.smoo));
+mixer = inlev + (er + diff);
+// GIUSEPPE ------------------------------------------------------ END
+
+charlieverb = _ <: dry, (input_filters(ihip,ilop) :
+                         predelay(pdly) <: (early_reflections,
+                                            diffusion)) : mixer;
+
+process = charlieverb;
