@@ -68,8 +68,8 @@ declare license "CC4";
 //------------------------------------------------------------------------------
 tone(freq) = _*c1 : (+~_ *(c2))
 with{
-hp = freq;
-b = 2 - (cos(2*ma.PI*(hp/ma.SR)));
-c1 = 1-c2;
-c2 = b - sqrt((b*b)-1.0);
+  hp = freq;
+  b = 2 - (cos(2*ma.PI*(hp/ma.SR)));
+  c1 = 1-c2;
+  c2 = b - sqrt((b*b)-1.0);
 };
