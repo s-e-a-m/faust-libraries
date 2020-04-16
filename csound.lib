@@ -46,9 +46,15 @@ declare license "CC4";
 //================================================================== OPCODES ===
 //==============================================================================
 //------------------------------------------------------------------------------
-// TONE - A first-order recursive low-pass filter with variable frequency resp.
+// TONE
+// A first-order recursive low-pass filter with variable frequency response.
 //------------------------------------------------------------------------------
-// Converts a Mid-Side Stereo stream into Firts Order B-Format
+// tone is a 1 term IIR filter. Its formula is:
+// y[n] = c1 * x[n] + c2 * y[n-1]
+// where
+// b = 2 - cos(2 π hp/sr)
+// c2 = b - sqrt(b2 - 1.0)
+// c1 = 1 - c2
 //
 // #### Reference
 // https://csound.com/docs/manual//tone.html
@@ -56,14 +62,8 @@ declare license "CC4";
 // #### Usage
 //
 // ```
-// _,_ : ms2bfmt : _,_,_,_
+// _ : tone(freq) : _
 // ```
-//
-// Where the two inputs are respectively:
-// L,R
-//
-// Where the four outpust are respectively:
-// W,X,Y,Z
 //
 //------------------------------------------------------------------------------
 tone(freq) = _*c1 : (+~_ *(c2))
