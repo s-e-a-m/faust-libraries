@@ -59,7 +59,7 @@ declare license "CC4";
 // ```
 //
 // Where the two inputs are respectively:
-// L,R
+// Mid and Side
 //
 // Where the four outpust are respectively:
 // W,X,Y,Z
@@ -70,7 +70,8 @@ ms2bfmt = (_ <: _,_), _;
 //------------------------------------------------------------------------------
 // LR STEREO TO FIRST ORDER B-FORMAT ENCODER
 //------------------------------------------------------------------------------
-// Converts a Mid-Side Stereo stream into Firts Order B-Format
+// Converts a Left-Right Stereo stream into Mid-Side and then into
+// Firts Order B-Format
 //
 // #### Reference
 //
@@ -87,14 +88,14 @@ ms2bfmt = (_ <: _,_), _;
 // W,X,Y,Z
 //
 //------------------------------------------------------------------------------
-sdmx2bfmt = sdmx : ms2bfmt;
+lr2ms2bfmt = sdmx : ms2bfmt;
 
 //================================================================= DECODERS ===
 //==============================================================================
 //------------------------------------------------------------------------------
-// FIRST ORDER B-FORMAT TO MONO DECODER
+// FIRST ORDER PLANAR B-FORMAT TO MONO DECODER
 //------------------------------------------------------------------------------
-// Converts a First Order B-Format into mono first order signal
+// Converts a First Order Planar B-Format into mono first order signal
 //
 // #### Reference
 // https://en.wikipedia.org/wiki/Ambisonics
@@ -106,7 +107,7 @@ sdmx2bfmt = sdmx : ms2bfmt;
 // to create coincident stereo pairs (such as a Blumlein) or surround arrays.
 // A horizontal virtual microphone at horizontal angle Θ \Theta with pattern
 // 0 ≤ p ≤ 1 0 \leq p \leq 1 is given by
-// M(\Theta ,p)=p{\sqrt  {2}}W+(1-p)(\cos \Theta X+\sin \Theta Y).
+// 
 // This virtual mic is free-field normalised, which means it has a constant
 // gain of one for on-axis sounds. The illustration on the left shows some
 // examples created with this formula. Virtual microphones can be manipulated
@@ -117,23 +118,22 @@ sdmx2bfmt = sdmx : ms2bfmt;
 // #### Usage
 //
 // ```
-// _,_,_,_ : bfmt2m : _
+// encoder(x) = hgroup("BFMT MONO-DECODER", x);
+// azi = encoder(vslider("[01] Azimuth [style:knob]", 0, 0, 360, 0.1) : deg2rad : si.smoo);
+// p = encoder(vslider("[02] Polar [style:knob]", 0.5, 0, 1, 0.01) : si.smoo);
+// deg2rad = *(ma.PI/180);
+// process = _,_,_ : pbf2hm(azi,p) : _;
 // ```
 //
-// Where the two inputs are respectively:
-// W,X,Y,Z
+// Where the four inputs are respectively:
+// W,X,Y
 //
 // Where the output is a mono signal with modulable polar pattern:
-// m
+// out: m
+// polar pattern: p
 //
 //------------------------------------------------------------------------------
-bfmt2m(W,X,Y,Z) = m
-  with{
-      encoder(x) = hgroup("BFMT MONO-DECODER", x);
-      azi = encoder(vslider("[01] Azimuth [style:knob]", 0, 0, 360, 0.1) : deg2rad : si.smoo);
-      p = encoder(vslider("[02] Polar [style:knob]", 0.5, 0, 1, 0.01) : si.smoo);
-      m = p *(0.707*(W))+((1-p) *((X*cos(azi))+(Y*sin(azi))));
-};
+pbf2hm(azi,p) = p*(sqrt(2)*(_))+((1-p)*((_*cos(azi))+(_*sin(azi))));
 
 //------------------------------------------------------------------------------
 // FIRST ORDER B-FORMAT TO REGULAR POLYGON
@@ -147,7 +147,7 @@ bfmt2m(W,X,Y,Z) = m
 // #### Usage
 //
 // ```
-// _,_,_,_ : bfmt2m : _
+// _,_,_ : bfmt2m : _
 // ```
 //
 // Where the two inputs are respectively:
@@ -157,10 +157,8 @@ bfmt2m(W,X,Y,Z) = m
 // m
 //
 //------------------------------------------------------------------------------
-bfmt2poly(n,W,X,Y,Z) = polygon
+pbf2poly(n,p) = polygon
   with{
       azi(n) = 360/(n) : deg2rad;
-      p = 0.5;
-      m = p *(0.707*(W))+((1-p)*((X*cos(azi))+(Y*sin(azi))));
-      polygon(n) = par(i, n, m);
+      polygon(n) = par(i, n, pbf2m);
 };
