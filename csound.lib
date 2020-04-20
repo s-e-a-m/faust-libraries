@@ -73,3 +73,71 @@ with{
   c1 = 1-c2;
   c2 = b - sqrt((b*b)-1.0);
 };
+
+//------------------------------------------------------------------------------
+// ATONE
+// atone — A hi-pass filter whose transfer functions are the complements of the
+// tone opcode.
+//------------------------------------------------------------------------------
+// atone is a filter whose transfer functions is the complement of tone.
+// atone is thus a form of high-pass filter whose transfer functions represent
+// the “filtered out” aspects of their complements. However, power scaling is
+// not normalized in atone but remains the true complement of the corresponding
+// unit. Thus an audio signal, filtered by parallel matching tone and atone
+// units, would under addition simply reconstruct the original spectrum.
+//
+// #### Reference
+// https://csound.com/docs/manual//tone.html
+//
+// #### Usage
+//
+// ```
+// _ : atone(freq) : _
+// ```
+//
+//------------------------------------------------------------------------------
+atone(freq) = _ <: _ - tone(freq);
+
+//------------------------------------------------------------------------------
+// PHASER1
+// First-order allpass filters arranged in a series.
+//------------------------------------------------------------------------------
+// An implementation of iord number of first-order allpass filters in series.
+//
+// phaser1 implements iord number of first-order allpass sections, serially
+// connected, all sharing the same coefficient. Each allpass section can be
+// represented by the following difference equation:
+//
+// y(n) = C * x(n) + x(n-1) - C * y(n-1)
+//
+// where x(n) is the input, x(n-1) is the previous input, y(n) is the output,
+// y(n-1) is the previous output, and C is a coefficient which is calculated
+// from the value of kfreq, using the bilinear z-transform.
+//
+// #### Reference
+// https://csound.com/docs/manual/phaser1.html
+//
+// CSOUND Syntax
+// ares phaser1 asig, kfreq, kord, kfeedback [, iskip]
+// kfreq -- frequency (in Hz) of the filter(s). This is the frequency at which
+//          each filter in the series shifts its input by 90 degrees.
+// kord -- the number of allpass stages in series. These are first-order filters
+//         and can range from 1 to 4999.
+// kfeedback -- amount of the output which is fed back into the input of the
+//              allpass chain. With larger amounts of feedback, more prominent
+//              notches appear in the spectrum of the output. kfeedback must
+//              be between -1 and +1. for stability.
+// #### Usage
+//
+// ```
+// _ : phaser1(order,freq,g) : _
+// ```
+//
+//------------------------------------------------------------------------------
+//freq = vslider("Frequency", 0,0,1,0.01);
+phaser1(order,C,g) = ( + : seq(i,order,ap(C/4/order)))~*(g)
+with{
+  ap(C) = _ <: _*(C) + mem : -~*(C);
+  clip = min(1) : max(-1);
+};
+//process = phaser1(4,freq);
