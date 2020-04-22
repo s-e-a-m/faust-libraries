@@ -55,7 +55,14 @@ declare license "CC4";
 // #### Usage
 //
 // ```
-// vcs3osc1(f,s,sl,pl) : _,_
+//
+//import ("stdfaust.lib");
+//osc1_g(x) = hgroup("[001]OSCILLATOR 1", x);
+//freq  = osc1_g(vslider("[001]FREQUENCY[style:knob][scale:exp]", 100,1,10000,0.01) : si.smoo);shape = osc1_g(vslider("[002]SHAPE[style:knob]", 5,0,10,0.1)/10 : si.smoo);
+//samp = osc1_g(vslider("[003]SINE[style:knob]",0,0,1,0.001):si.smoo);
+//pamp = osc1_g(vslider("[004]SAW[style:knob]",0,0,1,00.1):si.smoo);
+//
+//process = vcs3osc1(freq,shape,samp,pamp);
 // ```
 //
 // Where
@@ -68,13 +75,12 @@ declare license "CC4";
 // (SHAPED)SINE and SAW
 //
 //------------------------------------------------------------------------------
-// osc1_g(x) = hgroup("[001]OSCILLATOR 1", x);
-// freq  = osc1_g(vslider("[001]FREQUENCY[style:knob][scale:exp]", 100,1,10000,0.01) : si.smoo);
-vcs3osc1(f,s,sl,pl) = sine+wsine, saw
+vcs3osc1(f,s,sl,pl) = shaped, saw
   with{
     step = f/ma.SR;
     phasor(step) = step : (+ : ma.decimal)~_;
     sine = sin(phasor(step)*2*ma.PI) : *(0.5*sin(s*(ma.PI)));
     wsine = sin(phasor(step)*(-1)*ma.PI) : +(0.5) : *(cos(s*(ma.PI)));
-    saw = phasor(step)-(0.5);
+    shaped = (sine+wsine)*sl;
+    saw = (phasor(step)-(0.5))*pl;
 };
