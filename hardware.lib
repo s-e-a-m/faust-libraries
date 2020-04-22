@@ -149,6 +149,15 @@ g86 = vslider("[08] [midi:ctrl 88]", 0, -70, +6, 0.1) : ba.db2linear : si.smoo;
 g87 = vslider("[08] [midi:ctrl 88]", 0, -70, +6, 0.1) : ba.db2linear : si.smoo;
 g88 = vslider("[08] [midi:ctrl 88]", 0, -70, +6, 0.1) : ba.db2linear : si.smoo;
 
+//Ctrl Chan tester (ctrl chan): tester(midi in, midi out)
+// controlchantester = vgroup("CTRL CHAN IN/OUT", valuetest(81,1,81,1))
+// with{
+// valuetest(i,ic,o,oc) = hslider("Ctrl Value IN (Ctrl %i Channel %ic) [midi:ctrl %i %ic]", 60, 0, 127, 1) :
+//                        hbargraph("Ctrl Value OUT (Ctrl %o) Channel OUT(Chan %oc) [midi:ctrl %o %oc]", 0, 127);
+// };
+//
+// process = controlchantester;
+
 bcf2000 = hgroup("BEHRINGER BCF 2000", par(i, 8, channel(i)))
   with{
     knob1(v) = vslider("[01][style:knob] Knob %f [midi:ctrl %f]", 0,0,127,1)
