@@ -44,6 +44,8 @@ declare author "Giuseppe Silvi";
 declare license "CC4";
 
 import("ambisonic.lib");
+import("csound.lib");
+import("cyclone.lib");
 import("gerzon.lib");
 import("hardware.lib");
 import("measurement.lib");
