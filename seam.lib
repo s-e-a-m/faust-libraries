@@ -65,6 +65,19 @@ lsweep = ba.sweep((ma.SR/2)-1,1);
 deg2rad = *(ma.PI/180);
 //------------------------------------------------------- RADIANS TO DEGREES ---
 rad2deg = /(ma.PI*180);
+//------------------------------------------------------ MILLER PUCKETTE T60 ---
+// Next comes the recirculating part of the reverberator. After the initial
+// thickening, the input signal is fed into a bank of parallel delay lines,
+// and their outputs are again mixed using a rotation matrix. The mixed outputs
+// are attenuated by a gain g ≤ 1, and fed back into the delay lines to make a
+// recirculating network.
+// The value g controls the reverberation time. If the average length of the
+// recirculating delay lines is d, then any incoming sound is attenuated by a
+// factor of g after a time delay of d. After time t the signal has recirculated
+// t/d times, losing 20log10(g) decibels each time around, so the total gain,
+// in decibels, is:
+RT(g,d) = (-3*d)/(log10(g));
+t60(RT,d,g) = 20*(RT/d)*log10(g);
 //----------------------------------------------------- EUGENIO GIORDANI T60 ---
 t60(g,d) = -3/(log10(1/g))*d;
 t60(g,d) = 1/((3/(log10(1/g)))*(d)) : ba.sec2samp;
