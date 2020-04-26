@@ -43,6 +43,8 @@ declare version "0.1";
 declare author "Giuseppe Silvi";
 declare license "CC4";
 
+// da studiare per outsel
+//selectoutn(n, s) = _ <: par(i, n, *(s==i));
 //========================================================== AUDIO INTERFACE ===
 //==============================================================================
 //--------------------------------------- RME FireFace 800 - MONO INPUT SELECTOR
