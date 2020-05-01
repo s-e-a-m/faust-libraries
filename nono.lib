@@ -209,3 +209,36 @@ halaphon = sp.spat(4, hramp, hdist) : halmeters
     hmeter(x)		= attach(x, envelop(x) : hbargraph("[05][unit:dB] Meter", -70, +5));
     envelop = abs : max ~ -(1.0/ma.SR) : max(ba.db2linear(-70)) : ba.linear2db;
 };
+
+//------------------------------------------------------------------------------
+// PHASER
+//------------------------------------------------------------------------------
+// Converts an LR stereo image into Mid mono signal describes the frontal
+// directional component of the sound image.
+//
+// #### Reference
+//
+// #### Usage
+//
+// ```
+// p_g(x) = hgroup("PHASER",x);
+// freq = p_g(vslider("[01]LFO[scale:exp][style:knob]", 0.001, 0, 30, 0.001)) : si.smoo;
+// fb = p_g(vslider("[02]FBACK[style:knob]", 0.0, 0, 1, 0.01) : si.smoo);
+// lfo = sin(phasor*2*ma.PI)
+// with{
+//   phasor = os.lf_sawpos(freq);
+// };
+// process = phaser(_,1,lfo,fb);
+// ```
+//
+// Where the two inputs are respectively:
+// L,R
+//
+// Where the output is the Mid component
+//
+//------------------------------------------------------------------------------
+phaser(x,d,g,fb) = x <: _,(+:alseq(d,g))~*(fb):> _
+with{
+  ap(d,g) = (+ <: de.fdelay((ma.SR/2),d),*(-g)) ~ *(g) : mem,_ : +;
+  alseq(d,g) = seq(i,4,ap(d,g));
+};
