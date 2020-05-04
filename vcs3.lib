@@ -77,6 +77,7 @@ declare license "CC4";
 //------------------------------------------------------------------------------
 vcs3osc1(f,s,sl,pl) = shaped, saw
   with{
+    step = f/ma.SR;
     phasor(step) = os.lf_sawpos(f);
     sine = sin(phasor(step)*2*ma.PI) : *(0.5*sin(s*(ma.PI)));
     wsine = sin(phasor(step)*(-1)*ma.PI) : +(0.5) : *(cos(s*(ma.PI)));
