@@ -75,11 +75,11 @@ declare license "CC4";
 // (SHAPED)SINE and SAW
 //
 //------------------------------------------------------------------------------
-vcs3osc1(f,s,sl,pl) = shaped, saw
+vcs3osc1(f,s,sl,pl) = shaped(f,s,sl), saw(f,pl)
   with{
-    phasor = os.lf_sawpos(f);
-    sine = sin(phasor*2*ma.PI) : *(0.5*sin(s*(ma.PI)));
-    wsine = sin(phasor*(-1)*ma.PI) : +(0.5) : *(cos(s*(ma.PI)));
-    shaped = (sine+wsine)*sl;
-    saw = (phasor-(0.5))*pl;
+    phasor(f) = os.lf_sawpos(f);
+    sine(f,s) = sin(phasor(f)*2*ma.PI) : *(0.5*sin(s*(ma.PI)));
+    wsine(f,s) = sin(phasor(f)*(-1)*ma.PI) : +(0.637) : *(cos(s*(ma.PI)));
+    shaped(f,s,sl) = (sine(f,s)+wsine(f,s))*sl;
+    saw(f,pl) = (phasor(f)-(0.5))*pl;
 };
