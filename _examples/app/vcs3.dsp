@@ -26,4 +26,4 @@ vcs3osc1(f,s,sl,pl) = shaped(f,s,sl), saw(f,pl)
 };
 
 //process = vcs3osc1(freq,shape,samp,pamp) : fi.lowpass(2,10000), fi.lowpass(2,10000) : fi.lowpass6e(20000), fi.lowpass6e(20000) : fi.dcblocker, fi.dcblocker;
-process = vcs3osc1(freq,shape,samp,pamp);
+process = vcs3osc1(freq,shape,samp,pamp) : fi.lowpass6e(24000), fi.lowpass6e(24000);

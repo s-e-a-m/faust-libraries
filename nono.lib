@@ -230,7 +230,7 @@ halaphon = sp.spat(4, hramp, hdist) : halmeters
 // frq = p_g(vslider("[01]LFO[scale:exp][style:knob]", 0.001, 0, 30, 0.001)) : si.smoo;
 // fbk = p_g(vslider("[02]FBACK[style:knob]", 0.0, -1, 1, 0.01) : si.smoo);
 // lfo = os.osc(frq);
-// process = phaser(_,1,lfo,fbk);
+// process = phaser(4,_,1,lfo,fbk);
 // ```
 //------------------------------------------------------------------------------
 phaser(N,x,d,g,fb) = x <: _,(+:alseq(N,d,g))~*(fb):> _
