@@ -14,14 +14,16 @@ shape = osc1_g(vslider("[002]SHAPE[style:knob]", 5,0,10,0.1)/10 : si.smoo);
 samp = osc1_g(vslider("[003]SINE[style:knob]",0,0,10,0.001)/10:si.smoo);
 pamp = osc1_g(vslider("[004]SAW[style:knob]",0,0,10,00.1)/10:si.smoo);
 
+sqPI = 3.141592653589793238462643383279502797479068098137295573004504331874296718662975536062731407582759857177734375;
+
 vcs3osc1(f,s,sl,pl) = shaped(f,s,sl), saw(f,pl)
   with{
     phasor(f) = os.lf_sawpos(f);
     sine(f,s) = sin(phasor(f)*2*ma.PI) : *(0.5*sin(s*(ma.PI)));
-    wsine(f,s) = sin(phasor(f)*(-1)*ma.PI) : +(0.637) : *(cos(s*(ma.PI)));
+    wsine(f,s) = sin(phasor(f)*(-1)*ma.PI) : +(2/sqPI) : *(cos(s*(ma.PI)));
     shaped(f,s,sl) = (sine(f,s)+wsine(f,s))*sl;
     saw(f,pl) = (phasor(f)-(0.5))*pl;
 };
 
 //process = vcs3osc1(freq,shape,samp,pamp) : fi.lowpass(2,10000), fi.lowpass(2,10000) : fi.lowpass6e(20000), fi.lowpass6e(20000) : fi.dcblocker, fi.dcblocker;
-process = vcs3osc1(freq,shape,samp,pamp) : fi.lowpass(4,15000), fi.lowpass(4,15000);
+process = vcs3osc1(freq,shape,samp,pamp);

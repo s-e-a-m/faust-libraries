@@ -9,7 +9,7 @@ import("stdfaust.lib");
 //import("../../seam.lib");
 
 osc1_g(x) = hgroup("[001]OSCILLATOR 1", x);
-freq  = osc1_g(vslider("[001]FREQUENCY[style:knob][scale:exp]", 100,1,10000,0.01) : si.smoo);
+freq  = osc1_g(vslider("[001]FREQUENCY[style:knob]", 100,1,10000,0.01) : si.smoo);
 shape = osc1_g(vslider("[002]SHAPE[style:knob]", 5,0,10,0.1)/10 : si.smoo);
 samp = osc1_g(vslider("[003]SINE[style:knob]",0,0,10,0.001)/10:si.smoo);
 pamp = osc1_g(vslider("[004]SAW[style:knob]",0,0,10,00.1)/10:si.smoo);
@@ -43,4 +43,4 @@ vcs3osc1(N,f,s,sl,pl) = (shaped(f,s,sl) : poly(Nc) : D(Nc-1) : gate(Nc-1)), saw(
   gate(N) = *(1@(N)); // delayed step for blanking startup glitch
 };
 
-process = vcs3osc1(2,freq,shape,samp,pamp);
+process = vcs3osc1(3,freq,shape,samp,pamp);
