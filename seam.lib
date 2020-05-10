@@ -70,6 +70,12 @@ sqPI = 3.14159265358979323846264338327950279747906809813729557300450433187429671
 deg2rad = *(ma.PI/180);
 //------------------------------------------------------- RADIANS TO DEGREES ---
 rad2deg = /(ma.PI*180);
+//------------------------------------------------------- BILINEAR TRANSFORM ---
+g(fc) = tan(ma.PI*(fc/ma.SR));
+//---------------------------------------------------- -3dB Cutoff Frequency ---
+//----------------------------------------------- of an Exponential Averager ---
+// https://www.dsprelated.com/showarticle/182.php
+a(fc) = cos((2*ma.PI*fc)/ma.SR)-1+sqrt((0.5*(1+cos(2*((2*ma.PI*fc)/ma.SR))))-4*cos((2*ma.PI*fc)/ma.SR)+3);
 //------------------------------------------------------ MILLER PUCKETTE T60 ---
 // Next comes the recirculating part of the reverberator. After the initial
 // thickening, the input signal is fed into a bank of parallel delay lines,
