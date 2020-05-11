@@ -218,14 +218,18 @@ bamodule(W, X, Y, Z) = LFU,RFD,RBU,LBD
 //------------------------------------------------------------------------------
 // MONO TO FIRST ORDER B-FORMAT ENCODER
 //------------------------------------------------------------------------------
-// Converts a Stereo stream into Firts Order B-Format
+// Mono Encoder into Firts Order B-Format
 //
 // #### Reference
+//
+// 1975 - Ambisonics. Part two: Studio techniques
+// Reproduced from Studio Sound, Vol. 17, pp 24-26, 28, 40 (August 1975), by
+// permission of IPC Media Ltd, publishers of Hi-Fi News (www.hifinews.co.uk)
 //
 // #### Usage
 //
 // ```
-// _ : bfmt : _,_,_,_
+// _ : m2bfmt(16,23) : _,_,_,_
 // ```
 //
 // where
@@ -237,12 +241,14 @@ bamodule(W, X, Y, Z) = LFU,RFD,RBU,LBD
 // W,X,Y,Z
 //
 //------------------------------------------------------------------------------
-m2bfmt(x,azi,elv) = W,X,Y,Z
+m2bfmt(azi,elv) = _<:bfmt
   with{
-    W = x * 0.707;
-    X = x * cos(azi) * cos(elv);
-    Y = x * sin(azi) * cos(elv);
-    Z = x * sin(elv);
+    d2r = *(ma.PI/180);
+    W = _*(1/sqrt(2));
+    X = _*cos(d2r(azi))*cos(d2r(elv));
+    Y = _*sin(d2r(azi))*cos(d2r(elv));
+    Z = _*sin(d2r(elv));
+    bfmt = W,X,Y,Z;
 };
 
 //------------------------------------------------------------------------------
