@@ -1,18 +1,16 @@
 import("stdfaust.lib");
 
-iid(f,r) = 1.0+(pow((f/1000),0.8)*sin(r));
-
+f = hslider("Band Pass & IID Frequency", 1000,1,22000,1) : si.smoo;
+r = hslider("Angle", 0,-90,90,1) : deg2rad : si.smoo;
 deg2rad = *(ma.PI/180);
 
-f = hslider("freq[scale:exp]", 1000,1,22000,1);
-r = hslider("deg", 0,-90,90,1) : deg2rad : si.smoo;
-
-iidlin = iid(f,r) : ba.log2LinGain;
-
-//process = no.noise:fi.lowpass(4,f):fi.highpass(4,f)<:_*(ba.db2linear(-iid(f,r))),_*(ba.db2linear(iid(f,r))) : *(0.25),*(0.25);
-
+iid(f,r) = (pow((f/1000),0.8)*sin(r)); // manca il +1
 itd(r) = 0.09*((r+sin(r)))/344 : ba.sec2samp;
 
-itdpan(r) = _ <: de.fdelay3(256,itd(r)),de.fdelay3(256,(-itd(r)));
+//itdpan(r) = _ <: de.fdelayltv(16,256,max(itd(r),0)), de.fdelayltv(16,256,(max(-itd(r),0)));
 
-process = no.noise:fi.lowpass(4,f):fi.highpass(4,f) : itdpan(r) : _*(ba.db2linear(-iid(f,r))),_*(ba.db2linear(iid(f,r)));
+itdpan(r) = _ <: de.delay(256,int(max(itd(r),0))), de.delay(256,int((max(-itd(r),0))));
+
+iidpan(f,r) = _*(ba.db2linear(-iid(f,r))), _*(ba.db2linear(iid(f,r)));
+
+process = no.noise*0.25 : fi.lowpass(4,f) : fi.highpass(4,f) : itdpan(r) : iidpan(f,r);

@@ -62,14 +62,13 @@ declare license "CC4";
 // #### Usage
 //
 // ```
-// _ : tone(freq) : _
+// _ : tone(cf) : _
 // ```
 //
 //------------------------------------------------------------------------------
-tone(freq) = _*c1 : (+~_ *(c2))
+tone(cf) = _*c1 : (+~_ *(c2))
 with{
-  hp = freq;
-  b = 2 - (cos(2*ma.PI*(hp/ma.SR)));
+  b = 2 - (cos(2*ma.PI*(cf/ma.SR)));
   c1 = 1-c2;
   c2 = b - sqrt((b*b)-1.0);
 };
