@@ -1,4 +1,4 @@
-A library for the exploration of Michael Gerzon's algorythms
+_A library for the exploration of Michael Gerzon's algorithms_
 
  * EARLY WORKS
  * A B MODULES
@@ -43,7 +43,7 @@ L ----- + ----- R
 
 #### Code
 
-```bash
+```
 lr2surr(L,R) = F,R,B,L
   with{
     F = 0.707 * (L + R);
@@ -83,7 +83,7 @@ Where the four outpust are respectively: A,B,C,D
 
 #### CODE
 
-```bash
+```
 lr2surr_ls(L,R) = A,B,C,D
   with{
     A = L*(0.924) - R*(0.383);
@@ -108,14 +108,14 @@ http:www.audiosignal.co.uk/Resources/A_year_of_surround_sound_A4.pdf
 
 #### Usage
 
-```bash
+```
 _,_ : lr2surr_rs : _,_,_,_
 ```
 
 Where:
 
  * suffix _rs_ is Rear Spread
- * k is a number bettween 0.5 and 1.0
+ * k is a number between 0.5 and 1.0
 
 ```text
  L ---------- R
@@ -126,7 +126,7 @@ Where:
  kL -------- kR
 ```
 
-```bash
+```
 lr2surr_rs(L,R,k) = L,R,kL,kR
   with{
     kL = k * L - (1 - k) * R;
