@@ -1,10 +1,14 @@
-_A library for the exploration of Michael Gerzon's algorithms_
+---
+description: A library for the exploration of Michael Gerzon's algorithms
+---
 
- * EARLY WORKS
- * A B MODULES
- * ENCODERS
- * DECODERS
- * TOOLS
+# gerzon.lib
+
+* EARLY WORKS
+* A B MODULES
+* ENCODERS
+* DECODERS
+* TOOLS
 
 ## MICHAEL GERZON EARLY WORKS
 
@@ -14,22 +18,8 @@ _A library for the exploration of Michael Gerzon's algorithms_
 
 #### Reference
 
-Surround sound from 2-channel stereo - Hi-Fi News, August 1970
-
-http:www.audiosignal.co.uk/Resources/Surround_sound_from_2-channel_stereo_A4.pdf
-
-A year of surround-sound - Hi-Fi News, August 1971
-
-http:www.audiosignal.co.uk/Resources/A_year_of_surround_sound_A4.pdf
-
-#### Usage
-
-```
-_,_ : lr2surr : _,_,_,_
-```
-
-Where the four outpust are respectively:
-Front,Right,Rear,Left
+* [Surround sound from 2-channel stereo - Hi-Fi News, August 1970](https://github.com/s-e-a-m/References/blob/master/Gerzon-Michael/1970-GERZON-Surround_sound_from_2-channel_stereo_A4.pdf)
+* [A year of surround-sound - Hi-Fi News, August 1971](https://github.com/s-e-a-m/References/blob/master/Gerzon-Michael/1971-GERZON-A_year_of_surround_sound_A4.pdf)
 
 ```text
         F
@@ -39,11 +29,13 @@ L ----- + ----- R
   •     |     •
      •  |  •
         B
-```        
+```
+
+Where the four outpust are respectively: Left - Right - Front - Back
 
 #### Code
 
-```
+```text
 lr2surr(L,R) = F,R,B,L
   with{
     F = 0.707 * (L + R);
@@ -51,22 +43,26 @@ lr2surr(L,R) = F,R,B,L
 };
 ```
 
+#### Usage
+
+```text
+// _,_ : lrfb : _,_,_,_
+process = lfbr;
+```
+
 ### 1970 - SURROUND SOUND FROM 2-CHANNEL STEREO - IDEAL LS ARRANGEMENT
 
-Another, more obvious, defect of ‘sum-and-difference’ four-speaker
-reproduction is the highly inconvenient seating arrangements, which are
-hardly suitable for the cosy domestic enjoyment of music.
+Another, more obvious, defect of ‘sum-and-difference’ four-speaker reproduction is the highly inconvenient seating arrangements, which are hardly suitable for the cosy domestic enjoyment of music.
 
 #### Reference
-Surround sound from 2-channel stereo - Hi-Fi News, August 1970
-http:www.audiosignal.co.uk/Resources/Surround_sound_from_2-channel_stereo_A4.pdf
 
-A year of surround-sound - Hi-Fi News, August 1971
-http:www.audiosignal.co.uk/Resources/A_year_of_surround_sound_A4.pdf
+Surround sound from 2-channel stereo - Hi-Fi News, August 1970 http:www.audiosignal.co.uk/Resources/Surround\_sound\_from\_2-channel\_stereo\_A4.pdf
+
+A year of surround-sound - Hi-Fi News, August 1971 http:www.audiosignal.co.uk/Resources/A\_year\_of\_surround\_sound\_A4.pdf
 
 #### Usage
 
-```
+```text
 _,_ : lr2surr_ls : _,_,_,_
 ```
 
@@ -83,7 +79,7 @@ Where the four outpust are respectively: A,B,C,D
 
 #### CODE
 
-```
+```text
 lr2surr_ls(L,R) = A,B,C,D
   with{
     A = L*(0.924) - R*(0.383);
@@ -95,27 +91,24 @@ lr2surr_ls(L,R) = A,B,C,D
 
 ### 1971 - A YEAR OF SURROUND SOUND
 
-What is the precise effect of the rear spread control? With the few set-ups
-on which it has so far been tried, as one turns the control away from the
-pure ‘Hafler’ system, the sound seems to gain a subtle life and depth that
-the Hafler system lacks.
+What is the precise effect of the rear spread control? With the few set-ups on which it has so far been tried, as one turns the control away from the pure ‘Hafler’ system, the sound seems to gain a subtle life and depth that the Hafler system lacks.
 
 #### Reference
 
 A year of surround-sound - Hi-Fi News, August 1971
 
-http:www.audiosignal.co.uk/Resources/A_year_of_surround_sound_A4.pdf
+http:www.audiosignal.co.uk/Resources/A\_year\_of\_surround\_sound\_A4.pdf
 
 #### Usage
 
-```
+```text
 _,_ : lr2surr_rs : _,_,_,_
 ```
 
 Where:
 
- * suffix _rs_ is Rear Spread
- * k is a number between 0.5 and 1.0
+* suffix _rs_ is Rear Spread
+* k is a number between 0.5 and 1.0
 
 ```text
  L ---------- R
@@ -126,10 +119,11 @@ Where:
  kL -------- kR
 ```
 
-```
+```text
 lr2surr_rs(L,R,k) = L,R,kL,kR
   with{
     kL = k * L - (1 - k) * R;
     kR = k * R - (1 - k) * L;
 };
 ```
+
