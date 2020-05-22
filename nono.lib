@@ -238,3 +238,12 @@ with{
   ap(d,g) = (+ <: de.fdelay((ma.SR/2),d),*(-g)) ~ *(g) : mem,_ : +;
   alseq(N,d,g) = seq(i,N,ap(d,g));
 };
+
+
+
+// amplificazione trasparente
+//import("stdfaust.lib");
+ampt(g,mt) = *(g) : de.delay(ma.SR,mt2samp(mt));
+sos = 344;
+mt2samp(mt) = int(mt*ma.SR/sos);
+//process = <:,ampt(0.5,20);
