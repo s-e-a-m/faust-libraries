@@ -1,6 +1,5 @@
 // https://en.wikipedia.org/wiki/Sound_localization#Lateral_information_.28left.2C_ahead.2C_right.29
 
-speedofsound = 344; // m/s
 eardistance = 0.18; // metri
 headradius = 0.09; // metri
 

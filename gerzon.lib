@@ -1,3 +1,57 @@
+// ---
+// description: A library for the exploration of Michael Gerzon's algorithms
+// ---
+//
+// <!-- LICENSE: GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007-->
+//
+// # gerzon.lib
+//
+// * EARLY WORKS
+// * A B MODULES
+// * ENCODERS
+// * DECODERS
+// * TOOLS
+//
+// ## MICHAEL GERZON EARLY WORKS
+//
+// ### 1970 - SURROUND SOUND FROM 2-CHANNEL STEREO - SUM-AND-DIFFERENCE LAYOUT
+//
+// > ... a method of obtaining a genuine surround stereo effect from suitable conventional two-channel stereo recordings
+//
+// #### Reference
+//
+// * [Surround sound from 2-channel stereo - Hi-Fi News, August 1970](https://github.com/s-e-a-m/References/blob/master/Gerzon-Michael/1970-GERZON-Surround_sound_from_2-channel_stereo_A4.pdf)
+// * [A year of surround-sound - Hi-Fi News, August 1971](https://github.com/s-e-a-m/References/blob/master/Gerzon-Michael/1971-GERZON-A_year_of_surround_sound_A4.pdf)
+//
+// ```text
+//         F
+//      •  |  •
+//   •     |     •
+// L ----- + ----- R
+//   •     |     •
+//      •  |  •
+//         B
+// ```
+//
+// Where the four outpust are respectively: Left - Right - Front - Back
+//
+// #### Code
+//
+// ```text
+lr2surr(L,R) = F,R,B,L
+  with{
+    F = 0.707 * (L + R);
+    B = 0.707 * (L - R);
+};
+// ```
+//
+// #### Usage
+//
+// ```text
+// // _,_ : lrfb : _,_,_,_
+// process = lfbr;
+// ```
+
 //############################################################### gerzon.lib ###
 //
 // A library for the exploration of Gerzon's algorythms
