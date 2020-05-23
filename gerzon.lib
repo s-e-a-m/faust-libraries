@@ -2,7 +2,7 @@
 // description: A library for the exploration of Michael Gerzon's algorithms
 // ---
 //
-// <!-- LICENSE: GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007-->
+// <!-- LICENSE: GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 -->
 //
 // # gerzon.lib
 //
@@ -121,332 +121,228 @@ lrsurrrs(L,R,k) = L,R,kL,kR
 // process = lrsurrrs;
 // ```
 
-//================================================================ A B MODULES =
-//==============================================================================
-//------------------------------------------------------------------------------
-// GENERIC AB MODULE WITHOUT SHELVING
-//------------------------------------------------------------------------------
+// ## A B MODULES
+//
+// ### GENERIC AB MODULE WITHOUT SHELVING
+//
 // Converts a generic tetrahedral A-Format into Firts Order B-Format
 //
 // #### Reference
-// Ambisonics. Part two: Studio techniques
-// Studio Sound, Vol. 17, pp 24-26, 28, 40 (August 1975)
-// https://www.michaelgerzonphotos.org.uk/articles/Ambisonics%202.pdf
 //
-// #### Usage
+// [Ambisonics. Part two: Studio techniques Studio Sound, Vol. 17, pp 24-26, 28, 40 (August 1975)](https://www.michaelgerzonphotos.org.uk/articles/Ambisonics%202.pdf)
 //
-// ```
-// _,_,_,_ : abmodule : _,_,_,_
-// ```
+// #### Code
 //
-// Where the four outpust are respectively:
-// W,X,Y,Z
-//
-//------------------------------------------------------------------------------
+// ```text
 abmodule(LFU,RFD,RBU,LBD) = W,X,Y,Z
 	with{
-    W = (0.5 * (LFU + RFD + RBU + LBD));
-	  X = (0.5 * (LFU + RFD - RBU - LBD));
-	  Y = (0.5 * (LFU - RFD - RBU + LBD));
-	  Z = (0.5 * (LFU - RFD + RBU - LBD));
+    W = 0.5 * (LFU + RFD + RBU + LBD);
+	  X = 0.5 * (LFU + RFD - RBU - LBD);
+	  Y = 0.5 * (LFU - RFD - RBU + LBD);
+	  Z = 0.5 * (LFU - RFD + RBU - LBD);
 };
+// process = abmodule;
+// ```
 
-//------------------------------------------------------------------------------
-// GENERIC BA MODULE WITHOUT SHELVING
-//------------------------------------------------------------------------------
+// ### GENERIC BA MODULE WITHOUT SHELVING
+//
 // Converts Firts Order B-Format into a generic tetrahedral A-Format
 //
 // #### Reference
 //
-// #### Usage
+// #### Code
 //
-// ```
-// _,_,_,_ : bamodule : _,_,_,_
-// ```
-//
-// Where the four outpust are respectively:
-// W,X,Y,Z
-//
-//------------------------------------------------------------------------------
-bamodule(W, X, Y, Z) = LFU,RFD,RBU,LBD
+// ```text
+bamodule(W,X,Y,Z) = LFU,RFD,RBU,LBD
   with{
 	  LFU = 0.5 * (W + X + Y + Z);
 	  RFD = 0.5 * (W + X - Y - Z);
 	  RBU = 0.5 * (W - X - Y + Z);
     LBD = 0.5 * (W - X - Y - Z);
 };
+// process = bamodule;
+// ```
 
-//=================================================================== ENCODERS =
-//==============================================================================
-//------------------------------------------------------------------------------
-// MONO TO FIRST ORDER B-FORMAT ENCODER
-//------------------------------------------------------------------------------
-// Mono Encoder into Firts Order B-Format
+// ## ENCODERS
+//
+// ### MONO TO FIRST ORDER B-FORMAT ENCODER
+//
+// Encode a mono channel into Firts Order B-Format
 //
 // #### Reference
 //
-// 1975 - Ambisonics. Part two: Studio techniques
-// Reproduced from Studio Sound, Vol. 17, pp 24-26, 28, 40 (August 1975), by
-// permission of IPC Media Ltd, publishers of Hi-Fi News (www.hifinews.co.uk)
+// 1975 - Ambisonics. Part two: Studio techniques. Reproduced from Studio Sound, Vol. 17, pp 24-26, 28, 40 (August 1975)
 //
-// #### Usage
+// #### Code
 //
-// ```
-// _ : m2bfmt(16,23) : _,_,_,_
-// ```
-//
-// where
-// * x is a mono signal
-// * azi is orizontal angle in radians
-// * elv is elevation angle in radians
-//
-// Where the four outpust are respectively:
-// W,X,Y,Z
-//
-//------------------------------------------------------------------------------
-m2bfmt(azi,elv) = _<:bfmt
+// ```text
+m2bfmt(azi,elv) = bfmt
   with{
-    d2r = *(ma.PI/180);
-    W = _*(1/sqrt(2));
-    X = _*cos(d2r(azi))*cos(d2r(elv));
-    Y = _*sin(d2r(azi))*cos(d2r(elv));
-    Z = _*sin(d2r(elv));
-    bfmt = W,X,Y,Z;
+    W = *(1/sqrt(2));
+    X = *cos(d2r(azi))*cos(d2r(elv));
+    Y = *sin(d2r(azi))*cos(d2r(elv));
+    Z = *sin(d2r(elv));
+    bfmt = _ <: W,X,Y,Z;
 };
+// process = m2bfmt(16,23);
+// ```
 
-//------------------------------------------------------------------------------
-// STEREO TO FIRST ORDER B-FORMAT ENCODER
-//------------------------------------------------------------------------------
+// ### LR STEREO TO FIRST ORDER B-FORMAT ENCODER
+//
 // Converts a Stereo stream into Firts Order B-Format
 //
+// #### Code
+//
+// ```text
+lr2bfmt(a) = 1/sqrt(2)*(m2bfmt(a,0)+m2bfmt(-a,0));
+// process = lr2bfmt(45);
+// ```
+
+// ## DECODERS
+//
+// ### PLANAR THREE CHANNEL B-FORMAT TO FOUR LOUDSPEAKER DECODER
+//
+// Converts planar B-Format to four loudspeaker setup for horizontal studio monitoring
+//
 // #### Reference
 //
-// #### Usage
+// [Ambisonics. Part two: Studio techniques Studio Sound, Vol. 17, pp 24-26, 28, 40 (August 1975)](https://www.michaelgerzonphotos.org.uk/articles/Ambisonics%202.pdf)
 //
-// ```
-// _,_ : lr2bfmt : _,_,_,_
-// ```
+// #### Code
 //
-// Where the two inputs are respectively:
-// L,R
-//
-// Where the four outpust are respectively:
-// W,X,Y,Z
-//
-//------------------------------------------------------------------------------
-lr2bfmt(L,R) = W,X,Y,Z
-  with{
-    azi = 45.0 : deg2rad;
-    elv = 00.0 : deg2rad;
-
-    WL = L * 0.707;
-    XL = L * cos(azi) * cos(elv);
-    YL = L * sin(azi) * cos(elv);
-    ZL = L * sin(elv);
-
-    WR = R * 0.707;
-    XR = R * cos(-azi) * cos(elv);
-    YR = R * sin(-azi) * cos(elv);
-    ZR = R * sin(elv);
-
-    W = 0.707 * (WL + WR);
-    X = 0.707 * (XL + XR);
-    Y = 0.707 * (YL + YR);
-    Z = 0.707 * (ZL + ZR);
-};
-
-//=================================================================== DECODERS =
-//==============================================================================
-//------------------------------------------------------------------------------
-// PLANAR THREE CHANNEL B-FORMAT TO FOUR LOUDSPEAKER DECODER
-//------------------------------------------------------------------------------
-// Converts planar B-Format to four loudspeaker setup for horizontal studio
-// monitoring
-//
-// #### Reference
-// Ambisonics. Part two: Studio techniques
-// Studio Sound, Vol. 17, pp 24-26, 28, 40 (August 1975)
-// https://www.michaelgerzonphotos.org.uk/articles/Ambisonics%202.pdf
-//
-// #### Usage
-//
-// ```
-// _,_,_ : bdmodule : _,_,_,_
-// ```
-//
-// Where the three inputs are respectively:
-// W,X,Y
-//
-// Where the four outpust are respectively:
-// LF,RF,RB,LB
-//
-//------------------------------------------------------------------------------
+// ```text
 bdmodule = shelf : bamodule
   with{
-    shelf = fi.highshelf(2,1.76,350), fi.highshelf(2,-1.25,350), fi.highshelf(2,-1.25,350), *(0.0);
+    shelf = fi.highshelf(2,1.76,350),
+            fi.highshelf(2,-1.25,350),
+            fi.highshelf(2,-1.25,350),
+            *(0.0);
 };
+// process = bdmodule;
+// ```
 
-//------------------------------------------------------------------------------
-// DECODER FOR BMX ENCODED SIGNALS
-//------------------------------------------------------------------------------
+// ### DECODER FOR BMX ENCODED SIGNALS
+//
 // Converts C-Format Stereo BMX encoded signals to four loudspeaker setup
 //
 // #### Reference
-// Ambisonics. Part two: Studio techniques
-// Studio Sound, Vol. 17, pp 24-26, 28, 40 (August 1975)
-// https://www.michaelgerzonphotos.org.uk/articles/Ambisonics%202.pdf
 //
-// #### Usage
+// (Ambisonics. Part two: Studio techniques Studio Sound, Vol. 17, pp 24-26, 28, 40 (August 1975))[https://www.michaelgerzonphotos.org.uk/articles/Ambisonics%202.pdf]
 //
-// ```
-// _,_ : bmxmodule : _,_,_,_
-// ```
+// #### Code
 //
-// Where the two inputs are respectively:
-// L,R
-//
-// Where the four outpust are respectively:
-// LF,RF,LB,RB
-//
-//------------------------------------------------------------------------------
-bmxmodule(L,R) = M+S, M, S, 0 : mg.bamodule
+// ```text
+bmxmodule(L,R) = (M+S),M,S,0 : bamodule
   with{
-    M = 0.5 * (L + R) : fi.lowshelf(2,-3.98,350);
-    S = 0.5 * (L - R) : fi.lowshelf(2,2.04,350);
+    M = 0.5*(L+R) : fi.lowshelf(2,-3.98,350);
+    S = 0.5*(L-R) : fi.lowshelf(2,2.04,350);
 };
+// process = bmxmodule;
+// ```
 
-//------------------------------------------------------------------------------
-// B-FORMAT TO UHJ LRTQ
-//------------------------------------------------------------------------------
-// Ambisonic UHJ format is a development of the Ambisonic surround sound system
-// designed to be compatible with mono and stereo media.
+
+// ## UHJ UTILITIES
+// #### Code
+//
+// ```text
+lrS = nsum;
+lrD = ndif;
+j = fi.pospass(128, 35) : *(2), !;
+// ```
+
+// ## B-FORMAT TO UHJ LRTQ
+//
+// Ambisonic UHJ format is a development of the Ambisonic surround sound system designed to be compatible with mono and stereo media.
 //
 // #### Reference
+//
 // https://en.wikipedia.org/wiki/Ambisonic_UHJ_format
 //
-// S = 0.9396926*W + 0.1855740*X
-// D = j(-0.3420201*W + 0.5098604*X) + 0.6554516*Y
+// #### Code
 //
-// Left = (S + D)/2.0
-// Right = (S - D)/2.0
-// T = j(-0.1432*W + 0.6512*X) - 0.7071*Y
-// Q = 0.9772*Z
-//
-//where j is a +90° phase shift
-//
-// #### Usage
-//
-// ```
-// _,_,_,_ : bfmt2uhj : _,_,_,_
-// ```
-//
-// where the four inputs are respectively:
-// W,X,Y,Z
-//
-// Where the four outpust are respectively:
-// L,R,T,Q
-//
-//------------------------------------------------------------------------------
+// ```text
 bfmt2uhj(W,X,Y,Z) = L,R,T,Q
   with{
-
-j = fi.pospass(128, 300) : !, *(2);
-
     S = 0.9396926 * W + 0.1855740 * X;
     D = j((-0.3420201 * W) + (0.5098604 * X)) + (0.6554516 * Y);
-
     L = 0.5 * (S + D);
     R = 0.5 * (S - D);
     T = j((-0.1432 * W + 0.6512 * X)) - (0.7071 * Y);
     Q = 0.9772 * (Z);
 };
+// j = fi.pospass(128, 35) : *(2), !;
+// process = bfmt2uhj;
+// ```
+// #### Code
+//
+// ```text
+bfmt2uhj_LR = bfmt2uhj:_,_,!,!;
+// process = bfmt2uhj_LR;
+// ```
 
-//------------------------------------------------------------------------------
-// FOUR CHANNEL LRTQ UHJ TO B-FORMAT
-//------------------------------------------------------------------------------
-// Ambisonic UHJ format is a development of the Ambisonic surround sound system
-// designed to be compatible with mono and stereo media.
+// ### FOUR CHANNEL LRTQ UHJ TO B-FORMAT
+//
+// Ambisonic UHJ format is a development of the Ambisonic surround sound system designed to be compatible with mono and stereo media.
 //
 // #### Reference
+//
 // 1983-gerzon-ambisonic-in-multichannel-broadcasting-and-video
 //
-// where j is a +90° phase shift
+// #### Code
 //
-// #### Usage
-//
-// ```
-// _,_,_,_ : uhj2bfmt : _,_,_,_
-// ```
-//
-// Where the four inputs are respectively:
-// L,R,T,Q
-//
-// where the four outputs are respectively:
-// W,X,Y,Z
-//
-//------------------------------------------------------------------------------
+// ```text
 uhj2bfmt(L,R,T,Q) = W,X,Y,Z
   with{
-    j = fi.pospass(128, 35) : *(2), !;
-    W = (0.982*L) + j(0.197*((0.828*R)+(0.768*T)));
-    X = (0.419*L) - j(0.828*(R+(0.768*T)));
-    Y = j(0.187*L) + ((0.796*R)-(0.676*T));
-    Z = 1.023 * Q;
+    lrS = nsum;
+    lrD = ndif;
+    W = (0.982*lrS) + j(0.197*((0.828*lrD)+(0.768*T)));
+    X = (0.419*lrS) - j(0.828*(lrD+(0.768*T)));
+    Y = j(0.187*lrS) + ((0.796*lrD)-(0.676*T));
+    Z = 1.023*Q;
 };
+// j = fi.pospass(128, 35) : *(2), !;
+// process = bmxmodule;
+// ```
 
-//====================================================================== TOOLS =
-//==============================================================================
-//------------------------------------------------------------------------------
-// FIRST ORDER B-FORMAT ROTATE
-//------------------------------------------------------------------------------
+// ## TOOLS
+//
+// ### FIRST ORDER B-FORMAT ROTATE
+//
 // Rotate the Firts Order B-Format armonics set
 //
 // #### Reference
 //
-// #### Usage
+// #### Code
 //
-// ```
-// _,_,_,_ : brotate : _,_,_,_
-// ```
-//
-// where
-// * azi is orizontal angle in radians
-//
-//------------------------------------------------------------------------------
-brotate(W,X,Y,Z) = W1, X1, Y1, Z1
+// ```text
+brotate(W,X,Y,Z,a,e) = W1,X1,Y1,Z1
   with{
     W1 = W;
-    X1 = (X) * cos(azi) - Y * sin(azi);
-    Y1 = (Y) * cos(azi) - X * sin(azi);
+    X1 = (X*cos(a))-(Y*sin(e));
+    Y1 = (Y*cos(a))-(X*sin(e));
     Z1 = Z;
 };
+// process = brotate(16,23);
+// ```
 
-//------------------------------------------------------------------------------
-// THREE CHANNEL STEREO
-//------------------------------------------------------------------------------
+// ### THREE CHANNEL STEREO
+//
 // Three channel pan-pot with low frequency phase correlation
 //
 // #### Reference
-// Studio Sound, June 1990
-// http://www.audiosignal.co.uk/Resources/Three_channels_A4.pdf
 //
-// #### Usage
+// [Studio Sound, June 1990](http://www.audiosignal.co.uk/Resources/Three_channels_A4.pdf)
 //
-// ```
-// _,_ : lcrpan : _,_,_
-// ```
+// #### Code
 //
-// Where the first input is the signal to be moved and the second is pot, a number between -0.5 and 0.5
-// pot = vslider("[1][style:knob][unit:deg]", 0.0, -45.0, 45.0, 0.1) / (90.0) : si.smoo;
-//
-// Where the four outpust are respectively:
-// Left,Center,Right
-//
-//------------------------------------------------------------------------------
+// ```text
 lrcpan(x,pot) = l,r,c
   with{
     plr = (pot) + (0.5);
     l = x*((1 - (plr)) * (pot) * (-2.0));
-    c = x*(cos(pot * ma.PI));
+    c = x*(cos(pot*PIq));
     r = x*((plr) * (pot) * (2.0));
 };
+//pot = hslider("[unit:deg]", 0.0, -45.0, 45.0, 0.1) / (90.0) : si.smoo;
+// process = lcrpan(pot);
+// ```
