@@ -39,6 +39,7 @@ commercial or closed source license or any other license if you decide so.
 declare name "Faust SEAM main lib";
 declare version "0.2";
 declare author "Giuseppe Silvi";
+declare author "Davide Tedesco";
 declare license "CC4";
 
 import("ambisonic.lib");
@@ -102,8 +103,6 @@ t60(g,d) = 1/((3/(log10(1/g)))*(d)) : ba.sec2samp;
 scalin(a,b,c,d,x) = ((x-a)/b-a))*(d-c);
 //----------------------------------------------------- SC SCALE EXPONENTIAL ---
 scalexp(a,b,c,d,x) = c*((d/c)^((x-a)/b-a));
-//-------------------------------------------------------- CLIP TO MIN ~ MAX ---
-clip(a,b) = max(a) : min(b);
 
 //================================================================== FILTERS ===
 //==============================================================================
