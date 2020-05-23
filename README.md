@@ -10,4 +10,3 @@ Actually there are five different libraries:
 * **measurement.lib** contains some audio analysis strategy to define musical display feature for audio inspection, such as integrated measurement and loudness monitoring, that are indispensable tools for today staging of public addressed music.
 * **nono.lib** is the first author-related library that points to contain Live Electronics Instruments. The idea is to collect instruments into the library and use them, work by work, in a hardware-like approach. The nono.lib should contain reusable instruments typical of his literature like the Harmonizer, the Halaphon, and so on, directly called back into the performance environment of each work, to enforce the reusability and the sustainability of those instruments.
 * **vcs3.lib** is the first synth related library, it contains a porting of the EMS VCS3 synth; the main idea is to recreate the 1969 synth into the library and use it together with the other libraries.
-
