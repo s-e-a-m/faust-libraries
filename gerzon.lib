@@ -7,19 +7,13 @@
 // # gerzon.lib
 //
 // ```text
-declare name "Michael Gerzon - Library";
-declare version "0.2";
-declare author "Giuseppe Silvi";
-declare author "Davide Tedesco";
-declare license "CC3";
+// declare name "Michael Gerzon - Library";
+// declare version "0.2";
+// declare author "Giuseppe Silvi";
+// declare author "Davide Tedesco";
+// declare license "CC3";
 // ```
-//
-// * EARLY WORKS
-// * A B MODULES
-// * ENCODERS
-// * DECODERS
-// * TOOLS
-//
+// 
 // ## MICHAEL GERZON EARLY WORKS
 //
 // ### 1970 - SURROUND SOUND FROM 2-CHANNEL STEREO - SUM-AND-DIFFERENCE LAYOUT
@@ -43,7 +37,6 @@ declare license "CC3";
 //
 // Where the four outpust are respectively: Left - Right - Front - Back
 //
-// ```
 // #### Code
 //
 // ```text
@@ -52,9 +45,12 @@ lrfb(L,R) = L,R,F,B
     F = (1/sqrt(2))*(L+R);
     B = (1/sqrt(2))*(L-R);
 };
+//
 // process = lrfb;
 // ```
-
+//
+// <!-- ******************************************************************** -->
+//
 // ### 1970 - SURROUND SOUND FROM 2-CHANNEL STEREO - IDEAL LS ARRANGEMENT
 //
 // > Another, more obvious, defect of ‘sum-and-difference’ four-speaker reproduction is the highly inconvenient seating arrangements, which are hardly suitable for the cosy domestic enjoyment of music.
@@ -85,9 +81,12 @@ lrsurrls(L,R) = B,C,A,D
     C = L*(0.383) + R*(0.924);
     D = L*(-0.383) + R*(0.924);
 };
+//
 // process = lrsurrls;
 // ```
-
+//
+// <!-- ******************************************************************** -->
+//
 // ### 1971 - A YEAR OF SURROUND SOUND
 //
 // > What is the precise effect of the rear spread control? With the few set-ups on which it has so far been tried, as one turns the control away from the pure ‘Hafler’ system, the sound seems to gain a subtle life and depth that the Hafler system lacks.
@@ -106,8 +105,9 @@ lrsurrls(L,R) = B,C,A,D
 // ```
 //
 // Where:
-// * suffix _rs is Rear Spread
-// * k is a number bettween 0.5 and 1.0
+//
+//  * suffix rs is Rear Spread
+//  * k is a number between 0.5 and 1.0
 //
 // #### Code
 //
@@ -118,9 +118,12 @@ lrsurrrs(L,R,k) = L,R,kL,kR
     kL = (kc*L)-((1-kc)*R);
     kR = (kc*R)-((1-kc)*L);
 };
+//
 // process = lrsurrrs;
 // ```
-
+//
+// <!-- ******************************************************************** -->
+//
 // ## A B MODULES
 //
 // ### GENERIC AB MODULE WITHOUT SHELVING
@@ -141,9 +144,12 @@ abmodule(LFU,RFD,RBU,LBD) = W,X,Y,Z
 	  Y = 0.5 * (LFU - RFD - RBU + LBD);
 	  Z = 0.5 * (LFU - RFD + RBU - LBD);
 };
+//
 // process = abmodule;
 // ```
-
+//
+// <!-- ******************************************************************** -->
+//
 // ### GENERIC BA MODULE WITHOUT SHELVING
 //
 // Converts Firts Order B-Format into a generic tetrahedral A-Format
@@ -160,9 +166,12 @@ bamodule(W,X,Y,Z) = LFU,RFD,RBU,LBD
 	  RBU = 0.5 * (W - X - Y + Z);
     LBD = 0.5 * (W - X - Y - Z);
 };
+//
 // process = bamodule;
 // ```
-
+//
+// <!-- ******************************************************************** -->
+//
 // ## ENCODERS
 //
 // ### MONO TO FIRST ORDER B-FORMAT ENCODER
@@ -176,17 +185,20 @@ bamodule(W,X,Y,Z) = LFU,RFD,RBU,LBD
 // #### Code
 //
 // ```text
-m2bfmt(azi,elv) = bfmt
-  with{
-    W = *(1/sqrt(2));
-    X = *cos(d2r(azi))*cos(d2r(elv));
-    Y = *sin(d2r(azi))*cos(d2r(elv));
-    Z = *sin(d2r(elv));
-    bfmt = _ <: W,X,Y,Z;
-};
+// m2bfmt(azi,elv) = bfmt
+//   with{
+//     W = *(1/sqrt(2));
+//     X = *cos(d2r(azi))*cos(d2r(elv));
+//     Y = *sin(d2r(azi))*cos(d2r(elv));
+//     Z = *sin(d2r(elv));
+//     bfmt = _ <: W,X,Y,Z;
+// };
+//
 // process = m2bfmt(16,23);
 // ```
-
+//
+// <!-- ******************************************************************** -->
+//
 // ### LR STEREO TO FIRST ORDER B-FORMAT ENCODER
 //
 // Converts a Stereo stream into Firts Order B-Format
@@ -195,9 +207,12 @@ m2bfmt(azi,elv) = bfmt
 //
 // ```text
 lr2bfmt(a) = 1/sqrt(2)*(m2bfmt(a,0)+m2bfmt(-a,0));
+//
 // process = lr2bfmt(45);
 // ```
-
+//
+// <!-- ******************************************************************** -->
+//
 // ## DECODERS
 //
 // ### PLANAR THREE CHANNEL B-FORMAT TO FOUR LOUDSPEAKER DECODER
@@ -218,9 +233,12 @@ bdmodule = shelf : bamodule
             fi.highshelf(2,-1.25,350),
             *(0.0);
 };
+//
 // process = bdmodule;
 // ```
-
+//
+// <!-- ******************************************************************** -->
+//
 // ### DECODER FOR BMX ENCODED SIGNALS
 //
 // Converts C-Format Stereo BMX encoded signals to four loudspeaker setup
@@ -237,11 +255,14 @@ bmxmodule(L,R) = (M+S),M,S,0 : bamodule
     M = 0.5*(L+R) : fi.lowshelf(2,-3.98,350);
     S = 0.5*(L-R) : fi.lowshelf(2,2.04,350);
 };
+//
 // process = bmxmodule;
 // ```
-
-
+//
+// <!-- ******************************************************************** -->
+//
 // ## UHJ UTILITIES
+//
 // #### Code
 //
 // ```text
@@ -249,7 +270,9 @@ lrS = nsum;
 lrD = ndif;
 j = fi.pospass(128, 35) : *(2), !;
 // ```
-
+//
+// <!-- ******************************************************************** -->
+//
 // ## B-FORMAT TO UHJ LRTQ
 //
 // Ambisonic UHJ format is a development of the Ambisonic surround sound system designed to be compatible with mono and stereo media.
@@ -270,16 +293,24 @@ bfmt2uhj(W,X,Y,Z) = L,R,T,Q
     T = j((-0.1432 * W + 0.6512 * X)) - (0.7071 * Y);
     Q = 0.9772 * (Z);
 };
+//
 // j = fi.pospass(128, 35) : *(2), !;
+//
 // process = bfmt2uhj;
 // ```
+//
+// <!-- ******************************************************************** -->
+//
 // #### Code
 //
 // ```text
 bfmt2uhj_LR = bfmt2uhj:_,_,!,!;
+//
 // process = bfmt2uhj_LR;
 // ```
-
+//
+// <!-- ******************************************************************** -->
+//
 // ### FOUR CHANNEL LRTQ UHJ TO B-FORMAT
 //
 // Ambisonic UHJ format is a development of the Ambisonic surround sound system designed to be compatible with mono and stereo media.
@@ -300,11 +331,17 @@ uhj2bfmt(L,R,T,Q) = W,X,Y,Z
     Y = j(0.187*lrS) + ((0.796*lrD)-(0.676*T));
     Z = 1.023*Q;
 };
+//
 // j = fi.pospass(128, 35) : *(2), !;
+//
 // process = bmxmodule;
 // ```
-
+//
+// <!-- ******************************************************************** -->
+//
 // ## TOOLS
+//
+// <!-- ******************************************************************** -->
 //
 // ### FIRST ORDER B-FORMAT ROTATE
 //
@@ -322,9 +359,12 @@ brotate(W,X,Y,Z,a,e) = W1,X1,Y1,Z1
     Y1 = (Y*cos(a))-(X*sin(e));
     Z1 = Z;
 };
+//
 // process = brotate(16,23);
 // ```
-
+//
+// <!-- ******************************************************************** -->
+//
 // ### THREE CHANNEL STEREO
 //
 // Three channel pan-pot with low frequency phase correlation
@@ -343,6 +383,8 @@ lrcpan(x,pot) = l,r,c
     c = x*(cos(pot*PIq));
     r = x*((plr) * (pot) * (2.0));
 };
-//pot = hslider("[unit:deg]", 0.0, -45.0, 45.0, 0.1) / (90.0) : si.smoo;
+//
+// pot = hslider("[unit:deg]", 0.0, -45.0, 45.0, 0.1) / (90.0) : si.smoo;
+//
 // process = lcrpan(pot);
 // ```
