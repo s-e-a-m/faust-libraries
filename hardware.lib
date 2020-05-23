@@ -1,6 +1,6 @@
 //############################################################# hardware.lib ###
 //
-// A library for analise and measure signals. Its official prefix is `me`.
+// A library for real word hardware connection. Its official prefix is `ha`.
 //
 // * AUDIO INTERFACE
 // * MIDI
@@ -43,6 +43,8 @@ declare version "0.1";
 declare author "Giuseppe Silvi";
 declare license "CC4";
 
+// da studiare per outsel
+//selectoutn(n, s) = _ <: par(i, n, *(s==i));
 //========================================================== AUDIO INTERFACE ===
 //==============================================================================
 //--------------------------------------- RME FireFace 800 - MONO INPUT SELECTOR
@@ -148,6 +150,15 @@ g85 = vslider("[08] [midi:ctrl 88]", 0, -70, +6, 0.1) : ba.db2linear : si.smoo;
 g86 = vslider("[08] [midi:ctrl 88]", 0, -70, +6, 0.1) : ba.db2linear : si.smoo;
 g87 = vslider("[08] [midi:ctrl 88]", 0, -70, +6, 0.1) : ba.db2linear : si.smoo;
 g88 = vslider("[08] [midi:ctrl 88]", 0, -70, +6, 0.1) : ba.db2linear : si.smoo;
+
+//Ctrl Chan tester (ctrl chan): tester(midi in, midi out)
+// controlchantester = vgroup("CTRL CHAN IN/OUT", valuetest(81,1,81,1))
+// with{
+// valuetest(i,ic,o,oc) = hslider("Ctrl Value IN (Ctrl %i Channel %ic) [midi:ctrl %i %ic]", 60, 0, 127, 1) :
+//                        hbargraph("Ctrl Value OUT (Ctrl %o) Channel OUT(Chan %oc) [midi:ctrl %o %oc]", 0, 127);
+// };
+//
+// process = controlchantester;
 
 bcf2000 = hgroup("BEHRINGER BCF 2000", par(i, 8, channel(i)))
   with{

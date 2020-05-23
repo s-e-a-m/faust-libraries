@@ -5,8 +5,6 @@
 // * BASIC FUNCTIONS
 // * MATH
 // * UNDER FINGERS VARIABLES
-// * LOGIC
-// * CHANNEL STRIP
 //
 //##############################################################################
 
@@ -41,13 +39,17 @@ commercial or closed source license or any other license if you decide so.
 declare name "Faust SEAM main lib";
 declare version "0.2";
 declare author "Giuseppe Silvi";
+declare author "Davide Tedesco";
 declare license "CC4";
 
 import("ambisonic.lib");
+import("csound.lib");
+import("cyclone.lib");
 import("gerzon.lib");
 import("hardware.lib");
 import("measurement.lib");
 import("nono.lib");
+import("nottoli.lib");
 import("stereophony.lib");
 import("vcs3.lib");
 
@@ -55,13 +57,58 @@ import("vcs3.lib");
 //==============================================================================
 //----------------------------------------------- LINEAR SWEEP UP TO NYQUIST ---
 lsweep = ba.sweep((ma.SR/2)-1,1);
+//----------------------------------------- ONE SAMPLE PULSE @ ZERO CROSSING ---
+zerox(x) = (x'<0) & (x>=0);//(x<0) | (x>0);
+//process = os.lf_saw(100) <: _,zerox;
 
 //===================================================================== MATH ===
 //==============================================================================
+//------------------------------------------------------------- SPEEDOFSOUND ---
+speedofsound = 344; // m/s
+//----------------------------------------------------------------------- PI ---
+//----------------------------------------------------------- QUAD PRECISION ---
+//--- 81 decimals
+PIq = 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998;
 //------------------------------------------------------- DEGREES TO RADIANS ---
-deg2rad = *(ma.PI/180);
-//------------------------------------------------------- RADIANS TO DEGREES --–
-rad2deg = /(ma.PI*180);
+d2r = *(PIq/180);
+//------------------------------------------------------- RADIANS TO DEGREES ---
+r2d = /(PIq*180);
+//------------------------------------------------------- BILINEAR TRANSFORM ---
+g(fc) = tan(PIq*(fc/ma.SR));
+//---------------------------------------------------- -3dB Cutoff Frequency ---
+//----------------------------------------------- of an Exponential Averager ---
+// https://www.dsprelated.com/showarticle/182.php
+a(fc) = cos((2*PIq*fc)/ma.SR)-1+sqrt((0.5*(1+cos(2*((2*PIq*fc)/ma.SR))))-4*cos((2*PIq*fc)/ma.SR)+3);
+//------------------------------------------------------ MILLER PUCKETTE T60 ---
+// Next comes the recirculating part of the reverberator. After the initial
+// thickening, the input signal is fed into a bank of parallel delay lines,
+// and their outputs are again mixed using a rotation matrix. The mixed outputs
+// are attenuated by a gain g ≤ 1, and fed back into the delay lines to make a
+// recirculating network.
+// The value g controls the reverberation time. If the average length of the
+// recirculating delay lines is d, then any incoming sound is attenuated by a
+// factor of g after a time delay of d. After time t the signal has recirculated
+// t/d times, losing 20log10(g) decibels each time around, so the total gain,
+// in decibels, is:
+RT(g,d) = (-3*d)/(log10(g));
+t60(RT,d,g) = 20*(RT/d)*log10(g);
+//----------------------------------------------------- EUGENIO GIORDANI T60 ---
+t60(g,d) = -3/(log10(1/g))*d;
+t60(g,d) = 1/((3/(log10(1/g)))*(d)) : ba.sec2samp;
+//g(t60) = pow;
+// T60 = [60 / (-20 log g)] τ, da cui si trae:
+// T60 = (3/log(1/g)) τ (1.6)
+// g = 10^ (-3 τ / T60)
+//--------------------------------------------------------- SC SCALE LINENAR ---
+scalin(a,b,c,d,x) = ((x-a)/b-a))*(d-c);
+//----------------------------------------------------- SC SCALE EXPONENTIAL ---
+scalexp(a,b,c,d,x) = c*((d/c)^((x-a)/b-a));
+
+//================================================================== FILTERS ===
+//==============================================================================
+//------------------------------------------ COMPUTER MUSIC TUTORIAL ALLPASS ---
+cmtap(D,g) = (+ <: de.delay((ma.SR/2),int(D-1)),*(-g)) ~ *(g) : +;
+cmtapm(D,g) = (+ <: de.delay((ma.SR/2),int(D-1)),*(-g)) ~ *(g) : mem,_ : +;
 
 //================================================== UNDER FINGERS VARIABLES ===
 //==============================================================================
@@ -69,6 +116,10 @@ rad2deg = /(ma.PI*180);
 // Radians expressed by degrees from -180 (sx) to 180 (dx) by decimal steps
 //------------------------------------------------------------------------------
 rad = vslider("[02]Azimuth[style:knob]",0,-180,180,0.1) : deg2rad : si.smoo;
+//------------------------------------------------------------------ RADIANS --–
+// Radians expressed by degrees from -180 (sx) to 180 (dx) by decimal steps
+//------------------------------------------------------------------------------
+frontrad = vslider("[02]Frontal Azimuth[style:knob]",0,-45,45,0.1) : deg2rad : si.smoo;
 //----------------------------------------------------------------- P FACTOR --–
 // P coefficient slider from 0 to 1 by centesimal steps
 //------------------------------------------------------------------------------
@@ -81,76 +132,3 @@ p = vslider("[01]P[style:knob]", 0.5, 0, 1, 0.01) : si.smoo;
 chstrip = vgroup("[01] INPUT CHANNEL", ff800 : inpeq);
 lrstrip = vgroup("[01] STEREO INPUT CHANNEL", ff800_ST : inpeq, inpeq);
 wxyzrip = vgroup("[01] B-FORMAT INPUT CHANNEL", ff800_WXYZ : inpeq, inpeq, inpeq, inpeq);
-
-//============================================================ CHANNEL STRIP ===
-//==============================================================================
-//-------------------------------------------- INPUT CHANNEL GENERIC CONTROL ---
-inpeq = vgroup("[91] CH SETUP", *(gain) :
-  *(rpol) :
-  ba.bypass1(lop,fi.lowpass(2,hcut)) :
-  ba.bypass1(hip,fi.highpass(2,lcut)) :
-  ba.bypass1(eq, (fi.low_shelf(LL, FL) :
-  fi.peak_eq(LP1, FP1, BP1) :
-  fi.peak_eq(LP2, FP2, BP2) :
-  fi.high_shelf(LH, FH))))
-  with{
-    // GROUPS
-    pregroup(x) = hgroup("[03] PRE SECTION", x);
-    pg_group(x) = pregroup(vgroup("[01] PHASE GAIN", x));
-    lc_group(x) = pregroup(vgroup("[02] LOW CUT", x));
-    hc_group(x) = pregroup(vgroup("[03] HI CUT", x));
-    eq_group(x) = vgroup("[04] PARAMETRIC EQ",x);
-    hs_group(x) = eq_group(hgroup("[01] High Shelf", x));
-    pq1_group(x) = eq_group(hgroup("[02] Band", x));
-    pq2_group(x) = eq_group(hgroup("[03] Band", x));
-    ls_group(x) = eq_group(hgroup("[04] Low Shelf",x));
-    // REVERSE POLARITY AND GAIN
-    rpol = pg_group(1 - ((checkbox("[01] InvPhase")*(2))));
-    gain = pg_group(vslider("[02] Gain [unit:dB] [style:knob]", 0, -24, +24, 0.1)) : ba.db2linear : si.smoo;
-    // PRE FILTERS
-    lop = hc_group(1 - checkbox("[03] Cut"));
-    hcut = hc_group(vslider("[04] HiFreq [unit:Hz] [style:knob]", 8000, 20, 20000, 0.1)) : si.smoo;
-    hip = lc_group(1 - checkbox("[01] Cut"));
-    lcut = lc_group(vslider("[02] LoFrew [unit:Hz] [style:knob]", 500, 20, 20000, 0.1)) : si.smoo;
-    // PARAMETRIC EQ - TWEAKED FROM FAUST DEMOS
-    eq = eq_group(1 - checkbox("[00] EQ"));
-  	LH = hs_group(vslider("[00] Gain [unit:dB] [style:knob]", 0,-36,36,.1) : si.smoo);
-  	FH = hs_group(vslider("[01] Freq [unit:Hz] [style:knob]", 8000,100,19999,1) : si.smoo);
-  	LP1 = pq1_group(vslider("[00] Gain 1 [unit:dB] [style:knob]",0,-36,36,0.1) : si.smoo);
-  	FP1 = pq1_group(vslider("[01] Freq 1 [unit:Hz] [style:knob]", 2500,0,20000,1)) : si.smoo;
-  	Q1  = pq1_group(vslider("[02] Q 1 [style:knob] [scale:log]",40,1,1000,0.1) : si.smoo);
-  	BP1 = FP1/Q1;
-  	LP2 = pq2_group(vslider("[00] Gain 2 [unit:dB] [style:knob]", 0,-36,36,0.1));
-  	FP2 = pq2_group(vslider("[01] Freq 2 [unit:Hz] [style:knob]", 500,0,20000,1)) : si.smoo;
-  	Q2  = pq2_group(vslider("[02] Q 2 [style:knob] [scale:log]", 40,1,1000,0.1) : si.smoo);
-  	BP2 = FP2/Q2;
-  	LL = ls_group(vslider("[00] Gain [unit:dB] [style:knob]", 0,-36,36,0.1) : si.smoo);
-  	FL = ls_group(vslider("[01] Freq [unit:Hz] [style:knob]", 200,20,5000,1): si.smoo);
-};
-
-//------------------------------------------- OUTPUT CHANNEL GENERIC CONTROL ---
-out(c) = hgroup("[99] OUT%o", vgroup("[97]", outdel : outfbank) : *(gain) : svmeter)
-  with{
-    o = c+(1);
-    gain = vslider("[98] Gain [unit:dB]", 0, -70, +12, 0.01) : ba.db2linear : si.smoo;
-    //----------------------------------------------------- 8-BAND GRAPHIC EQ --
-    mth_octave_filterbank_demo(O) = ba.bypass1(fon, mthoctavefilterbankdemo)
-    with{
-      eq_group(x) = vgroup("[98] EQ", x);
-      fon = eq_group(1 - (checkbox("[01] EQ ON")));
-    	M = O;
-    	N = 8*M; // total number of bands (highpass band, octave-bands, dc band)
-    	ftop = 10000;
-    	mthoctavefilterbankdemo = chan;
-    	chan = fi.mth_octave_filterbank_default(M,ftop,N) : sum(i,N,(*(ba.db2linear(fader(N-i)))));
-    	fader(i) = eq_group(vslider("[02] Band%2i [unit:dB][style:knob]", 0, -70, 12, 0.1)) : si.smoo;
-    };
-    outfbank = mth_octave_filterbank_demo(1); // octave-bands = default
-    //---------------------------------- OUT DELAY FOR LOPUDSPEALER ALINGMENT --
-    outdel = ba.bypass1(don, de.delay(maxdel, del))
-      with{
-        maxdel = 192000;
-        del = int(ba.sec2samp(nentry("[97] Delay [unit:ms]", 0, 0, 1, 0.001)));
-        don = 1 - (checkbox("[96] DEL ON"));
-      };
-  };

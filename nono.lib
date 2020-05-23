@@ -6,7 +6,7 @@
 // * DELAY BANKS
 // * REVERBERATORS
 // * HALAPHON
-// *
+// * PHASER
 //
 //##############################################################################
 
@@ -209,3 +209,41 @@ halaphon = sp.spat(4, hramp, hdist) : halmeters
     hmeter(x)		= attach(x, envelop(x) : hbargraph("[05][unit:dB] Meter", -70, +5));
     envelop = abs : max ~ -(1.0/ma.SR) : max(ba.db2linear(-70)) : ba.linear2db;
 };
+
+//------------------------------------------------------------------------------
+// PHASER
+//------------------------------------------------------------------------------
+// Converts an LR stereo image into Mid mono signal describes the frontal
+// directional component of the sound image.
+//
+// #### Reference
+//
+// Where the two inputs are respectively:
+// L,R
+//
+// Where the output is the Mid component
+//
+// #### Usage
+//
+// ```
+// p_g(x) = hgroup("PHASER",x);
+// frq = p_g(vslider("[01]LFO[scale:exp][style:knob]", 0.001, 0, 30, 0.001)) : si.smoo;
+// fbk = p_g(vslider("[02]FBACK[style:knob]", 0.0, -1, 1, 0.01) : si.smoo);
+// lfo = os.osc(frq);
+// process = phaser(4,_,1,lfo,fbk);
+// ```
+//------------------------------------------------------------------------------
+phaser(N,x,d,g,fb) = x <: _,(+:alseq(N,d,g))~*(fb):> _
+with{
+  ap(d,g) = (+ <: de.fdelay((ma.SR/2),d),*(-g)) ~ *(g) : mem,_ : +;
+  alseq(N,d,g) = seq(i,N,ap(d,g));
+};
+
+
+
+// amplificazione trasparente
+//import("stdfaust.lib");
+ampt(g,mt) = *(g) : de.delay(ma.SR,mt2samp(mt));
+sos = 344;
+mt2samp(mt) = int(mt*ma.SR/sos);
+//process = <:,ampt(0.5,20);
