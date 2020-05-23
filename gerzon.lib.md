@@ -32,13 +32,13 @@ declare license "CC3";
 * [A year of surround-sound - Hi-Fi News, August 1971](https://github.com/s-e-a-m/References/blob/master/Gerzon-Michael/1971-GERZON-A_year_of_surround_sound_A4.pdf)
 
 ```text
- F
- • | •
- • | •
+        F
+     •  |  •
+  •     |     •
 L ----- + ----- R
- • | •
- • | •
- B
+  •     |     •
+     •  |  •
+        B
 ```
 
 Where the four outpust are respectively: Left - Right - Front - Back
@@ -47,9 +47,9 @@ Where the four outpust are respectively: Left - Right - Front - Back
 
 ```text
 lrfb(L,R) = L,R,F,B
- with{
- F = (1/sqrt(2))*(L+R);
- B = (1/sqrt(2))*(L-R);
+  with{
+    F = (1/sqrt(2))*(L+R);
+    B = (1/sqrt(2))*(L-R);
 };
 
 process = lrfb;
@@ -66,10 +66,10 @@ process = lrfb;
 
 ```text
  B ---------- C
- | |
- | |
- | |
- | |
+ |            |
+ |            |
+ |            |
+ |            |
  A ---------- D
 ```
 
@@ -79,11 +79,11 @@ Where the four outpust are respectively: B,C,A,D
 
 ```text
 lrsurrls(L,R) = B,C,A,D
- with{
- A = L*(0.924) - R*(0.383);
- B = L*(0.924) + R*(0.383);
- C = L*(0.383) + R*(0.924);
- D = L*(-0.383) + R*(0.924);
+  with{
+    A = L*(0.924) - R*(0.383);
+    B = L*(0.924) + R*(0.383);
+    C = L*(0.383) + R*(0.924);
+    D = L*(-0.383) + R*(0.924);
 };
 
 process = lrsurrls;
@@ -99,10 +99,10 @@ process = lrsurrls;
 
 ```text
  L ---------- R
- | |
- | |
- | |
- | |
+ |            |
+ |            |
+ |            |
+ |            |
  kL -------- kR
 ```
 
@@ -115,10 +115,10 @@ Where:
 
 ```text
 lrsurrrs(L,R,k) = L,R,kL,kR
- with{
- kc = min(k,1):max(k,0.5);
- kL = (kc*L)-((1-kc)*R);
- kR = (kc*R)-((1-kc)*L);
+  with{
+    kc = min(k,1):max(k,0.5);
+    kL = (kc*L)-((1-kc)*R);
+    kR = (kc*R)-((1-kc)*L);
 };
 
 process = lrsurrrs;
@@ -139,10 +139,10 @@ Converts a generic tetrahedral A-Format into Firts Order B-Format
 ```text
 abmodule(LFU,RFD,RBU,LBD) = W,X,Y,Z
 	with{
- W = 0.5 * (LFU + RFD + RBU + LBD);
-	 X = 0.5 * (LFU + RFD - RBU - LBD);
-	 Y = 0.5 * (LFU - RFD - RBU + LBD);
-	 Z = 0.5 * (LFU - RFD + RBU - LBD);
+    W = 0.5 * (LFU + RFD + RBU + LBD);
+	  X = 0.5 * (LFU + RFD - RBU - LBD);
+	  Y = 0.5 * (LFU - RFD - RBU + LBD);
+	  Z = 0.5 * (LFU - RFD + RBU - LBD);
 };
 
 process = abmodule;
@@ -158,11 +158,11 @@ Converts Firts Order B-Format into a generic tetrahedral A-Format
 
 ```text
 bamodule(W,X,Y,Z) = LFU,RFD,RBU,LBD
- with{
-	 LFU = 0.5 * (W + X + Y + Z);
-	 RFD = 0.5 * (W + X - Y - Z);
-	 RBU = 0.5 * (W - X - Y + Z);
- LBD = 0.5 * (W - X - Y - Z);
+  with{
+	  LFU = 0.5 * (W + X + Y + Z);
+	  RFD = 0.5 * (W + X - Y - Z);
+	  RBU = 0.5 * (W - X - Y + Z);
+    LBD = 0.5 * (W - X - Y - Z);
 };
 
 process = bamodule;
@@ -182,12 +182,12 @@ Encode a mono channel into Firts Order B-Format
 
 ```text
 m2bfmt(azi,elv) = bfmt
- with{
- W = *(1/sqrt(2));
- X = *cos(d2r(azi))*cos(d2r(elv));
- Y = *sin(d2r(azi))*cos(d2r(elv));
- Z = *sin(d2r(elv));
- bfmt = _ <: W,X,Y,Z;
+  with{
+    W = *(1/sqrt(2));
+    X = *cos(d2r(azi))*cos(d2r(elv));
+    Y = *sin(d2r(azi))*cos(d2r(elv));
+    Z = *sin(d2r(elv));
+    bfmt = _ <: W,X,Y,Z;
 };
 
 process = m2bfmt(16,23);
@@ -219,11 +219,11 @@ Converts planar B-Format to four loudspeaker setup for horizontal studio monitor
 
 ```text
 bdmodule = shelf : bamodule
- with{
- shelf = fi.highshelf(2,1.76,350),
- fi.highshelf(2,-1.25,350),
- fi.highshelf(2,-1.25,350),
- *(0.0);
+  with{
+    shelf = fi.highshelf(2,1.76,350),
+            fi.highshelf(2,-1.25,350),
+            fi.highshelf(2,-1.25,350),
+            *(0.0);
 };
 
 process = bdmodule;
@@ -241,9 +241,9 @@ Converts C-Format Stereo BMX encoded signals to four loudspeaker setup
 
 ```text
 bmxmodule(L,R) = (M+S),M,S,0 : bamodule
- with{
- M = 0.5*(L+R) : fi.lowshelf(2,-3.98,350);
- S = 0.5*(L-R) : fi.lowshelf(2,2.04,350);
+  with{
+    M = 0.5*(L+R) : fi.lowshelf(2,-3.98,350);
+    S = 0.5*(L-R) : fi.lowshelf(2,2.04,350);
 };
 
 process = bmxmodule;
@@ -271,13 +271,13 @@ https://en.wikipedia.org/wiki/Ambisonic_UHJ_format
 
 ```text
 bfmt2uhj(W,X,Y,Z) = L,R,T,Q
- with{
- S = 0.9396926 * W + 0.1855740 * X;
- D = j((-0.3420201 * W) + (0.5098604 * X)) + (0.6554516 * Y);
- L = 0.5 * (S + D);
- R = 0.5 * (S - D);
- T = j((-0.1432 * W + 0.6512 * X)) - (0.7071 * Y);
- Q = 0.9772 * (Z);
+  with{
+    S = 0.9396926 * W + 0.1855740 * X;
+    D = j((-0.3420201 * W) + (0.5098604 * X)) + (0.6554516 * Y);
+    L = 0.5 * (S + D);
+    R = 0.5 * (S - D);
+    T = j((-0.1432 * W + 0.6512 * X)) - (0.7071 * Y);
+    Q = 0.9772 * (Z);
 };
 
 j = fi.pospass(128, 35) : *(2), !;
@@ -305,13 +305,13 @@ Ambisonic UHJ format is a development of the Ambisonic surround sound system des
 
 ```text
 uhj2bfmt(L,R,T,Q) = W,X,Y,Z
- with{
- lrS = nsum;
- lrD = ndif;
- W = (0.982*lrS) + j(0.197*((0.828*lrD)+(0.768*T)));
- X = (0.419*lrS) - j(0.828*(lrD+(0.768*T)));
- Y = j(0.187*lrS) + ((0.796*lrD)-(0.676*T));
- Z = 1.023*Q;
+  with{
+    lrS = nsum;
+    lrD = ndif;
+    W = (0.982*lrS) + j(0.197*((0.828*lrD)+(0.768*T)));
+    X = (0.419*lrS) - j(0.828*(lrD+(0.768*T)));
+    Y = j(0.187*lrS) + ((0.796*lrD)-(0.676*T));
+    Z = 1.023*Q;
 };
 
 j = fi.pospass(128, 35) : *(2), !;
@@ -331,11 +331,11 @@ Rotate the Firts Order B-Format armonics set
 
 ```text
 brotate(W,X,Y,Z,a,e) = W1,X1,Y1,Z1
- with{
- W1 = W;
- X1 = (X*cos(a))-(Y*sin(e));
- Y1 = (Y*cos(a))-(X*sin(e));
- Z1 = Z;
+  with{
+    W1 = W;
+    X1 = (X*cos(a))-(Y*sin(e));
+    Y1 = (Y*cos(a))-(X*sin(e));
+    Z1 = Z;
 };
 
 process = brotate(16,23);
@@ -353,11 +353,11 @@ Three channel pan-pot with low frequency phase correlation
 
 ```text
 lrcpan(x,pot) = l,r,c
- with{
- plr = (pot) + (0.5);
- l = x*((1 - (plr)) * (pot) * (-2.0));
- c = x*(cos(pot*PIq));
- r = x*((plr) * (pot) * (2.0));
+  with{
+    plr = (pot) + (0.5);
+    l = x*((1 - (plr)) * (pot) * (-2.0));
+    c = x*(cos(pot*PIq));
+    r = x*((plr) * (pot) * (2.0));
 };
 
 pot = hslider("[unit:deg]", 0.0, -45.0, 45.0, 0.1) / (90.0) : si.smoo;
