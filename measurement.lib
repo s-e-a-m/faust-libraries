@@ -50,15 +50,15 @@ pvmeter(x) = attach(x, an.amp_follower(0.150, x) : ba.linear2db : vbargraph("[90
 phmeter(x) = attach(x, an.amp_follower(0.150, x) : ba.linear2db : hbargraph("[90][unit:dB]", -70, +6));
 
 //---------------------------------------------------------------- RMS METERS --
-svmeter(x) = attach(x, RMS(1000, x) : ba.linear2db : vbargraph("[90][unit:dB]", -70, +6));
-shmeter(x) = attach(x, RMS(1000, x) : ba.linear2db : hbargraph("[90][unit:dB]", -70, +6));
+//svmeter(x) = attach(x, RMS(1000, x) : ba.linear2db : vbargraph("[90][unit:dB]", -70, +6));
+//shmeter(x) = attach(x, RMS(1000, x) : ba.linear2db : hbargraph("[90][unit:dB]", -70, +6));
 
 //================================================================= LOUDNESS ===
 //==============================================================================
 //------------------------------------------------------------------------------
 // RMS - ROOT MEAN SQUARE
 //------------------------------------------------------------------------------
-RMS(n) = ba.slidingRMSn(n,1024);
+//RMS(n) = ba.slidingRMSn(n,1024);
 
 //------------------------------------------------------------------------------
 // BS1770
@@ -80,8 +80,8 @@ RMS(n) = ba.slidingRMSn(n,1024);
 // Where the output is the Mid component
 //
 //------------------------------------------------------------------------------
-pfs1 = fi.highshelf(2,4,1100);
-pfs2 = fi.highpass(2,55);
-tg = ba.sec2samp(0.400);
-
-bs1770 = pfs1 : pfs2 <: _ , int(@(0.75*tg)) : 0.5*(RMS(tg)+RMS(tg));
+// pfs1 = fi.highshelf(2,4,1100);
+// pfs2 = fi.highpass(2,55);
+// tg = ba.sec2samp(0.400);
+//
+// bs1770 = pfs1 : pfs2 <: _ , int(@(0.75*tg)) : 0.5*(RMS(tg)+RMS(tg));

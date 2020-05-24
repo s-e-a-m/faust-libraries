@@ -54,7 +54,7 @@ inpeq = vgroup("[91] CH SETUP", *(gain) :
 };
 
 //------------------------------------------- OUTPUT CHANNEL GENERIC CONTROL ---
-out(c) = hgroup("[99] OUT%o", vgroup("[97]", outdel : outfbank) : *(gain) : svmeter)
+out(c) = hgroup("[99] OUT%o", *(gain) : pvmeter) //vgroup("[97]", outdel:: outfbank) : *(gain) : pvmeter)
   with{
     o = c+(1);
     gain = vslider("[98] Gain [unit:dB]", 0, -70, +12, 0.01) : ba.db2linear : si.smoo;

@@ -42,16 +42,16 @@ declare author "Giuseppe Silvi";
 declare author "Davide Tedesco";
 declare license "CC4";
 
-import("ambisonic.lib");
-import("csound.lib");
-import("cyclone.lib");
-import("gerzon.lib");
-import("hardware.lib");
-import("measurement.lib");
-import("nono.lib");
-import("nottoli.lib");
-import("stereophony.lib");
-import("vcs3.lib");
+// import("ambisonic.lib");
+// import("csound.lib");
+// import("cyclone.lib");
+// import("gerzon.lib");
+// import("hardware.lib");
+// import("measurement.lib");
+// import("nono.lib");
+// import("nottoli.lib");
+// import("stereophony.lib");
+// import("vcs3.lib");
 
 //========================================================== BASIC FUNCTIONS ===
 //==============================================================================
@@ -60,11 +60,14 @@ lsweep = ba.sweep((ma.SR/2)-1,1);
 //----------------------------------------- ONE SAMPLE PULSE @ ZERO CROSSING ---
 zerox(x) = (x'<0) & (x>=0);//(x<0) | (x>0);
 //process = os.lf_saw(100) <: _,zerox;
+//----------------------------------------- generate a downward list
+revlist(n) = par(i,n+1,(n+1)-i);
 
 //===================================================================== MATH ===
 //==============================================================================
 //------------------------------------------------------------- SPEEDOFSOUND ---
-speedofsound = 344; // m/s
+sos = 344; // m/s
+mt2samp(mt) = int(mt*ma.SR/sos);
 //----------------------------------------------------------------------- PI ---
 //----------------------------------------------------------- QUAD PRECISION ---
 //--- 81 decimals
@@ -124,11 +127,3 @@ frontrad = vslider("[02]Frontal Azimuth[style:knob]",0,-45,45,0.1) : deg2rad : s
 // P coefficient slider from 0 to 1 by centesimal steps
 //------------------------------------------------------------------------------
 p = vslider("[01]P[style:knob]", 0.5, 0, 1, 0.01) : si.smoo;
-
-//==================================================================== LOGIC ===
-//==============================================================================
-//-------------------------------------------- INPUT CHANNEL GENERIC CONTROL ---
-//-------------------------------------------- SELECT THE HARDWARE INTERFACE ---
-chstrip = vgroup("[01] INPUT CHANNEL", ff800 : inpeq);
-lrstrip = vgroup("[01] STEREO INPUT CHANNEL", ff800_ST : inpeq, inpeq);
-wxyzrip = vgroup("[01] B-FORMAT INPUT CHANNEL", ff800_WXYZ : inpeq, inpeq, inpeq, inpeq);

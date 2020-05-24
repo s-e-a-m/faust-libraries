@@ -43,13 +43,21 @@ declare version "0.1";
 declare author "Giuseppe Silvi";
 declare license "CC4";
 
+//==================================================================== LOGIC ===
+//==============================================================================
+//-------------------------------------------- INPUT CHANNEL GENERIC CONTROL ---
+//-------------------------------------------- SELECT THE HARDWARE INTERFACE ---
+chstrip = vgroup("[01] INPUT CHANNEL", ff800 : inpeq);
+lrstrip = vgroup("[01] STEREO INPUT CHANNEL", ff800_ST : inpeq, inpeq);
+wxyzrip = vgroup("[01] B-FORMAT INPUT CHANNEL", ff800_WXYZ : inpeq, inpeq, inpeq, inpeq);
+
 // da studiare per outsel
 //selectoutn(n, s) = _ <: par(i, n, *(s==i));
 //========================================================== AUDIO INTERFACE ===
 //==============================================================================
 //--------------------------------------- RME FireFace 800 - MONO INPUT SELECTOR
-//-------------------------------------------------------------------- 18 INPUTS
-ff800 = ba.selectn(18,channel) : shmeter
+//-------------------------------------------------------------------- 20 INPUTS
+ff800 = ba.selectn(20,channel) : phmeter
   with{
     channel = nentry("[01] RME FF800 - INPUT SELECTOR
       [style:menu{
@@ -63,21 +71,23 @@ ff800 = ba.selectn(18,channel) : shmeter
       'Analog IN 8':7;
       'Analog IN 9':8;
       'Analog IN 10':9;
-      'ADAT IN 1':10;
-      'ADAT IN 2':11;
-      'ADAT IN 3':12;
-      'ADAT IN 4':13;
-      'ADAT IN 5':14;
-      'ADAT IN 6':15;
-      'ADAT IN 7':16;
-      'ADAT IN 8':17
-      }]", 0, 0, 18, 1) : int;
+      'SPDIF IN 1':10;
+      'SPDIF IN 2':11;
+      'ADAT IN 1':12;
+      'ADAT IN 2':13;
+      'ADAT IN 3':14;
+      'ADAT IN 4':15;
+      'ADAT IN 5':16;
+      'ADAT IN 6':17;
+      'ADAT IN 7':18;
+      'ADAT IN 8':19
+      }]", 0, 0, 20, 1) : int;
   };
 
 //------------------------------------- RME FireFace 800 - STEREO INPUT SELECTOR
 //-------------------------------------------------------------------- 18 INPUTS
 ff800_ST = si.bus(18) <: ba.selectn(18,lchannel),
-                         ba.selectn(18,rchannel) : shmeter, shmeter
+                         ba.selectn(18,rchannel) : phmeter, phmeter
   with{
     rchannel = lchannel+(1);
     lchannel = nentry("[01] RME FF800 - INPUT SELECTOR
@@ -98,7 +108,7 @@ ff800_ST = si.bus(18) <: ba.selectn(18,lchannel),
 //-------------------------------------------------------------------- 18 INPUTS
 ff800_WXYZ = si.bus(18) <:
   ba.selectn(18,wchannel), ba.selectn(18,xchannel), ba.selectn(18,ychannel),
-  ba.selectn(18,zchannel) : shmeter, shmeter, shmeter, shmeter
+  ba.selectn(18,zchannel) : phmeter, phmeter, phmeter, phmeter
   with{
     zchannel = ychannel+(1);
     ychannel = xchannel+(1);
