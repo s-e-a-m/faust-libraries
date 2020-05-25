@@ -1,0 +1,29 @@
+// ---
+// description: SEAM basic Library
+// ---
+//
+// <!-- LICENSE: GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 -->
+//
+// # gerzon.lib
+//
+// ```text
+declare name "SEAM Basic - Library";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare license "CC3";
+
+//========================================================== BASIC FUNCTIONS ===
+//==============================================================================
+//----------------------------------------------- LINEAR SWEEP UP TO NYQUIST ---
+lsweep = ba.sweep((ma.SR/2)-1,1);
+//----------------------------------------- ONE SAMPLE PULSE @ ZERO CROSSING ---
+zerox(x) = (x'<0) & (x>=0);//(x<0) | (x>0);
+//process = os.lf_saw(100) <: _,zerox;
+//----------------------------------------- generate a downward list
+revlist(n) = par(i,n+1,(n+1)-i);
+
+
+//--------------------------------------------------------- SC SCALE LINENAR ---
+//scalin(a,b,c,d,x) = ((x-a)/(b-a))*(d-c));
+//----------------------------------------------------- SC SCALE EXPONENTIAL ---
+//scalexp(a,b,c,d,x) = c*((d/c)^((x-a)/(b-a)));

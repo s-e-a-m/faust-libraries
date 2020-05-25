@@ -1,0 +1,81 @@
+//################################################################ mixer.lib ###
+//
+// The MIXER library.
+//
+// * LOGIC
+// * CHANNEL STRIP
+//
+//##############################################################################
+
+//============================================================ CHANNEL STRIP ===
+//==============================================================================
+//-------------------------------------------- INPUT CHANNEL GENERIC CONTROL ---
+inpeq = vgroup("[91] CH SETUP", *(gain) :
+  *(rpol) :
+  ba.bypass1(lop,fi.lowpass(2,hcut)) :
+  ba.bypass1(hip,fi.highpass(2,lcut)) :
+  ba.bypass1(eq, (fi.low_shelf(LL, FL) :
+  fi.peak_eq(LP1, FP1, BP1) :
+  fi.peak_eq(LP2, FP2, BP2) :
+  fi.high_shelf(LH, FH))))
+  with{
+    // GROUPS
+    pregroup(x) = hgroup("[03] PRE SECTION", x);
+    pg_group(x) = pregroup(vgroup("[01] PHASE GAIN", x));
+    lc_group(x) = pregroup(vgroup("[02] LOW CUT", x));
+    hc_group(x) = pregroup(vgroup("[03] HI CUT", x));
+    eq_group(x) = vgroup("[04] PARAMETRIC EQ",x);
+    hs_group(x) = eq_group(hgroup("[01] High Shelf", x));
+    pq1_group(x) = eq_group(hgroup("[02] Band", x));
+    pq2_group(x) = eq_group(hgroup("[03] Band", x));
+    ls_group(x) = eq_group(hgroup("[04] Low Shelf",x));
+    // REVERSE POLARITY AND GAIN
+    rpol = pg_group(1 - ((checkbox("[01] InvPhase")*(2))));
+    gain = pg_group(vslider("[02] Gain [unit:dB] [style:knob]", 0, -24, +24, 0.1)) : ba.db2linear : si.smoo;
+    // PRE FILTERS
+    lop = hc_group(1 - checkbox("[03] Cut"));
+    hcut = hc_group(vslider("[04] HiFreq [unit:Hz] [style:knob]", 8000, 20, 20000, 0.1)) : si.smoo;
+    hip = lc_group(1 - checkbox("[01] Cut"));
+    lcut = lc_group(vslider("[02] LoFrew [unit:Hz] [style:knob]", 500, 20, 20000, 0.1)) : si.smoo;
+    // PARAMETRIC EQ - TWEAKED FROM FAUST DEMOS
+    eq = eq_group(1 - checkbox("[00] EQ"));
+  	LH = hs_group(vslider("[00] Gain [unit:dB] [style:knob]", 0,-36,36,.1) : si.smoo);
+  	FH = hs_group(vslider("[01] Freq [unit:Hz] [style:knob]", 8000,100,19999,1) : si.smoo);
+  	LP1 = pq1_group(vslider("[00] Gain 1 [unit:dB] [style:knob]",0,-36,36,0.1) : si.smoo);
+  	FP1 = pq1_group(vslider("[01] Freq 1 [unit:Hz] [style:knob]", 2500,0,20000,1)) : si.smoo;
+  	Q1  = pq1_group(vslider("[02] Q 1 [style:knob] [scale:log]",40,1,1000,0.1) : si.smoo);
+  	BP1 = FP1/Q1;
+  	LP2 = pq2_group(vslider("[00] Gain 2 [unit:dB] [style:knob]", 0,-36,36,0.1));
+  	FP2 = pq2_group(vslider("[01] Freq 2 [unit:Hz] [style:knob]", 500,0,20000,1)) : si.smoo;
+  	Q2  = pq2_group(vslider("[02] Q 2 [style:knob] [scale:log]", 40,1,1000,0.1) : si.smoo);
+  	BP2 = FP2/Q2;
+  	LL = ls_group(vslider("[00] Gain [unit:dB] [style:knob]", 0,-36,36,0.1) : si.smoo);
+  	FL = ls_group(vslider("[01] Freq [unit:Hz] [style:knob]", 200,20,5000,1): si.smoo);
+};
+
+//------------------------------------------- OUTPUT CHANNEL GENERIC CONTROL ---
+out(c) = hgroup("[99] OUT%o", *(gain) : pvmeter) //vgroup("[97]", outdel:: outfbank) : *(gain) : pvmeter)
+  with{
+    o = c+(1);
+    gain = vslider("[98] Gain [unit:dB]", 0, -70, +12, 0.01) : ba.db2linear : si.smoo;
+    //----------------------------------------------------- 8-BAND GRAPHIC EQ --
+    mth_octave_filterbank_demo(O) = ba.bypass1(fon, mthoctavefilterbankdemo)
+    with{
+      eq_group(x) = vgroup("[98] EQ", x);
+      fon = eq_group(1 - (checkbox("[01] EQ ON")));
+    	M = O;
+    	N = 8*M; // total number of bands (highpass band, octave-bands, dc band)
+    	ftop = 10000;
+    	mthoctavefilterbankdemo = chan;
+    	chan = fi.mth_octave_filterbank_default(M,ftop,N) : sum(i,N,(*(ba.db2linear(fader(N-i)))));
+    	fader(i) = eq_group(vslider("[02] Band%2i [unit:dB][style:knob]", 0, -70, 12, 0.1)) : si.smoo;
+    };
+    outfbank = mth_octave_filterbank_demo(1); // octave-bands = default
+    //---------------------------------- OUT DELAY FOR LOPUDSPEALER ALINGMENT --
+    outdel = ba.bypass1(don, de.delay(maxdel, del))
+      with{
+        maxdel = 192000;
+        del = int(ba.sec2samp(nentry("[97] Delay [unit:ms]", 0, 0, 1, 0.001)));
+        don = 1 - (checkbox("[96] DEL ON"));
+      };
+  };

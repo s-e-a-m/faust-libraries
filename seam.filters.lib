@@ -1,0 +1,19 @@
+// ---
+// description: SEAM Math Library
+// ---
+//
+// <!-- LICENSE: GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 -->
+//
+// # gerzon.lib
+//
+// ```text
+declare name "SEAM Filters - Library";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare license "CC3";
+
+//================================================================== FILTERS ===
+//==============================================================================
+//------------------------------------------ COMPUTER MUSIC TUTORIAL ALLPASS ---
+cmtap(D,g) = (+ <: de.delay((ma.SR/2),int(D-1)),*(-g)) ~ *(g) : +;
+cmtapm(D,g) = (+ <: de.delay((ma.SR/2),int(D-1)),*(-g)) ~ *(g) : mem,_ : +;

@@ -1,0 +1,133 @@
+// ---
+// description: A library for the exploration of Michael Gerzon's algorithms
+// ---
+//
+// <!-- LICENSE: GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 -->
+//
+// # gerzon.lib
+//
+// ```text
+declare name "Ambisonic Elements Faust Library";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare license "CC4";
+
+//================================================================= ENCODERS ===
+//==============================================================================
+//------------------------------------------------------------------------------
+// MS STEREO TO FIRST ORDER B-FORMAT ENCODER
+//------------------------------------------------------------------------------
+// Converts a Mid-Side Stereo stream into Firts Order B-Format
+//
+// #### Reference
+//
+// #### Usage
+//
+// ```
+// _,_ : ms2bfmt : _,_,_,_
+// ```
+//
+// Where the two inputs are respectively:
+// Mid and Side
+//
+// Where the four outpust are respectively:
+// W,X,Y,Z
+//
+//------------------------------------------------------------------------------
+ms2bfmt = (_ <: _,_), _;
+
+//------------------------------------------------------------------------------
+// LR STEREO TO FIRST ORDER B-FORMAT ENCODER
+//------------------------------------------------------------------------------
+// Converts a Left-Right Stereo stream into Mid-Side and then into
+// Firts Order B-Format
+//
+// #### Reference
+//
+// #### Usage
+//
+// ```
+// _,_ : lr2bfmt : _,_,_,_
+// ```
+//
+// Where the two inputs are respectively:
+// L,R
+//
+// Where the four outpust are respectively:
+// W,X,Y,Z
+//
+//------------------------------------------------------------------------------
+lr2ms2bfmt = sdmx : ms2bfmt;
+
+//================================================================= DECODERS ===
+//==============================================================================
+//------------------------------------------------------------------------------
+// FIRST ORDER PLANAR B-FORMAT TO MONO DECODER
+//------------------------------------------------------------------------------
+// Converts a First Order Planar B-Format into mono first order signal
+//
+// #### Reference
+// https://en.wikipedia.org/wiki/Ambisonics
+//
+// The B-format components can be combined to derive virtual microphones with
+// any first-order polar pattern (omnidirectional, cardioid, hypercardioid,
+// figure-of-eight or anything in between) pointing in any direction. Several
+// such microphones with different parameters can be derived at the same time,
+// to create coincident stereo pairs (such as a Blumlein) or surround arrays.
+// A horizontal virtual microphone at horizontal angle Θ \Theta with pattern
+// 0 ≤ p ≤ 1 0 \leq p \leq 1 is given by
+//
+// This virtual mic is free-field normalised, which means it has a constant
+// gain of one for on-axis sounds. The illustration on the left shows some
+// examples created with this formula. Virtual microphones can be manipulated
+// in post-production: desired sounds can be picked out, unwanted ones
+// suppressed, and the balance between direct and reverberant sound can be
+// fine-tuned during mixing.
+//
+// #### Usage
+//
+// ```
+// encoder(x) = hgroup("BFMT MONO-DECODER", x);
+// azi = encoder(vslider("[01] Azimuth [style:knob]", 0, 0, 360, 0.1) : deg2rad : si.smoo);
+// p = encoder(vslider("[02] Polar [style:knob]", 0.5, 0, 1, 0.01) : si.smoo);
+// deg2rad = *(ma.PI/180);
+// process = _,_,_ : pbf2hm(azi,p) : _;
+// ```
+//
+// Where the four inputs are respectively:
+// W,X,Y
+//
+// Where the output is a mono signal with modulable polar pattern:
+// out: m
+// polar pattern: p
+//
+//------------------------------------------------------------------------------
+pbf2m(azi,p) = p*(sqrt(2)*(_))+((1-p)*((_*cos(a))+(_*sin(a))));
+
+//------------------------------------------------------------------------------
+// FIRST ORDER B-FORMAT TO REGULAR POLYGON
+//------------------------------------------------------------------------------
+// Converts a First Order B-Format n mono first order signal on the edge of a
+// polygon
+//
+// #### Reference
+// https://en.wikipedia.org/wiki/Ambisonics
+//
+// #### Usage
+//
+// ```
+// _,_,_ : bfmt2m : _
+// ```
+//
+// Where the two inputs are respectively:
+// W,X,Y,Z
+//
+// Where the output is a mono signal with modulable polar pattern:
+// m
+//
+//------------------------------------------------------------------------------
+pbf2poly(n,p) = polygon
+  with{
+      azi(n) = 360/(n) : deg2rad;
+      polygon(n) = par(i, n, pbf2m);
+};

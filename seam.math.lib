@@ -1,0 +1,87 @@
+// ---
+// description: SEAM Math Library
+// ---
+//
+// <!-- LICENSE: GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 -->
+//
+// # gerzon.lib
+//
+// ```text
+declare name "SEAM Math - Library";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare license "CC3";
+
+//===================================================================== MATH ===
+//==============================================================================
+//------------------------------------------------------------- SPEEDOFSOUND ---
+sos = 344; // m/s
+mt2samp(mt) = int(mt*ma.SR/sos);
+//----------------------------------------------------------------------- PI ---
+//----------------------------------------------------------- QUAD PRECISION ---
+//--- 81 decimals
+PIq = 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998;
+//------------------------------------------------------- DEGREES TO RADIANS ---
+d2r = *(PIq/180);
+//------------------------------------------------------- RADIANS TO DEGREES ---
+r2d = /(PIq*180);
+//------------------------------------------------------- BILINEAR TRANSFORM ---
+g(fc) = tan(PIq*(fc/ma.SR));
+//---------------------------------------------------- -3dB Cutoff Frequency ---
+//----------------------------------------------- of an Exponential Averager ---
+// https://www.dsprelated.com/showarticle/182.php
+a(fc) = cos((2*PIq*fc)/ma.SR)-1+sqrt((0.5*(1+cos(2*((2*PIq*fc)/ma.SR))))-4*cos((2*PIq*fc)/ma.SR)+3);
+
+
+
+//------------------------------------------------------ MILLER PUCKETTE T60 ---
+// Next comes the recirculating part of the reverberator. After the initial
+// thickening, the input signal is fed into a bank of parallel delay lines,
+// and their outputs are again mixed using a rotation matrix. The mixed outputs
+// are attenuated by a gain g ≤ 1, and fed back into the delay lines to make a
+// recirculating network.
+// The value g controls the reverberation time. If the average length of the
+// recirculating delay lines is d, then any incoming sound is attenuated by a
+// factor of g after a time delay of d. After time t the signal has recirculated
+// t/d times, losing 20log10(g) decibels each time around, so the total gain,
+// in decibels, is:
+// RT(g,d) = (-3*d)/(log10(g));
+// t60(RT,d,g) = 20*(RT/d)*log10(g);
+// //----------------------------------------------------- EUGENIO GIORDANI T60 ---
+// t60(g,d) = -3/(log10(1/g))*d;
+// t60(g,d) = 1/((3/(log10(1/g)))*(d)) : ba.sec2samp;
+//g(t60) = pow;
+// T60 = [60 / (-20 log g)] τ, da cui si trae:
+// T60 = (3/log(1/g)) τ (1.6)
+// g = 10^ (-3 τ / T60)
+
+
+//factorial(0) = 1;
+//factorial(x) = x*(factorial(x-1));
+//k = 0 ;//constant for the calculation
+c = 42880 : *(10005 : sqrt);
+//sommatoria(k) = (m(k) : *l(k))/x(k);
+seampi = c;//:(*sommatoria(k) : inv) ;
+
+
+
+// from decimal import Decimal as Dec, getcontext as gc
+//
+// def PI(maxK: int = 70, prec: int = 1008, disp: int = 1007):  # Parameter defaults chosen to gain 1000+ digits within a few seconds
+//     gc().prec = prec
+//     K, M, L, X, S = 6, 1, 13591409, 1, 13591409
+//     for k in range(1, maxK + 1):
+//         M = (K**3 - 16*K) * M // k**3
+//         L += 545140134
+//         X *= -262537412640768000
+//         S += Dec(M * L) / X
+//         K += 12
+//     pi = 426880 * Dec(10005).sqrt() / S
+//     pi = Dec(str(pi)[:disp])  # Drop few digits of precision for accuracy
+//     print("PI(maxK={} iterations, gc().prec={}, disp={} digits) =\n{}".format(maxK, prec, disp, pi))
+//     return pi
+//
+// Pi = PI()
+// print("\nFor greater precision and more digits (takes a few extra seconds) - Try")
+// print("Pi = PI(317, 4501, 4500)")
+// print("Pi = PI(353, 5022, 5020)")
