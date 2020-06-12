@@ -23,6 +23,12 @@ harmonizer(c) = ef.transpose(400,300,(c*0.01));
 // process = harmonizer(cents);
 // ```
 
+delbank(N,delays) = _ <: par(i,N, (de.delay(d1(i),d1(i)-1)))
+with{
+    d1(i) = ba.take(i+1,delays);
+};
+//process = delbank(4,(5,7,10,15));
+
 //
 // ## DELAY BANK WITH FEEDBACK
 //
@@ -37,7 +43,7 @@ harmonizer(c) = ef.transpose(400,300,(c*0.01));
 // d1l = list of odd delay times
 // d2l = list of even delay times
 // fb1l = list of fb coefficient (odd delay)
-delbank(N,d1l,d2l,fb1l) = _ <: par(i,N, (+<: de.delay(d1(i),d1(i)-1), de.delay(d2(i),d2(i)-1))~*(fb1(i)))
+delbankfb(N,d1l,d2l,fb1l) = _ <: par(i,N, (+<: de.delay(d1(i),d1(i)-1), de.delay(d2(i),d2(i)-1))~*(fb1(i)))
 with{
     d1(i) = ba.take(i+1,d1l);
     d2(i) = ba.take(i+1,d2l);
