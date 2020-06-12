@@ -2,6 +2,7 @@
 *.app
 faust.*
 _builds
+_appunti
 *.m
 *.eps
 *.jpg
