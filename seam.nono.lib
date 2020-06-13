@@ -193,7 +193,7 @@ with{
 // Where the output is the Mid component
 //
 //------------------------------------------------------------------------------
-halaphon(N,t,r) = sp.spat(N,time,r) : halmeters(N)
+halafon(N,t,r) = sp.spat(N,time,r) : halmeters(N)
   with{
     time = os.lf_sawpos(1/t);
     h1(v) = vgroup("Ch %v", hmeter);
