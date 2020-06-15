@@ -14,23 +14,28 @@ declare license "CC3";
 
 //===================================================================== MATH ===
 //==============================================================================
-//------------------------------------------------------------- SPEEDOFSOUND ---
-sos = 344; // m/s
-mt2samp(mt) = int(mt*ma.SR/sos);
 //----------------------------------------------------------------------- PI ---
-//----------------------------------------------------------- QUAD PRECISION ---
-//--- 81 decimals
+//----------------------------------------------- QUAD PRECISION 81 DECIMALS ---
 PIq = 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998;
+twopi = 2*ma.PI;
+omega = fc*twopi/ma.SR;
+//------------------------------------------------------------- SPEEDOFSOUND ---
+esos = 344; // exterior
+isos = 331.4; // interior
+//-------------------------------------------------------- METERS TO SAMPLES ---
+emt2samp(mt) = int(mt*ma.SR/esos);
+imt2samp(mt) = int(mt*ma.SR/isos);
 //------------------------------------------------------- DEGREES TO RADIANS ---
-d2r = *(PIq/180);
+d2r = *(ma.PI/180);
 //------------------------------------------------------- RADIANS TO DEGREES ---
-r2d = /(PIq*180);
+r2d = /(ma.PI*180);
 //------------------------------------------------------- BILINEAR TRANSFORM ---
-g(fc) = tan(PIq*(fc/ma.SR));
+g(fc) = tan(ma.PI*(fc/ma.SR));
 //---------------------------------------------------- -3dB Cutoff Frequency ---
 //----------------------------------------------- of an Exponential Averager ---
 // https://www.dsprelated.com/showarticle/182.php
-a(fc) = cos((2*PIq*fc)/ma.SR)-1+sqrt((0.5*(1+cos(2*((2*PIq*fc)/ma.SR))))-4*cos((2*PIq*fc)/ma.SR)+3);
+a(fc) = cos(omega)-1+sqrt((0.5*(1+cos(2*(omega)))-4*cos(omega+3);
+//a(fc) = cos((twopi*fc)/ma.SR)-1+sqrt((0.5*(1+cos(2*((twopi*fc)/ma.SR))))-4*cos((twopi*fc)/ma.SR)+3);
 
 
 
@@ -59,9 +64,9 @@ a(fc) = cos((2*PIq*fc)/ma.SR)-1+sqrt((0.5*(1+cos(2*((2*PIq*fc)/ma.SR))))-4*cos((
 //factorial(0) = 1;
 //factorial(x) = x*(factorial(x-1));
 //k = 0 ;//constant for the calculation
-c = 42880 : *(10005 : sqrt);
+//c = 42880 : *(10005 : sqrt);
 //sommatoria(k) = (m(k) : *l(k))/x(k);
-seampi = c;//:(*sommatoria(k) : inv) ;
+//seampi = c;//:(*sommatoria(k) : inv) ;
 
 
 
