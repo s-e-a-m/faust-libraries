@@ -40,16 +40,18 @@ commercial or closed source license or any other license if you decide so.
 
 declare name "Faust Hardware Interface Library";
 declare version "0.1";
-declare author "Giuseppe Silvi";
+declare author "Giuseppe Silvi and Davide Tedesco";
 declare license "CC4";
 
 //==================================================================== LOGIC ===
 //==============================================================================
 //-------------------------------------------- INPUT CHANNEL GENERIC CONTROL ---
 //-------------------------------------------- SELECT THE HARDWARE INTERFACE ---
-chstrip = vgroup("[01] INPUT CHANNEL", ff800 : inpeq);
-lrstrip = vgroup("[01] STEREO INPUT CHANNEL", ff800_ST : inpeq, inpeq);
-wxyzrip = vgroup("[01] B-FORMAT INPUT CHANNEL", ff800_WXYZ : inpeq, inpeq, inpeq, inpeq);
+
+//============================ RME FireFace 800 ================================
+chstrip_ff800 = vgroup("[01] INPUT CHANNEL", ff800 : inpeq);
+lrstrip_ff800 = vgroup("[01] STEREO INPUT CHANNEL", ff800_ST : inpeq, inpeq);
+wxyzrip_ff800 = vgroup("[01] B-FORMAT INPUT CHANNEL", ff800_WXYZ : inpeq, inpeq, inpeq, inpeq);
 
 // da studiare per outsel
 //selectoutn(n, s) = _ <: par(i, n, *(s==i));
@@ -148,6 +150,73 @@ ff800_WXYZ = si.bus(18) <:
 //                     'ADAT IN 8':17}]", 0, 0, 18, 1) : int;
 //   };
 
+//============================ Focusrite Scarlett 18i8 =========================
+chstrip_s18i8 = vgroup("[01] INPUT CHANNEL", s18i8 : inpeq);
+lrstrip_s18i8 = vgroup("[01] STEREO INPUT CHANNEL", s18i8_ST : inpeq, inpeq);
+wxyzrip_s18i8 = vgroup("[01] B-FORMAT INPUT CHANNEL", s18i8_WXYZ : inpeq, inpeq, inpeq, inpeq);
+//========================================================== AUDIO INTERFACE ===
+//==============================================================================
+//-------------------------------- Focusrite Scarlett 18i8 - MONO INPUT SELECTOR
+//-------------------------------------------------------------------- 18 INPUTS
+s18i8 = ba.selectn(18,channel) : phmeter
+  with{
+    channel = nentry("[01] Focusrite Scarlett 18i8 - INPUT SELECTOR
+      [style:menu{
+      'Analog IN 1':0;
+      'Analog IN 2':1;
+      'Analog IN 3':2;
+      'Analog IN 4':3;
+      'Analog IN 5':4;
+      'Analog IN 6':5;
+      'Analog IN 7':6;
+      'Analog IN 8':7;
+      'SPDIF IN 1':8;
+      'SPDIF IN 2':9;
+      'ADAT IN 1':10;
+      'ADAT IN 2':11;
+      'ADAT IN 3':12;
+      'ADAT IN 4':13;
+      'ADAT IN 5':14;
+      'ADAT IN 6':15;
+      'ADAT IN 7':16;
+      'ADAT IN 8':17
+      }]", 0, 0, 18, 1) : int;
+  };
+//------------------------------ Focusrite Scarlett 18i8 - STEREO INPUT SELECTOR
+//-------------------------------------------------------------------- 16 INPUTS
+s18i8_ST = si.bus(16) <: ba.selectn(16,lchannel),
+                         ba.selectn(16,rchannel) : phmeter, phmeter
+  with{
+    rchannel = lchannel+(1);
+    lchannel = nentry("[01] Focusrite Scarlett 18i8 - INPUT SELECTOR
+      [style:menu{
+      'Analog IN 1-2':0;
+      'Analog IN 3-4':2;
+      'Analog IN 5-6':4;
+      'Analog IN 7-8':6;
+      'ADAT IN 1-2':8;
+      'ADAT IN 3-4':10;
+      'ADAT IN 5-6':12;
+      'ADAT IN 7-8':14
+      }]", 0, 0, 16, 1) : int;
+  };
+//-------------------------------- Focusrite Scarlett 18i8 - WXYZ INPUT SELECTOR
+//-------------------------------------------------------------------- 16 INPUTS
+s18i8_WXYZ = si.bus(16) <:
+  ba.selectn(16,wchannel), ba.selectn(16,xchannel), ba.selectn(16,ychannel),
+  ba.selectn(16,zchannel) : phmeter, phmeter, phmeter, phmeter
+  with{
+    zchannel = ychannel+(1);
+    ychannel = xchannel+(1);
+    xchannel = wchannel+(1);
+    wchannel = nentry("[01] Focusrite Scarlett 18i8 - INPUT SELECTOR
+      [style:menu{
+      'Analog IN 1-2-3-4':0;
+      'Analog IN 5-6-7-8':4;
+      'ADAT IN 1-2-3-4':10;
+      'ADAT IN 5-6-7-8':14
+      }]", 0, 0, 16, 1) : int;
+  };
 //===================================================================== MIDI ===
 //==============================================================================
 //--------------------------------------------------------------------- MIDI GUI
