@@ -17,8 +17,13 @@ declare license "CC3";
 //----------------------------------------------------------------------- PI ---
 //----------------------------------------------- QUAD PRECISION 81 DECIMALS ---
 PIq = 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998;
+// 2pi
 twopi = 2*ma.PI;
-omega = fc*twopi/ma.SR;
+// angle / sample rate constant
+fac = twopi/ma.SR;
+// omega pole angle in radians
+omega(f) = f*fac;
+cf(f) = 1.0/(tan(ma.PI*(f/ma.SR)));
 //------------------------------------------------------------- SPEEDOFSOUND ---
 esos = 344; // exterior
 isos = 331.4; // interior
