@@ -13,6 +13,7 @@ import("stdfaust.lib");
 import("seam.basic.lib");
 import("seam.math.lib");
 import("seam.filters.lib");
+import("seam.gui.lib");
 
 // ### michael gerzon and general ambisonic teory
 import("seam.gerzon.lib");
@@ -33,8 +34,10 @@ import("seam.nottoli.lib");
 // ### live electronics stuff
 import("seam.gui.lib");
 import("seam.hardware.lib");
-import("seam.measurement.lib");
+import("seam.analyzers.lib");
 import("seam.mixer.lib");
 
 // ### instrument specific literature
 import("seam.vcs3.lib");
+import("seam.cyclone.lib");
+import("seam.csound.lib");
