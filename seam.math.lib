@@ -22,8 +22,13 @@ twopi = 2*ma.PI;
 // angle / sample rate constant
 fac = twopi/ma.SR;
 // omega pole angle in radians
-omega(f) = f*fac;
-cf(f) = 1.0/(tan(ma.PI*(f/ma.SR)));
+omega(fc) = fc*fac;
+// cos^2(x)
+cosq(x) = cos(x)*cos(x);
+// sin^2(x)
+sinq(x) = sin(x)*sin(x);
+// filter center frequency
+fc(f) = 1.0/(tan(ma.PI*(f/ma.SR)));
 //------------------------------------------------------------- SPEEDOFSOUND ---
 esos = 344; // exterior
 isos = 331.4; // interior
@@ -39,10 +44,8 @@ g(fc) = tan(ma.PI*(fc/ma.SR));
 //---------------------------------------------------- -3dB Cutoff Frequency ---
 //----------------------------------------------- of an Exponential Averager ---
 // https://www.dsprelated.com/showarticle/182.php
-a(fc) = cos(omega)-1+sqrt((0.5*(1+cos(2*(omega)))-4*cos(omega+3);
-//a(fc) = cos((twopi*fc)/ma.SR)-1+sqrt((0.5*(1+cos(2*((twopi*fc)/ma.SR))))-4*cos((twopi*fc)/ma.SR)+3);
-
-
+aapp(fc) = 1-pow(ma.EPSILON, -omega);
+acor(fc) = cos(omega(fc))-1+sqrt(cosq(omega(fc))-4*cos(omega(fc))+3);
 
 //------------------------------------------------------ MILLER PUCKETTE T60 ---
 // Next comes the recirculating part of the reverberator. After the initial
