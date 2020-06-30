@@ -17,3 +17,18 @@ declare license "CC3";
 //------------------------------------------ COMPUTER MUSIC TUTORIAL ALLPASS ---
 cmtap(D,g) = (+ <: de.delay((ma.SR/2),int(D-1)),*(-g)) ~ *(g) : +;
 cmtapm(D,g) = (+ <: de.delay((ma.SR/2),int(D-1)),*(-g)) ~ *(g) : mem,_ : +;
+
+//----------------------------------------------------- EXPONENTIAL AVERAGER ---
+// https://www.dsprelated.com/showarticle/182.php
+// > eavga is a two-multiply exponential averager
+// > eavgb is a one-multiply exponential averager
+// > the two averagers have identical performance
+// used to test acor formula in seam.math.lib
+//
+// process = os.impulse <: eavga(acor(1000)), eavgb(acor(1000));
+eavga(a) = *(a) : +~*(1-a);
+eavgb(a) = +(+*(a))~z
+with{
+    z = _<:_,*(-1);
+};
+//------------------------------------------------------------------------------

@@ -15,24 +15,25 @@ declare license "CC3";
 
 //========================================================== BASIC FUNCTIONS ===
 //==============================================================================
+//
+//---------------------------------------------------------- SWEEP FUNCTIONS ---
 //----------------------------------------- FAUST BASIC FUNCTION SWEEP FIXES ---
 // It truly counts from 0
-//
 // process = sba.gsweep(max+1,trigger)
-//
-//-----------------------------------------------------------------
-// Author: Jonatan Liljedahl, markdown by JOS & RM
 gsweep(m,t) = m : %(int(*(t):max(1)))~+(1');
-zsweep(m) = (gsweep((m*2+1),1)<(m)) : gsweep(m);
 //----------------------------------------------- LINEAR SWEEP UP TO NYQUIST ---
 lsweep(sec,t) = (ma.SR/2) : %(int(*(t):max(1)))~+((1/sec)');
+//------------------------------------------------------ ZERO PADDING SWEEP  ---
+zsweep(m) = (gsweep((m*2+1),1)<(m)) : gsweep(m);
+//
 //----------------------------------------- ONE SAMPLE PULSE @ ZERO CROSSING ---
 zerox(x) = (x'<0) & (x>=0);//(x<0) | (x>0);
-//process = os.lf_saw(100) <: _,zerox;
-//----------------------------------------- generate a downward list
+//
+//----------------------------------------------------------- LIST FUNCTIONS ---
+//------------------------------------------------- GENERATE A DOWNWARD LIST ---
 revlist(n) = par(i,n+1,(n+1)-i);
-
+//
 //--------------------------------------------------------- SC SCALE LINENAR ---
-//scalin(a,b,c,d,x) = ((x-a)/(b-a))*(d-c));
+scalel(a,b,c,d,x) = ((x-a)/(b-a))*(d-c);
 //----------------------------------------------------- SC SCALE EXPONENTIAL ---
 //scalexp(a,b,c,d,x) = c*((d/c)^((x-a)/(b-a)));

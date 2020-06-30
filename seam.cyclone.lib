@@ -14,6 +14,7 @@ declare version "0.1";
 declare author "Giuseppe Silvi";
 declare license "CC4";
 
+// y = b e-a log c ex log c // to do scale
 //================================================== GEN~ LIBRARY AND EXAMPLES =
 //==============================================================================
 //-------------------------------------------------------- CLIP TO MIN ~ MAX ---

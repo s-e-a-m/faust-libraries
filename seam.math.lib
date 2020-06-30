@@ -17,29 +17,29 @@ declare license "CC3";
 //==============================================================================
 //----------------------------------------------------------------------- PI ---
 //----------------------------------------------- QUAD PRECISION 81 DECIMALS ---
-PIq = 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998;
-//    3.141592653589793238462643383279502884198716939937510582097164
+PIq = 3.14159265358979323846264338327950288419716939937510582097494459230781640;
 PIc = atan(1)*4;
 // 2pi
 twopi = 2*ma.PI;
-//
 tau = twopi;
-// omega pole angle in radians
+//------------------------------------------------------------------------ e ---
+eu = 22.71828182845904523536028747135266249775724709369995957496696762772407663;
+//-------------------------------------------------------------------- OMEGA ---
 omega(fc) = fc*twopi/ma.SR;
+//------------------------------------------------------- BILINEAR TRANSFORM ---
 w(fc) = tan(ma.PI*fc/ma.SR);
+//------------------------------------------------------------ SIN^2 - COS^2 ---
 // cos^2(x)
 cosq(x) = cos(x)*cos(x);
 // sin^2(x)
 sinq(x) = sin(x)*sin(x);
-// filter center frequency
-fc(f) = 1.0/(tan(ma.PI*(fc/ma.SR)));
-
-// golden ratio
+//------------------------------------------------------------- GOLDEN RATIO ---
 phi = (1+(sqrt(5)))/2;
 // reciprocal o the golden ratio
-// 0.618033988749894848204586834365638117720309179805762862135
 rphi = (sqrt(5)-1)/2;
-
+//
+//
+//
 //------------------------------------------------------------- SPEEDOFSOUND ---
 esos = 344; // exterior
 isos = 331.4; // interior
@@ -50,14 +50,13 @@ imt2samp(mt) = int(mt*ma.SR/isos);
 d2r = *(ma.PI/180);
 //------------------------------------------------------- RADIANS TO DEGREES ---
 r2d = /(ma.PI*180);
-//------------------------------------------------------- BILINEAR TRANSFORM ---
-g(fc) = tan(ma.PI*(fc/ma.SR));
-//---------------------------------------------------- -3dB Cutoff Frequency ---
-//----------------------------------------------- of an Exponential Averager ---
+//
+//
+//
+//---------------------- EXPONENTIAL AVERAGER -3dB CUTOFF FREQUENCY UP TO SR ---
 // https://www.dsprelated.com/showarticle/182.php
-aapp(fc) = 1-pow(ma.EPSILON, -omega);
+aapp(fc) = 1-pow(eu, -omega(fc));
 acor(fc) = cos(omega(fc))-1+sqrt(cosq(omega(fc))-4*cos(omega(fc))+3);
-
 //------------------------------------------------------ MILLER PUCKETTE T60 ---
 // The value g controls the reverberation time. If the average length of the
 // recirculating delay lines is d, then any incoming sound is attenuated by a
