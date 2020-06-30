@@ -54,7 +54,7 @@ smx = library("seam.mixer.lib");
 svc = library("seam.vcs3.lib");
 ```
 
-## Usage
+## Example usage
 
 ```text
 process = sma.PIc;
