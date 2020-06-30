@@ -11,12 +11,20 @@ declare name "SEAM Basic - Library";
 declare version "0.1";
 declare author "Giuseppe Silvi";
 declare license "CC3";
+// ```
 
 //========================================================== BASIC FUNCTIONS ===
 //==============================================================================
-//----------------------------------------------- LINEAR SWEEP UP TO NYQUIST ---
+//----------------------------------------- FAUST BASIC FUNCTION SWEEP FIXES ---
+// It truly counts from 0
+//
+// process = sba.gsweep(max+1,trigger)
+//
+//-----------------------------------------------------------------
+// Author: Jonatan Liljedahl, markdown by JOS & RM
 gsweep(m,t) = m : %(int(*(t):max(1)))~+(1');
 zsweep(m) = (gsweep((m*2+1),1)<(m)) : gsweep(m);
+//----------------------------------------------- LINEAR SWEEP UP TO NYQUIST ---
 lsweep(sec,t) = (ma.SR/2) : %(int(*(t):max(1)))~+((1/sec)');
 //----------------------------------------- ONE SAMPLE PULSE @ ZERO CROSSING ---
 zerox(x) = (x'<0) & (x>=0);//(x<0) | (x>0);

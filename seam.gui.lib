@@ -11,4 +11,4 @@ frontrad = vslider("[02]Frontal Azimuth[style:knob]",0,-45,45,0.1) : deg2rad : s
 //----------------------------------------------------------------- P FACTOR --–
 // P coefficient slider from 0 to 1 by centesimal steps
 //------------------------------------------------------------------------------
-p = vslider("[01]P[style:knob]", 0.5, 0, 1, 0.01) : si.smoo;
+p100 = vslider("[01]P[style:knob]", 0.5, 0, 1, 0.01) : si.smoo;

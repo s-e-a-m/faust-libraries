@@ -10,10 +10,10 @@ import("stdfaust.lib");
 // ## SEAM LIBS
 
 // ### faust lib extensions
-import("seam.basic.lib");
-import("seam.math.lib");
-import("seam.filters.lib");
-import("seam.gui.lib");
+sba = library("seam.basic.lib");
+sma = library("seam.math.lib");
+sfi = library("seam.filters.lib");
+sgu = library("seam.gui.lib");
 
 // ### michael gerzon and general ambisonic teory
 import("seam.gerzon.lib");
