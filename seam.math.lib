@@ -19,21 +19,27 @@ declare license "CC3";
 //----------------------------------------------- QUAD PRECISION 81 DECIMALS ---
 PIq = 3.141592653589793238462643383279502884197169399375105820974944592307816406286208998;
 //    3.141592653589793238462643383279502884198716939937510582097164
-madPI = atan(1)*4;
+PIc = atan(1)*4;
 // 2pi
 twopi = 2*ma.PI;
 //
 tau = twopi;
-// angle / sample rate constant
-fac = twopi/ma.SR;
 // omega pole angle in radians
-omega(fc) = fc*fac;
+omega(fc) = fc*twopi/ma.SR;
+w(fc) = tan(ma.PI*fc/ma.SR);
 // cos^2(x)
 cosq(x) = cos(x)*cos(x);
 // sin^2(x)
 sinq(x) = sin(x)*sin(x);
 // filter center frequency
-fc(f) = 1.0/(tan(ma.PI*(f/ma.SR)));
+fc(f) = 1.0/(tan(ma.PI*(fc/ma.SR)));
+
+// golden ratio
+phi = (1+(sqrt(5)))/2
+// reciprocal o the golden ratio
+// 0.618033988749894848204586834365638117720309179805762862135
+rphi = (sqrt(5)-1)/2
+
 //------------------------------------------------------------- SPEEDOFSOUND ---
 esos = 344; // exterior
 isos = 331.4; // interior

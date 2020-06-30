@@ -273,3 +273,57 @@ miditester = hgroup("MIDITESTER", par(i, 127, fader(i)))
     fader(v) = vslider("ctrl %3f [midi:ctrl %3f]", 0,0,127,1)
       with{f = v+(1);};
 };
+
+// the following code is dragged here to the VCS3 monosinth 
+///////////////////////////////////////////////////////////////////////////////
+// declare author "Bart Brouns";
+// declare license "GPLv3";
+// declare name "lastNote";
+// declare options "[midi:on]";
+// import("stdfaust.lib");
+///////////////////////////////////////////////////////////////////////////////
+//           give the number of the last note played                         //
+///////////////////////////////////////////////////////////////////////////////
+// process =
+//   os.osc(lastNote:ba.pianokey2hz)
+// // increases the cpu-usage, from 7% to 11%
+// * (vel(lastNote)/127)
+// // no velocity:
+// // * (nrNotesPlaying>0)
+// ;
+
+nrNotesPlaying = 0: seq(i, nrNotes, noteIsOn(i),_:+);
+noteIsOn(i) = velocity(i)>0;
+
+vel(x) =  par(i, nrNotes, velocity(i)*(i==x)):>_ ;
+velocity(i) = hslider("velocity of note %i [midi:key %i ]", 0, 0, nrNotes, 1);
+nrNotes = 127; // nr of midi notes
+// nrNotes = 32; // for block diagram
+
+lastNote = par(i, nrNotes, i,index(i)):find_max_index(nrNotes):(_,!)
+with {
+  // an index to indicate the order of the note
+  // it adds one for every additional note played
+  // it resets to 0 when there are no notes playing
+  // assume multiple notes can start at once
+  orderIndex = ((_+((nrNotesPlaying-nrNotesPlaying'):max(0))) * (nrNotesPlaying>1))~_;
+
+  // the order index of note i
+  // TODO: when multiple notes start at the same time, give each a unique index
+  index(i) = orderIndex:(select2(noteStart(i),_,_)
+                         :select2(noteEnd(i)+(1:ba.impulsify),_,-1))~_;
+
+  // we use this instead of:
+  // hslider("frequency[midi:keyon 62]",0,0,nrNotes,1)
+  // because keyon can come multiple times, and we only want the first
+  noteStart(i) = noteIsOn(i):ba.impulsify;
+  noteEnd(i) = (noteIsOn(i)'-noteIsOn(i)):max(0):ba.impulsify;
+  //or do we?
+  // noteStart(i) = (hslider("keyon[midi:keyon %i]",0,0,nrNotes,1)>0) :ba.impulsify;
+  // at the very least, the first implementation of noteStart(i) doesn't add another 127 sliders
+
+  // from Julius Smith's acor.dsp:
+  index_comparator(n,x,m,y) = select2((x>y),m,n), select2((x>y),y,x); // compare integer-labeled signals
+  // take N number-value pairs and give the number with the maximum value
+  find_max_index(N) = seq(i,N-2, (index_comparator,si.bus(2*(N-i-2)))) : index_comparator;
+};
