@@ -43,6 +43,8 @@ declare version "0.1";
 declare author "Giuseppe Silvi and Davide Tedesco";
 declare license "CC4";
 
+shw = library("seam.hardware.lib");
+
 //==================================================================== LOGIC ===
 //==============================================================================
 //-------------------------------------------- INPUT CHANNEL GENERIC CONTROL ---
@@ -274,7 +276,7 @@ miditester = hgroup("MIDITESTER", par(i, 127, fader(i)))
       with{f = v+(1);};
 };
 
-// the following code is dragged here to the VCS3 monosinth 
+// the following code is dragged here to the VCS3 monosinth
 ///////////////////////////////////////////////////////////////////////////////
 // declare author "Bart Brouns";
 // declare license "GPLv3";

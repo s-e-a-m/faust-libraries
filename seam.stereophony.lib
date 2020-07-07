@@ -41,6 +41,8 @@ commercial or closed source license or any other license if you decide so.
 declare name "Faust Stereophony Library";
 declare version "0.1";
 
+sst = library("seam.stereophony.lib");
+
 //========================================================== SUM DIFF MATRIX ===
 //==============================================================================
 //------------------------------------------------------------------------------

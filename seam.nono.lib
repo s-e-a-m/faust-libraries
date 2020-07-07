@@ -11,6 +11,9 @@ declare name "Nono's Elements - Library";
 declare version "0.2";
 declare author "Giuseppe Silvi";
 declare license "CC4";
+
+sln = library("seam.nono.lib");
+
 // ```
 //
 // ## Harmonizer

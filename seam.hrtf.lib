@@ -1,3 +1,5 @@
+shr = library("seam.hrtf.lib");
+
 // https://en.wikipedia.org/wiki/Sound_localization#Lateral_information_.28left.2C_ahead.2C_right.29
 
 eardistance = 0.18; // metri

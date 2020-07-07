@@ -12,6 +12,8 @@ declare version "0.1";
 declare author "Giuseppe Silvi";
 declare license "CC3";
 
+sfi = library("seam.filters.lib");
+
 //================================================================== FILTERS ===
 //==============================================================================
 //------------------------------------------ COMPUTER MUSIC TUTORIAL ALLPASS ---

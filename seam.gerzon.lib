@@ -11,6 +11,9 @@ declare name "Michael Gerzon - Library";
 declare version "0.2";
 declare author "Giuseppe Silvi";
 declare license "CC3";
+
+smg = library("seam.gerzon.lib");
+
 // ```
 //
 // ## MICHAEL GERZON EARLY WORKS

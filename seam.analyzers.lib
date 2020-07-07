@@ -43,6 +43,7 @@ declare version "0.1";
 declare author "Giuseppe Silvi";
 declare license "CC4";
 
+san = library("seam.analyzers.lib");
 
 //================================================================ AMPLITUDE ===
 //==============================================================================
