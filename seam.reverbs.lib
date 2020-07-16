@@ -1,3 +1,6 @@
+// -----------------------------------------------------------------------------
+// SCHROEDER NATURAL SOUNDING REVERBS - 1962
+
 // delay feedback in loop
 dfl(t,g) = (+ : @(t)~*(g);
 //process = dfl(1,0.5);
