@@ -1,0 +1,32 @@
+// delay feedback in loop
+dfl(t,g) = (+ : @(t)~*(g);
+//process = dfl(1,0.5);
+
+// correct delay feedback in loop
+dflc(t,g) = (+ : @(t-1)~*(g) : mem;
+//process = dfl(1,0.5);
+
+// correct delay feedback in loop complex
+dflcc(t,g) = (+ : de.delay(ma.SR/2, int(t-1)))~*(max(0, min(0.999, g))) : mem;
+//process = dfl(1,0.5);
+
+// all-pass filter
+apf(t,g) = _ <: (_ * (ma.neg(max(0, min(0.999, g))))) + (dflcc(t,g) * (1-(g*g)));
+//process = os.impulse : apf(1,0.5);
+
+schrev = _ <: // to 4 parallel comb
+  dflc(4133,0.708), dflc(4157,0.708), dflc(7307,0.708), dflc(2803,0.708) :>
+  alp(307,0.708) : alp(881,0.708); // and a sequence of two allpass
+
+revsch = alp(307,0.708) : alp(881,0.708) <: // two allpass to 4 comb
+  dflc(4133,0.708), dflc(4157,0.708), dflc(7307,0.708), dflc(2803,0.708);
+
+// commutability test
+//process = os.impulse <: schrev, (revsch :> _);
+
+matrix = alp(47,0.708), alp(41,0.708), alp(31,0.708), alp(23,0.708),
+         alp(17,0.708), alp(11,0.708), alp(5,0.708), alp(2,0.708),
+         alp(3,0.708), alp(7,0.708), alp(13,0.708), alp(19,0.708),
+         alp(29,0.708), alp(37,0.708), alp(43,0.708), alp(53,0.708);
+
+ambiorev = revsch <: par(i, 4, _<:_,ma.neg(_)) : matrix;
