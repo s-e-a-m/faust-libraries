@@ -1,0 +1,30 @@
+// ### standard faust lib extensions
+import("seam.basic.lib");
+import("seam.math.lib");
+import("seam.filters.lib");
+import("seam.reverbs.lib");
+
+// ### michael gerzon and general ambisonic teory
+import("seam.gerzon.lib");
+import("seam.ambisonic.lib");
+
+// ### stereophony and perception
+import("seam.stereophony.lib");
+import("seam.hrtf.lib");
+
+// ### CSound and MaxMsp object cloning
+import("seam.csound.lib");
+import("seam.cyclone.lib");
+
+// ### author specific literature
+import("seam.nono.lib");
+import("seam.nottoli.lib");
+
+// ### live electronics stuff
+import("seam.gui.lib");
+import("seam.hardware.lib");
+import("seam.analyzers.lib");
+import("seam.mixer.lib");
+
+// ### instrument specific literature
+import("seam.vcs3.lib");

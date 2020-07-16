@@ -1,12 +1,16 @@
+sre = library("seam.reverbs.lib");
+ma = library("maths.lib");
+de = library("delays.lib");
+
 // -----------------------------------------------------------------------------
 // SCHROEDER NATURAL SOUNDING REVERBS - 1962
 
 // delay feedback in loop
-dfl(t,g) = (+ : @(t)~*(g);
+dfl(t,g) = (+ : @(t))~*(g);
 //process = dfl(1,0.5);
 
 // correct delay feedback in loop
-dflc(t,g) = (+ : @(t-1)~*(g) : mem;
+dflc(t,g) = (+ : @(t-1))~*(g) : mem;
 //process = dfl(1,0.5);
 
 // correct delay feedback in loop complex
@@ -33,3 +37,33 @@ matrix = alp(47,0.708), alp(41,0.708), alp(31,0.708), alp(23,0.708),
          alp(29,0.708), alp(37,0.708), alp(43,0.708), alp(53,0.708);
 
 ambiorev = revsch <: par(i, 4, _<:_,ma.neg(_)) : matrix;
+
+an = library("analyzers.lib");
+ba = library("basics.lib");
+co = library("compressors.lib");
+de = library("delays.lib");
+dm = library("demos.lib");
+dx = library("dx7.lib");
+en = library("envelopes.lib");
+fi = library("filters.lib");
+ho = library("hoa.lib");
+it = library("interpolators.lib");
+ma = library("maths.lib");
+mi = library("mi.lib");
+ef = library("misceffects.lib");
+os = library("oscillators.lib");
+no = library("noises.lib");
+pf = library("phaflangers.lib");
+pl = library("platform.lib");
+pm = library("physmodels.lib");
+rm = library("reducemaps.lib");
+re = library("reverbs.lib");
+ro = library("routes.lib");
+sp = library("spats.lib");
+si = library("signals.lib");
+so = library("soundfiles.lib");
+sy = library("synths.lib");
+ve = library("vaeffects.lib");
+wa = library("webaudio.lib");
+sf = library("all.lib");
+vl = library("version.lib");

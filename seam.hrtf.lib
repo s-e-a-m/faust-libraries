@@ -18,3 +18,33 @@ tph(d,rad,f) = -(d*rad/2*ma.PI*f);
 //through a device or transmission medium, where \phi \  is the total phase shift in radians, and
 // \omega \  is the angular frequency in radians per unit time, equal to 2πf
 // 2\pi f\ , where f \  is the frequency (hertz if group delay is measured in seconds).
+
+an = library("analyzers.lib");
+ba = library("basics.lib");
+co = library("compressors.lib");
+de = library("delays.lib");
+dm = library("demos.lib");
+dx = library("dx7.lib");
+en = library("envelopes.lib");
+fi = library("filters.lib");
+ho = library("hoa.lib");
+it = library("interpolators.lib");
+ma = library("maths.lib");
+mi = library("mi.lib");
+ef = library("misceffects.lib");
+os = library("oscillators.lib");
+no = library("noises.lib");
+pf = library("phaflangers.lib");
+pl = library("platform.lib");
+pm = library("physmodels.lib");
+rm = library("reducemaps.lib");
+re = library("reverbs.lib");
+ro = library("routes.lib");
+sp = library("spats.lib");
+si = library("signals.lib");
+so = library("soundfiles.lib");
+sy = library("synths.lib");
+ve = library("vaeffects.lib");
+wa = library("webaudio.lib");
+sf = library("all.lib");
+vl = library("version.lib");
