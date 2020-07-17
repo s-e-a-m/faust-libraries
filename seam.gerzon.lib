@@ -396,26 +396,28 @@ lrcpan(x,pot) = l,r,c
 //------------------------------------------------------------------------------
 // GERZON FDN 1
 
-mgfdn1(d,fb) = (+ : de.delay(ma.SR/2,d))~*(fb);
+mgfdn1(d,fb) = (+ : de.delay(ma.SR/2,d-1))~*(fb) : mem;
 //process = os.impulse : mgfdn1(1,0.45);
 
-mgfdn2(d1,d2,fb) = (+ <: de.delay(ma.SR/2,d1) + de.delay(ma.SR/2,d2))~*(fb);
+mgfdn2(d1,d2,fb) = (+ <: de.delay(ma.SR/2,d1-1) +
+                         de.delay(ma.SR/2,d2-1))~*(fb) : mem;
 //process = os.impulse : mgfdn2(1,2,0.45);
 
 mgfdn3(d1,d2,fb1,fb2,a11,a12,a21,a22) = (delays(d1,d2) :
-                                        matrix(a11,a12,a21,a22))~fdbk(fb1,fb2)
+                                        matrix(a11,a12,a21,a22))~fdbk(fb1,fb2) :
+                                        mem , mem
 with {
     routing(a,b,c,d) = a+c,b+d;
-    delays(d1,d2) = routing : de.delay(ma.SR/2,d1), de.delay(ma.SR/2,d2);
+    delays(d1,d2) = routing : de.delay(ma.SR/2,d1-1), de.delay(ma.SR/2,d2-1);
     matrix(a11,a12,a21,a22) = _,_<: *(a11) + *(a12), *(a21) + *(a22);
     fdbk(fb1,fb2) = *(fb1), *(fb2);
 };
 //process = os.impulse <: mgfdn3(1,2,0.5,0.5,0.9,-0.5,-0.5,0.9);
 
-mgfdn3o(d1,d2,fb1,fb2,theta) = (delays(d1,d2) : matrix(theta))~fdbk
+mgfdn3o(d1,d2,fb1,fb2,theta) = (delays(d1,d2) : matrix(theta))~fdbk : mem : mem
 with {
     routing(a,b,c,d) = a+c,b+d;
-    delays(d1,d2) = routing : de.delay(ma.SR/2,d1), de.delay(ma.SR/2,d2);
+    delays(d1,d2) = routing : de.delay(ma.SR/2,d1-1), de.delay(ma.SR/2,d2-1);
     matrix(theta) = _,_<: *(cos(theta)) - *(sin(theta)),
                           *(sin(theta)) + *(cos(theta));
     fdbk = *(fb1), *(fb2);
@@ -425,13 +427,13 @@ with {
 
 mgfdn4(d1,d2,d3,d4,fb1,fb2,fb3,fb4) = (delays : matrix)~fdbk
 with {
-    routing(a,b,c,d,e,f,g,h) = a,e,b,f,c,g,d,h;
-    delays = routing : (+ : de.delay(ma.SR/2,d1)), (+ : de.delay(ma.SR/2,d2)),
-                       (+ : de.delay(ma.SR/2,d3)), (+ : de.delay(ma.SR/2,d4));
+    routing(a,b,c,d,e,f,g,h) = a+e,b+f,c+g,d+h;
+    delays = routing : de.delay(ma.SR/2,d1-1), de.delay(ma.SR/2,d2-1),
+                       de.delay(ma.SR/2,d3-1), de.delay(ma.SR/2,d4-1);
     matrix = ro.hadamard(4);
     fdbk = *(fb1), *(fb2), *(fb3), *(fb4);
 };
-//process = os.impulse <: mgfdn4(1009,2579,4001,8209,0.4,0.4,0.4,0.4) :> _,_;
+//process = os.impulse <: mgfdn4(13,17,21,8209,0.1,0.2,0.3,0.5) :> _,_;
 
 an = library("analyzers.lib");
 ba = library("basics.lib");
