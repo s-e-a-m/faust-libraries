@@ -36,7 +36,7 @@ matrix = alp(47,0.708), alp(41,0.708), alp(31,0.708), alp(23,0.708),
          alp(3,0.708), alp(7,0.708), alp(13,0.708), alp(19,0.708),
          alp(29,0.708), alp(37,0.708), alp(43,0.708), alp(53,0.708);
 
-ambiorev = revsch <: par(i, 4, _<:_,ma.neg(_)) : matrix;
+ambiorev = revsch <: par(i, 4, _<:_,ma.neg) : matrix;
 
 // -----------------------------------------------------------------------------
 // MOORER - SIGNAL PROCESSING ASPECTS OF COMPUTER MUSIC - A SURVEY - 1977
