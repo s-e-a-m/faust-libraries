@@ -42,13 +42,18 @@ ambiorev = revsch <: par(i, 4, _<:_,ma.neg(_)) : matrix;
 // MOORER - SIGNAL PROCESSING ASPECTS OF COMPUTER MUSIC - A SURVEY - 1977
 
 jmcomb(d,g) = + ~ @(d-1)*(g);
-jmcosc(d,g,c) = + ~ (@(d-1) <: *(2*g*c) + (@(d)*(ma.neg(g*g))));
-//process = os.impulse : moorercomb(1,1,0.99) : *(0.01);
+jmcosc(d,g,theta) = + ~ (@(d-1) <: *(2*g*(cos(theta))) + @(d)*(ma.neg(g*g)));
+//process = os.impulse : jmcosc(1,0.708,a);
 
-jmapf(d,g) = (+ <: @(d-1), *(-g)) ~*(g) : mem,_ : +;
+jmapf(d,g) = (+ <: @(d-1), *(-g)) ~ *(g) : mem , _ : +;
+//process = os.impulse : jmapf(1,0.9);
 
-jmaposc(d,g,c) =  (+ : mapf11(d,g,c) : mapf22(d))~*(ma.neg(g*g)) : mem ,_ : +;
-
+jmapfosc(d,g,theta) = (+ <: z1(d,g,theta), *(g*g) : @(d-1),_,_)~*(ma.neg(g*g)) : mem,_,_:> _
+with{
+    z1(d,g,theta) = (+ : @(d-1)) ~ *(2*g*cos(theta)) : (mem <: _,*(ma.neg(2*g*cos(theta))));
+};
+//process = os.impulse : jmapfosc (1,1,a) * (0.03);
+// process = os.impulse <: jmcombosc(1,1,a) * (0.03), jmapfosc(1,1,a) * (0.03);
 
 // -----------------------------------------------------------------------------
 // FAUST LIBRARIES - CARGO CALL
