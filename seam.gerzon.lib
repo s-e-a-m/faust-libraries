@@ -393,38 +393,45 @@ lrcpan(x,pot) = l,r,c
 // ```
 
 
-// COPIA E INCOLLA BRUTO -------------------------------------------------------
+//------------------------------------------------------------------------------
+// GERZON FDN 1
 
-//import("stdfaust.lib");
+mgfdn1(d,fb) = (+ : de.delay(ma.SR/2,d))~*(fb);
+//process = os.impulse : mgfdn1(1,0.45);
 
-mgfdn1(d1,fb1) = (+ : de.delay(ma.SR/2, d1))~*(fb1);
-mgfdn2(d1,d2,fb1) = (+ <: de.delay(ma.SR/2, d1)+de.delay(ma.SR/2, d2))~*(fb1);
-mgfdn3(d1,d2,fb1,fb2) = (delays : matrix(0.7,-0.3,0.3,-0.7))~(fbk)
-  with {
-    delays = _,ro.cross(2),_ : (+ : de.delay(ma.SR/2, d1)), (+ : de.delay(ma.SR/2, d2));
-    matrix(a11,a12,a21,a22) = _,_ <: _*(a11)+_*(a12),_*(a21)+_*(a22);
-    fbk = *(fb1), *(fb2);
+mgfdn2(d1,d2,fb) = (+ <: de.delay(ma.SR/2,d1) + de.delay(ma.SR/2,d2))~*(fb);
+//process = os.impulse : mgfdn2(1,2,0.45);
+
+mgfdn3(d1,d2,fb1,fb2,a11,a12,a21,a22) = (delays(d1,d2) :
+                                        matrix(a11,a12,a21,a22))~fdbk(fb1,fb2)
+with {
+    routing(a,b,c,d) = a+c,b+d;
+    delays(d1,d2) = routing : de.delay(ma.SR/2,d1), de.delay(ma.SR/2,d2);
+    matrix(a11,a12,a21,a22) = _,_<: *(a11) + *(a12), *(a21) + *(a22);
+    fdbk(fb1,fb2) = *(fb1), *(fb2);
 };
+//process = os.impulse <: mgfdn3(1,2,0.5,0.5,0.9,-0.5,-0.5,0.9);
 
-// rad = vslider("[02]Azimuth[style:knob]",0,-180,180,0.1) : d2r : si.smoo;
-// d2r = *(ma.PI/180);
-
-mgfdn3o(d1,d2,fb1,fb2) = (delays : matrix(rad))~(fbk)
-  with {
-    delays = _,ro.cross(2),_ : (+ : de.delay(ma.SR/2, d1)), (+ : de.delay(ma.SR/2, d2));
-    matrix(theta) = _,_ <: _*(cos(theta))-_*(sin(theta)),_*(sin(theta))+_*(cos(theta));
-    fbk = *(fb1), *(fb2);
+mgfdn3o(d1,d2,fb1,fb2,theta) = (delays(d1,d2) : matrix(theta))~fdbk
+with {
+    routing(a,b,c,d) = a+c,b+d;
+    delays(d1,d2) = routing : de.delay(ma.SR/2,d1), de.delay(ma.SR/2,d2);
+    matrix(theta) = _,_<: *(cos(theta)) - *(sin(theta)),
+                          *(sin(theta)) + *(cos(theta));
+    fdbk = *(fb1), *(fb2);
 };
+//a = hslider("angle",45,0,360,1) : *(ma.PI/180);
+//process = os.impulse <: mgfdn3o(1009,2579,0.4,0.4,a);
 
-mgfdn4(d1,d2,d3,d4,fb1,fb2,fb3,fb4) = (delays : ro.hadamard(4))~(fbk)
-  with {
+mgfdn4(d1,d2,d3,d4,fb1,fb2,fb3,fb4) = (delays : matrix)~fdbk
+with {
     routing(a,b,c,d,e,f,g,h) = a,e,b,f,c,g,d,h;
-    delays = routing : (+ : de.delay(ma.SR/2, d1)), (+ : de.delay(ma.SR/2, d2)), (+ : de.delay(ma.SR/2, d1)), (+ : de.delay(ma.SR/2, d2));
-    matrix(theta) = _,_ <: _*(cos(theta))-_*(sin(theta)),_*(sin(theta))+_*(cos(theta));
-    fbk = *(fb1), *(fb2),*(fb3), *(fb4);
+    delays = routing : (+ : de.delay(ma.SR/2,d1)), (+ : de.delay(ma.SR/2,d2)),
+                       (+ : de.delay(ma.SR/2,d3)), (+ : de.delay(ma.SR/2,d4));
+    matrix = ro.hadamard(4);
+    fdbk = *(fb1), *(fb2), *(fb3), *(fb4);
 };
-
-//process = _ <: mgfdn4(1001,4001,8209,9829,0.45,0.45,0.45,0.45) :> _,_;
+//process = os.impulse <: mgfdn4(1009,2579,4001,8209,0.4,0.4,0.4,0.4) :> _,_;
 
 an = library("analyzers.lib");
 ba = library("basics.lib");

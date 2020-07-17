@@ -38,6 +38,20 @@ matrix = alp(47,0.708), alp(41,0.708), alp(31,0.708), alp(23,0.708),
 
 ambiorev = revsch <: par(i, 4, _<:_,ma.neg(_)) : matrix;
 
+// -----------------------------------------------------------------------------
+// MOORER - SIGNAL PROCESSING ASPECTS OF COMPUTER MUSIC - A SURVEY - 1977
+
+jmcomb(d,g) = + ~ @(d-1)*(g);
+jmcosc(d,g,c) = + ~ (@(d-1) <: *(2*g*c) + (@(d)*(ma.neg(g*g))));
+//process = os.impulse : moorercomb(1,1,0.99) : *(0.01);
+
+jmapf(d,g) = (+ <: @(d-1), *(-g)) ~*(g) : mem,_ : +;
+
+jmaposc(d,g,c) =  (+ : mapf11(d,g,c) : mapf22(d))~*(ma.neg(g*g)) : mem ,_ : +;
+
+
+// -----------------------------------------------------------------------------
+// FAUST LIBRARIES - CARGO CALL
 an = library("analyzers.lib");
 ba = library("basics.lib");
 co = library("compressors.lib");
