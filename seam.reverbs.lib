@@ -18,7 +18,7 @@ dflcc(t,g) = (+ : de.delay(ma.SR/2, int(t-1)))~*(max(0, min(0.999, g))) : mem;
 //process = dfl(1,0.5);
 
 // all-pass filter
-apf(t,g) = _ <: (_ * (ma.neg(max(0, min(0.999, g))))) + (dflcc(t,g) * (1-(g*g)));
+apf(t,g) = _ <: (*(ma.neg(max(0, min(0.999, g)))))+(dflcc(t,g)*(1-(g*g)));
 //process = os.impulse : apf(1,0.5);
 
 schrev = _ <: // to 4 parallel comb
@@ -53,7 +53,7 @@ with{
     z1(d,g,theta) = (+ : @(d-1)) ~ *(2*g*cos(theta)) : (mem <: _,*(ma.neg(2*g*cos(theta))));
 };
 //process = os.impulse : jmapfosc (1,1,a) * (0.03);
-// process = os.impulse <: jmcombosc(1,1,a) * (0.03), jmapfosc(1,1,a) * (0.03);
+//process = os.impulse <: jmcombosc(1,1,a) * (0.03), jmapfosc(1,1,a) * (0.03);
 
 // -----------------------------------------------------------------------------
 // FAUST LIBRARIES - CARGO CALL
