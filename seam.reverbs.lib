@@ -53,6 +53,27 @@ with{
 
 //process = ambiorev :> _,_;
 
+// DA SISTEMARE ------------
+//import("stdfaust.lib");
+// comb
+dfl(t,g) = + @(t-1) ~ *(g) : mem;
+// all-pass
+apf(t,g) = _ <: *(-g) + (dfl(t,g) : *(1-(g*g)));
+// all-pass prime numbers reverb
+aprev = apf(3001,0.708) : apf(3011,0.708) : apf(163,0.85) : apf(4177,0.4) : apf(1447,0.8) : apf(5953,0.708);
+// golden ratio
+phi = (1+(sqrt(5)))/2;
+// phi-tuned all-pass reverb
+apphirev(N,t) = seq(i,N, apf(int(t*(i+1)*phi),0.708));
+// process = apphirev(53,61);
+//process = _ <: apphirev(53,61), apphirev(53,59);
+
+// unused
+som(N) = (N*(N+1))/2;
+apphirevn(N,t) = seq(i,N,apf(int(t*(i+1)*phi),(i+1)*(1/som(N)))); //troppo asciutto
+dapphirev(N,t,g,pd) =_ <: *(-g) + ((+ : @ (pd) : apphirev (N,t))~ *(g) : *(1-(g*g)));
+//-----------------------------
+
 // -----------------------------------------------------------------------------
 // MOORER - SIGNAL PROCESSING ASPECTS OF COMPUTER MUSIC - A SURVEY - 1977
 
