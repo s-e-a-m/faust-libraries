@@ -92,7 +92,7 @@ with{
 //process = os.impulse <: jmcombosc(1,1,a) * (0.03), jmapfosc(1,1,a) * (0.03);
 
 // -----------------------------------------------------------------------------
-// JON DATTORRO - EFFEC DESIGN PART 1. REVERBERATOR AND OTHER FILTERS
+// JON DATTORRO - EFFEC DESIGN PART 1. REVERBERATOR AND OTHER FILTERS - 1996
 
 jondattorro_rev = pdly(0) : lp1p(bandwidth) : inputdiffusers <: tank
 with{
