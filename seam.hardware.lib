@@ -61,7 +61,7 @@ wxyzrip_ff800 = vgroup("[01] B-FORMAT INPUT CHANNEL", ff800_WXYZ : inpeq, inpeq,
 //==============================================================================
 //--------------------------------------- RME FireFace 800 - MONO INPUT SELECTOR
 //-------------------------------------------------------------------- 20 INPUTS
-ff800 = ba.selectn(20,channel) : phmeter
+ff800 = ba.selectn(20,channel) : san.phmeter
   with{
     channel = nentry("[01] RME FF800 - INPUT SELECTOR
       [style:menu{

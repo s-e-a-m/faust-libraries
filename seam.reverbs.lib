@@ -10,7 +10,7 @@ dfl(t,g) = (+ : @(t))~*(g);
 //process = dfl(1,0.5);
 
 // correct delay feedback in loop
-dflc(t,g) = (+ : @(t-1))~*(g) : mem;
+dflc(t,g) = (+ : @(t-1))~*(g) : mem;  
 //process = dfl(1,0.5);
 
 // correct delay feedback in loop complex
@@ -18,6 +18,7 @@ dflcc(t,g) = (+ : de.delay(ma.SR/2, int(t-1)))~*(max(0, min(0.999, g))) : mem;
 //process = dfl(1,0.5);
 
 // all-pass filter
+apfs(t,g) = _ <: *(-g)+(dflc(t,g)*(1-(g*g))); // simplex
 apf(t,g) = _ <: (*(ma.neg(max(0, min(0.999, g)))))+(dflcc(t,g)*(1-(g*g)));
 //process = os.impulse : apf(1,0.5);
 

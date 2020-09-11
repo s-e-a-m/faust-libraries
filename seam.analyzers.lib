@@ -93,30 +93,13 @@ ptrack(x,a) = x : fi.dcblockerat(80) : (fi.lowpass(1) : upt(a)) ~ max(100);
 //------------------------------------------------------------------------------
 // BS1770
 //------------------------------------------------------------------------------
-// Converts an LR stereo image into Mid mono signal describes the frontal
-// directional component of the sound image.
-//
-// #### Reference
-//
-// #### Usage
-//
-// ```
-// _,_ : mid : _
-// ```
-//
-// Where the two inputs are respectively:
-// L,R
-//
-// Where the output is the Mid component
-//
-//------------------------------------------------------------------------------
-// pfs1 = fi.highshelf(2,4,1100);
-// pfs2 = fi.highpass(2,55);
-// tg = ba.sec2samp(0.400);
-//
-// bs1770 = pfs1 : pfs2 <: _ , int(@(0.75*tg)) : 0.5*(RMS(tg)+RMS(tg));
 
-an = library("analyzers.lib");
+pfs1 = fi.highshelf(2,4,1100);
+pfs2 = fi.highpass(2,55);
+tg = ba.sec2samp(0.400);
+
+bs1770 = pfs1 : pfs2 <: _ , int(@(0.75*tg)) : 0.5*(RMS(tg)+RMS(tg));
+
 ba = library("basics.lib");
 co = library("compressors.lib");
 de = library("delays.lib");
