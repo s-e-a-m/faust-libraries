@@ -93,6 +93,40 @@ with{
 //process = os.impulse <: jmcombosc(1,1,a) * (0.03), jmapfosc(1,1,a) * (0.03);
 
 // -----------------------------------------------------------------------------
+// JON DATTORRO - EFFEC DESIGN PART 1. REVERBERATOR AND OTHER FILTERS - 1996
+
+jondattorro_rev = pdly(0) : lp1p(bandwidth) : inputdiffusers <: tank
+with{
+  // reverberation parameters defaults
+  excursion = hslider("[01]EXCURSION", 16, 0, 1024, 1) : int;
+  decay = hslider("[02]DECAY", 0.5, 0, 1, 0.001) : si.smoo;
+  dd1 = hslider("[03]DECAY DIFFUSION 1", 0.7, 0, 0.999, 0.001) : si.smoo;
+  dd2 = hslider("[04]DECAY DIFFUSION 2", 0.5, 0, 0.999, 0.001) : si.smoo;
+  id1 = hslider("[05]INPUT DIFFUSION 1", 0.750, 0, 0.999, 0.001) : si.smoo;
+  id2 = hslider("[06]INPUT DIFFUSION 2", 0.625, 0, 0.999, 0.001) : si.smoo;
+  bandwidth = hslider("[07]BANDWIDTH", 0.9995, 0.0001, 0.9999999, 0.0000001);
+  damping = hslider("[08]DAMPING", 0.0005, 0, 0.999, 0.001);
+
+  // predelay
+  predelay = hslider("[00]PREDELAY", 0, 0, 8192, 1) : int;
+  pdly(t) = de.delay(ma.SR/2,predelay);
+
+  // filters
+  lp1p(a) = *(a) : + ~ *(1-a);
+  dflc(t,g) = (+ : de.delay(ma.SR/2,(t-1))) ~ *(g) : mem;
+  apf(t,g) = _<: *(-g) + (dflc(t,g) *(1-(g*g)));
+
+  // reverberators
+  inputdiffusers = apf(142,id1) : apf(107,id1) : apf(379,id2) : apf(277,id2);
+  xsec1(dmp) = (+ : apf(672+excursion,dd1) : @(4453) : lp1p(1-damping) : *(decay) : apf(1800,0.85) : @(3720) : *(decay));
+  xsec2(dmp) = (+ : apf(908+excursion,dd2) : @(4217) : lp1p(1-damping) : *(decay) : apf(2656,0.85) : @(3163) : *(decay));
+  xfbk = _,_;
+  xroute(a,b,c,d) = a,c,b,d;
+  tank = (xroute : xsec1(damping), xsec2(damping)) ~ xfbk;
+};
+
+
+// -----------------------------------------------------------------------------
 // FAUST LIBRARIES - CARGO CALL
 an = library("analyzers.lib");
 ba = library("basics.lib");
