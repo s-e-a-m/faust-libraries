@@ -47,12 +47,51 @@ declare license "CC4";
 
 san = library("seam.analyzers.lib");
 
-//================================================================ AMPLITUDE ===
+//======================================================= AMPLITUDE ANALYSIS ===
 //==============================================================================
 //--------------------------------------------------------------- PEAK METERS --
-pvmeter(x) = attach(x, an.amp_follower(0.150, x) : ba.linear2db : vbargraph("[90][unit:dB]", -70, +6));
-phmeter(x) = attach(x, an.amp_follower(0.150, x) : ba.linear2db : hbargraph("[90][unit:dB]", -70, +6));
-
+pvmeter(x) = attach(x, an.amp_follower(0.150, x) : ba.linear2db :
+             vbargraph("[90][unit:dB]", -70, +6));
+phmeter(x) = attach(x, an.amp_follower(0.150, x) : ba.linear2db :
+             hbargraph("[90][unit:dB]", -70, +6));
+//
+//==================================================== SOUND LEVEL WEIGHTING ===
+//==============================================================================
+//
+//--------------------------------------------------- ANSI S1.43-1997 - 2007 ---
+//---------------------------------------------- AMERICAN NATIONAL STANDARDS ---
+//--------------------- SPECIFICATIONS FOR INTEGRATING-AVERAGING SOUND LEVEL ---
+// https://github.com/s-e-a-m/References/blob/master/aavv/ansi.s1.43.1997.pdf
+//
+//-------------------------------------------------------------- FREQUENCIES ---
+awf1 = 20.598997;
+awf2 = 107.65265;
+awf3 = 737.86223;
+awf4 = 12194.22;
+awf5 = 158.48932;
+//-------------------------------------- SCALE FACTORS TO HAVE 0dB at 1000Hz ---
+C1000 = 0.0619;
+B1000 = 0.1696;
+A1000 = 1.9997;
+//--------------------------------------------------------- A WEIGHTING OF f ---
+aweight(f) = 20*log10(
+              (awf4^2*f^4) /
+              ((f^2+awf1^2) * sqrt((f^2+awf2^2) * (f^2+awf3^2)) * (f^2+awf4^2))
+              ) +(A1000);
+//process = aweight(1000);
+//--------------------------------------------------------- B WEIGHTING OF f ---
+bweight(f) = 20*log10(
+              (awf4^2*f^3) /
+              ((f^2+awf1^2) * (f^2+awf4^2) * sqrt((f^2+awf5^2)))
+              ) +(B1000);
+//process = bweight(1000);
+//--------------------------------------------------------- C WEIGHTING OF f ---
+cweight(f) = 20*log10(
+              (awf4^2*f^2) /
+              ((f^2+awf1^2) * (f^2+awf4^2))
+              ) +(C1000);
+//process = cweight(1000);
+//
 //================================================================ FREQUENCY ===
 //==============================================================================
 // Universal Pitch Tracker
