@@ -4,9 +4,9 @@ an = library("analyzers.lib");
 //
 // A library for analise and measure signals. Its official prefix is `me`.
 //
-// * METERS
-// *
-// *
+// * AMPLITUDE ANALYSIS
+// * SOUND LEVEL WEIGHTING
+// * FREQUENCY
 // *
 // *
 //
@@ -61,6 +61,8 @@ phmeter(x) = attach(x, an.amp_follower(0.150, x) : ba.linear2db :
 //--------------------------------------------------- ANSI S1.43-1997 - 2007 ---
 //---------------------------------------------- AMERICAN NATIONAL STANDARDS ---
 //--------------------- SPECIFICATIONS FOR INTEGRATING-AVERAGING SOUND LEVEL ---
+//
+// https://en.wikipedia.org/wiki/A-weighting
 // https://github.com/s-e-a-m/References/blob/master/aavv/ansi.s1.43.1997.pdf
 //
 //-------------------------------------------------------------- FREQUENCIES ---
@@ -75,21 +77,21 @@ B1000 = 0.1696;
 A1000 = 1.9997;
 //--------------------------------------------------------- A WEIGHTING OF f ---
 aweight(f) = 20*log10(
-              (awf4^2*f^4) /
-              ((f^2+awf1^2) * sqrt((f^2+awf2^2) * (f^2+awf3^2)) * (f^2+awf4^2))
-              ) +(A1000);
+             (awf4^2*f^4) /
+             ((f^2+awf1^2) * sqrt((f^2+awf2^2) * (f^2+awf3^2)) * (f^2+awf4^2))
+             ) +(A1000);
 //process = aweight(1000);
 //--------------------------------------------------------- B WEIGHTING OF f ---
 bweight(f) = 20*log10(
-              (awf4^2*f^3) /
-              ((f^2+awf1^2) * (f^2+awf4^2) * sqrt((f^2+awf5^2)))
-              ) +(B1000);
+             (awf4^2*f^3) /
+             ((f^2+awf1^2) * (f^2+awf4^2) * sqrt((f^2+awf5^2)))
+             ) +(B1000);
 //process = bweight(1000);
 //--------------------------------------------------------- C WEIGHTING OF f ---
 cweight(f) = 20*log10(
-              (awf4^2*f^2) /
-              ((f^2+awf1^2) * (f^2+awf4^2))
-              ) +(C1000);
+             (awf4^2*f^2) /
+             ((f^2+awf1^2) * (f^2+awf4^2))
+             ) +(C1000);
 //process = cweight(1000);
 //
 //================================================================ FREQUENCY ===
