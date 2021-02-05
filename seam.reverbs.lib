@@ -1,30 +1,40 @@
 sre = library("seam.reverbs.lib");
 ma = library("maths.lib");
 de = library("delays.lib");
-
-// -----------------------------------------------------------------------------
-// SCHROEDER NATURAL SOUNDING REVERBS - 1962
-
-// delay feedback in loop
+//
+//============= SCHROEDER - NATURAL SOUNDING ARTIFICIAL REVERBERATION - 1962 ===
+//==============================================================================
+//--------------------------------------------------- DELAY FEEDBACK IN LOOP ---
 dfl(t,g) = (+ : @(t))~*(g);
-//process = dfl(1,0.5);
-
-// correct delay feedback in loop
-dflc(t,g) = (+ : @(t-1))~*(g) : mem;  
-//process = dfl(1,0.5);
-
-// correct delay feedback in loop complex
+//
+//------------------------------------------- DELAY FEEDBACK IN LOOP - FIXED ---
+dflc(t,g) = (+ : @(t-1))~*(g) : mem;
+//
+//-------------------------------- DELAY FEEDBACK IN LOOP - FIXED - VARIABLE ---
 dflcc(t,g) = (+ : de.delay(ma.SR/2, int(t-1)))~*(max(0, min(0.999, g))) : mem;
-//process = dfl(1,0.5);
-
-// all-pass filter
-apfs(t,g) = _ <: *(-g)+(dflc(t,g)*(1-(g*g))); // simplex
-apf(t,g) = _ <: (*(ma.neg(max(0, min(0.999, g)))))+(dflcc(t,g)*(1-(g*g)));
-//process = os.impulse : apf(1,0.5);
-
+//
+//---------------------------------------------------------- ALL-PASS FILTER ---
+apf(t,g) = _ <: *(-g)+(dflc(t,g)*(1-(g*g)));
+//apf(t,g) = _ <: (*(ma.neg(max(0, min(0.999, g)))))+(dflcc(t,g)*(1-(g*g)));
+//
+//------------------------------------------------- INCREASE OF ECHO DENSITY ---
+// The delay of each section is made about 1/3 of the preceding delay. Thus, the
+// delay of the n-th unit will be t1(1/3)^n-1. The gains are most conveniently
+// made equal to about 0.7. [...] The effective echo density of 5 loops in
+// series will be approximately 81/t1. For t1 = 0.1 sec, the effective echo
+// density will be 810 per second which is sufficiently close to the required
+// 1000 per second. To avoid echo cancellation and superposition, it is
+// advisable to use incommensurate delay ratios rather than the round number 3.
+ied5 = apf(5507,0.7) : apf(1831,0.7) : apf(613,0.7) : apf(199,0.7) : apf(67,0.7);
+//
+//---------- MIXING OF DIRECTSOUND AND REVERBERATIOM - NON-EXPONENTIAL DECAY ---
+dfldw(t,g) = (+ : de.delay(ma.SR/2, int(t-1)) : ied5)~*(g) : mem;
+aprdw(t,g) = _ <: *(-g)+(dfldw(t,g)*(1-(g*g)));
+//
+//------------------------------------------------- THE COMB FILTER APPROACH ---
 schrev = _ <: // to 4 parallel comb
   dflc(4133,0.708), dflc(4157,0.708), dflc(7307,0.708), dflc(2803,0.708) :>
-  apf(307,0.708) : apf(881,0.708); // and a sequence of two allpass
+  apf(307,0.708) : apf(881,0.708);
 
 revsch = apf(307,0.708) : apf(881,0.708) <: // two allpass to 4 comb
   dflc(4133,0.708), dflc(4157,0.708), dflc(7307,0.708), dflc(2803,0.708);
