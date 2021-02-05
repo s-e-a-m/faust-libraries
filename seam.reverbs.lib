@@ -42,7 +42,10 @@ aprdw(t,g) = _ <: *(-g)+(dflr(t,g)*(1-(g*g)));
 // The values of the delays t1 through t4 are spread [...] between 30 and 45 ms
 // here in prime numbers at 48KHz from 1440 to 2160 samples.
 schrev = _ <: // to 4 parallel comb
-  dflc(1447,0.812), dflc(1721,0.78), dflc(1873,0.76), dflc(2161,0.74) :>
+  dflc(1447,0.812),
+  dflc(1721,0.78),
+  dflc(1873,0.76),
+  dflc(2161,0.74) :>
   apf(83,0.7) : apf(229,0.7);
 // components in reverse order
 revsch = apf(83,0.7) : apf(229,0.7) <: // two allpass to 4 comb
@@ -58,7 +61,19 @@ revsch = apf(83,0.7) : apf(229,0.7) <: // two allpass to 4 comb
 // reverberation time larger for the low frequencies. This trend of
 // reverberation time with frequency is typical of many concert halls and
 // cathedrals.
-// ...
+//
+dflf(t,g,fc) = (+ : de.delay(ma.SR/2, int(t-1)))~scy.onepole(fc)*(g) : mem;
+schfdrevt = _ <: // to 4 parallel comb
+  dflf(1447,0.812,5000),
+  dflf(1721,0.78,4000),
+  dflf(1873,0.76,3000),
+  dflf(2161,0.74,2000) :>
+  apf(83,0.7) : apf(229,0.7);
+//
+//
+//
+// DA QUI IN POI DA SISTEMARE
+//
 //
 //
 //------------------------------------------------ AMBIOPHONIC REVERBERATION ---
