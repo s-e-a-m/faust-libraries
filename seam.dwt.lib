@@ -1,0 +1,82 @@
+// ---
+// description: SEAM basic Library
+// ---
+//
+// <!-- LICENSE: GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 -->
+//
+// # gerzon.lib
+//
+// ```text
+declare name "SEAM Discrete Wavelet Transform - Library";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare license "CC3";
+// ```
+
+swt = library("seam.dwt.lib");
+
+import("stdfaust.lib");
+
+//=================================================== HAAR WAVELET TRANSFORM ===
+//==============================================================================
+// https://forum.pdpatchrepo.info/uploads/files/1565396211674-audio-manipulations-in-wavelet-domain.pdf
+// https://en.wikipedia.org/wiki/Haar_wavelet
+decomposer(nb) = _ <: filt(nb,nb)
+with {
+  lp = _ <: 0.5*(_+_');
+  hp = _ <: 0.5*(_-lp);
+  ds(o) = ba.sAndH(ba.time%(o) == 0); //----------------------- DOWNSAMPLING ---
+  dslist(n) = par(i,n,(n-i)*2); //----------- CASCADING DS2 IN REVERSE ORDER ---
+  dssel(s,n) = ba.take(s,dslist(n)); //------------------------- DS SELECTOR ---
+  filt(0,nb) = _;
+  filt(i,nb) = (lp : ds(dssel(i,nb)) <: filt(i-1,nb)), (hp : ds(dssel(i,nb)));
+};
+
+recomposer(nb) = merging(nb)
+with {
+  lp = _ <: 0.5*(_+_');
+  hp = _ <: 0.5*(_-lp);
+  delsize1 = ba.sec2samp(0.46) : int;
+  // WA
+  recIndex(nb) = (+(1) : %(nb*4)) ~ *(1);
+  readIndex(i) = (+(nb) : %(o)) ~ *(1);
+  us(o) = rwtable(4096,0,recIndex(nb),_,readIndex);
+  //us(o) = _;//ba.sAndH(ba.time%(o) == 0); //------------------------- UPSAMPLING ---
+  merging(nb) = seq(i,nb-1,(((us((nb-i)*2):lp),(us((nb-i)*2):hp)) :> _), si.bus(nb-(i+1))) :>
+                    (us(2):lp),(us(2):hp) :> _;
+};
+gsweep(m,t) = m : %(int(*(t):max(1)))~+(1');
+recIndex(nb) = (+(0) : %(nb*4)) ~ +(1');
+readIndex(nb,o) = (+(0) : %(nb*4)) ~ +(nb');
+process = readIndex(4);
+//process = no.pink_noise <: (decomposer(4) : recomposer(4)),_;
+
+an = library("analyzers.lib");
+ba = library("basics.lib");
+co = library("compressors.lib");
+de = library("delays.lib");
+dm = library("demos.lib");
+dx = library("dx7.lib");
+en = library("envelopes.lib");
+fi = library("filters.lib");
+ho = library("hoa.lib");
+it = library("interpolators.lib");
+ma = library("maths.lib");
+mi = library("mi.lib");
+ef = library("misceffects.lib");
+os = library("oscillators.lib");
+no = library("noises.lib");
+pf = library("phaflangers.lib");
+pl = library("platform.lib");
+pm = library("physmodels.lib");
+rm = library("reducemaps.lib");
+re = library("reverbs.lib");
+ro = library("routes.lib");
+sp = library("spats.lib");
+si = library("signals.lib");
+so = library("soundfiles.lib");
+sy = library("synths.lib");
+ve = library("vaeffects.lib");
+wa = library("webaudio.lib");
+sf = library("all.lib");
+vl = library("version.lib");
