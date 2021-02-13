@@ -1,10 +1,10 @@
 // ---
-// description: SEAM basic Library
+// description: SEAM DWT Library
 // ---
 //
 // <!-- LICENSE: GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 -->
 //
-// # gerzon.lib
+// # seam.dwt.lib
 //
 // ```text
 declare name "SEAM Discrete Wavelet Transform - Library";
@@ -13,7 +13,7 @@ declare author "Giuseppe Silvi";
 declare license "CC3";
 // ```
 
-swt = library("seam.dwt.lib");
+sdw = library("seam.dwt.lib");
 
 import("stdfaust.lib");
 
@@ -25,31 +25,32 @@ decomposer(nb) = _ <: filt(nb,nb)
 with {
   lp = _ <: 0.5*(_+_');
   hp = _ <: 0.5*(_-lp);
-  ds(o) = ba.sAndH(ba.time%(o) == 0); //----------------------- DOWNSAMPLING ---
-  dslist(n) = par(i,n,(n-i)*2); //----------- CASCADING DS2 IN REVERSE ORDER ---
-  dssel(s,n) = ba.take(s,dslist(n)); //------------------------- DS SELECTOR ---
+  ds = ba.sAndH(ba.time%(2) == 0); //----------------------- DOWNSAMPLING ---
+  //dslist(n) = par(i,n,(n-i)*2); //----------- CASCADING DS2 IN REVERSE ORDER ---
+  //dssel(s,n) = ba.take(s,dslist(n)); //------------------------- DS SELECTOR ---
   filt(0,nb) = _;
-  filt(i,nb) = (lp : ds(dssel(i,nb)) <: filt(i-1,nb)), (hp : ds(dssel(i,nb)));
+  filt(i,nb) = (lp : ds <: filt(i-1,nb)), (hp : ds);
 };
 
 recomposer(nb) = merging(nb)
 with {
   lp = _ <: 0.5*(_+_');
   hp = _ <: 0.5*(_-lp);
-  delsize1 = ba.sec2samp(0.46) : int;
-  // WA
-  recIndex(nb) = (+(1) : %(nb*4)) ~ *(1);
-  readIndex(i) = (+(nb) : %(o)) ~ *(1);
-  us(o) = rwtable(4096,0,recIndex(nb),_,readIndex);
-  //us(o) = _;//ba.sAndH(ba.time%(o) == 0); //------------------------- UPSAMPLING ---
-  merging(nb) = seq(i,nb-1,(((us((nb-i)*2):lp),(us((nb-i)*2):hp)) :> _), si.bus(nb-(i+1))) :>
-                    (us(2):lp),(us(2):hp) :> _;
+  us = _ <: it.interpolate_linear(1,_,_); //-------------------- UPSAMPLING ---
+  merging(nb) = seq(i,nb-1,(((us : lp), (us : hp)) :> _), si.bus(nb-(i+1))) :> (us : lp),(us : hp) :> _;
 };
-gsweep(m,t) = m : %(int(*(t):max(1)))~+(1');
-recIndex(nb) = (+(0) : %(nb*4)) ~ +(1');
-readIndex(nb,o) = (+(0) : %(nb*4)) ~ +(nb');
-process = readIndex(4);
-//process = no.pink_noise <: (decomposer(4) : recomposer(4)),_;
+
+ncoder(1) = _;
+encoder(i) = select2(trigger(i), encoder(i-1));
+
+//prova(n) = par(i,n,select2(c(2*(i+1),2*2*(i+1)),n-i,0));
+
+fs(nb) = pow(2,int(nb));
+c(nb,d) = ba.pulsen(1,nb)@(d);
+triggers(nb) = par(i,nb+1, c(2^(i+1), (2^(i+1)/2)-1));
+trigger(b) = c(2^(b+1), (2^(b+1)/2)-1); // b is the sample position 0 to fs-1
+
+process = triggers(8);
 
 an = library("analyzers.lib");
 ba = library("basics.lib");

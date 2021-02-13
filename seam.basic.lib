@@ -4,7 +4,7 @@
 //
 // <!-- LICENSE: GNU GENERAL PUBLIC LICENSE Version 3, 29 June 2007 -->
 //
-// # gerzon.lib
+// # basic.lib
 //
 // ```text
 declare name "SEAM Basic - Library";
@@ -22,7 +22,7 @@ sba = library("seam.basic.lib");
 //----------------------------------------- FAUST BASIC FUNCTION SWEEP FIXES ---
 // It truly counts from 0
 // process = sba.gsweep(max+1,trigger)
-gsweep(m,t) = m : %(int(*(t):max(1)))~+(1');
+sweep(m,t) = m : %(int(*(t):max(1)))~+(1');
 //----------------------------------------------- LINEAR SWEEP UP TO NYQUIST ---
 lsweep(sec,t) = (ma.SR/2) : %(int(*(t):max(1)))~+((1/sec)');
 //------------------------------------------------------ ZERO PADDING SWEEP  ---
