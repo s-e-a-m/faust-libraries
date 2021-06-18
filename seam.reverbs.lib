@@ -1,6 +1,4 @@
 sre = library("seam.reverbs.lib");
-ma = library("maths.lib");
-de = library("delays.lib");
 //
 //============= SCHROEDER - NATURAL SOUNDING ARTIFICIAL REVERBERATION - 1962 ===
 //==============================================================================
@@ -11,11 +9,11 @@ dfl(t,g) = (+ : @(t))~*(g);
 dflc(t,g) = (+ : @(t-1))~*(g) : mem;
 //
 //-------------------------------- DELAY FEEDBACK IN LOOP - FIXED - VARIABLE ---
-dflcc(t,g) = (+ : de.delay(ma.SR/2, int(t-1)))~*(g) : mem;
+dflcc(md,t,g) = (+ : de.delay(md, int(t-1)))~*(g) : mem;
 //
 //---------------------------------------------------------- ALL-PASS FILTER ---
-apf(t,g) = _ <: *(-g)+(dflcc(t,g)*(1-(g*g)));
-//apf(t,g) = _ <: (*(ma.neg(max(0, min(0.999, g)))))+(dflcc(t,g)*(1-(g*g)));
+apf(t,g) = _ <: *(-g)+(dflc(t,g)*(1-(g*g)));
+apfmd(md,t,g) = _ <: *(-g)+(dflcc(t,g)*(1-(g*g)));
 //
 //---------------------------------------------------------------------- T60 ---
 // For a feedback loop with open loop gain g, the sound level decay by
@@ -33,6 +31,8 @@ msT60(t,g) = (60/(-20*log10(g)))*t;
 // 1000 per second. To avoid echo cancellation and superposition, it is
 // advisable to use incommensurate delay ratios rather than the round number 3.
 ied5 = apf(5507,0.7) : apf(1831,0.7) : apf(613,0.7) : apf(199,0.7) : apf(67,0.7);
+ied8 = apf(5507,0.7) : apf(1831,0.7) : apf(613,0.7) : apf(199,0.7) : apf(67,0.7):
+       apf(23,0.7) : apf(7,0.7) : apf(2,0.7);
 //
 //---------- MIXING OF DIRECTSOUND AND REVERBERATION - NON-EXPONENTIAL DECAY ---
 dflr(t,g) = (+ : de.delay(ma.SR/2, int(t-1)) : ied5)~*(g) : mem;
@@ -113,11 +113,12 @@ dapphirev(N,t,g,pd) =_ <: *(-g) + ((+ : @ (pd) : apphirev (N,t))~ *(g) : *(1-(g*
 
 // -----------------------------------------------------------------------------
 // MOORER - SIGNAL PROCESSING ASPECTS OF COMPUTER MUSIC - A SURVEY - 1977
-jmcomb(d,g) = + ~ @(d-1)*(g);
+jmcomb(m,g) =  (+ : de.delay(ma.SR, m-1)) ~*(g) : mem;
+jmapf(m,g) = _ <: _,_ : ((ma.neg+_ : *(g) <: _,_ ) , _ : _,+ : ro.crossnn(1) : de.delay(ma.SR, m-1),_)~_ : mem+_;
+
 jmcosc(d,g,theta) = + ~ (@(d-1) <: *(2*g*(cos(theta))) + @(d)*(ma.neg(g*g)));
 //process = os.impulse : jmcosc(1,0.708,a);
 
-jmapf(d,g) = (+ <: @(d-1), *(-g)) ~ *(g) : mem , _ : +;
 //process = os.impulse : jmapf(1,0.9);
 
 jmapfosc(d,g,theta) = (+ <: z1(d,g,theta), *(g*g) : @(d-1),_,_)~*(ma.neg(g*g)) : mem,_,_:> _
@@ -159,36 +160,3 @@ with{
   xroute(a,b,c,d) = a,c,b,d;
   tank = (xroute : xsec1(damping), xsec2(damping)) ~ xfbk;
 };
-
-
-// -----------------------------------------------------------------------------
-// FAUST LIBRARIES - CARGO CALL
-an = library("analyzers.lib");
-ba = library("basics.lib");
-co = library("compressors.lib");
-de = library("delays.lib");
-dm = library("demos.lib");
-dx = library("dx7.lib");
-en = library("envelopes.lib");
-fi = library("filters.lib");
-ho = library("hoa.lib");
-it = library("interpolators.lib");
-ma = library("maths.lib");
-mi = library("mi.lib");
-ef = library("misceffects.lib");
-os = library("oscillators.lib");
-no = library("noises.lib");
-pf = library("phaflangers.lib");
-pl = library("platform.lib");
-pm = library("physmodels.lib");
-rm = library("reducemaps.lib");
-re = library("reverbs.lib");
-ro = library("routes.lib");
-sp = library("spats.lib");
-si = library("signals.lib");
-so = library("soundfiles.lib");
-sy = library("synths.lib");
-ve = library("vaeffects.lib");
-wa = library("webaudio.lib");
-sf = library("all.lib");
-vl = library("version.lib");
