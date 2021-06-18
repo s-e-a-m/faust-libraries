@@ -1,5 +1,10 @@
 sre = library("seam.reverbs.lib");
 //
+// CONTENTS
+// * SCHROEDER
+// * MOORER
+// * DATTORRO
+//
 //============= SCHROEDER - NATURAL SOUNDING ARTIFICIAL REVERBERATION - 1962 ===
 //==============================================================================
 //--------------------------------------------------- DELAY FEEDBACK IN LOOP ---
@@ -38,20 +43,20 @@ ied8 = apf(5507,0.7) : apf(1831,0.7) : apf(613,0.7) : apf(199,0.7) : apf(67,0.7)
 dflr(t,g) = (+ : de.delay(ma.SR/2, int(t-1)) : ied5)~*(g) : mem;
 aprdw(t,g) = _ <: *(-g)+(dflr(t,g)*(1-(g*g)));
 //
-//------------------------------------------------- THE COMB FILTER APPROACH ---
-// The values of the delays t1 through t4 are spread [...] between 30 and 45 ms
-// here in prime numbers at 48KHz from 1440 to 2160 samples.
-schrev = _ <: // to 4 parallel comb
-  dflc(1447,0.812),
-  dflc(1721,0.78),
-  dflc(1873,0.76),
-  dflc(2161,0.74) :>
-  apf(83,0.7) : apf(229,0.7);
-// components in reverse order
-revsch = apf(83,0.7) : apf(229,0.7) <: // two allpass to 4 comb
-  dflc(1447,0.812), dflc(1721,0.78), dflc(1873,0.76), dflc(2161,0.74);
-// commutability test
-//process = os.impulse <: schrev, (revsch :> _);
+  //------------------------------------------------- THE COMB FILTER APPROACH ---
+  // The values of the delays t1 through t4 are spread [...] between 30 and 45 ms
+  // here in prime numbers at 48KHz from 1440 to 2160 samples.
+  schrev = _ <: // to 4 parallel comb
+    dflc(1447,0.812),
+    dflc(1721,0.78),
+    dflc(1873,0.76),
+    dflc(2161,0.74) :>
+    apf(83,0.7) : apf(229,0.7);
+  // components in reverse order
+  revsch = apf(83,0.7) : apf(229,0.7) <: // two allpass to 4 comb
+    dflc(1447,0.812), dflc(1721,0.78), dflc(1873,0.76), dflc(2161,0.74);
+  // commutability test
+  //process = os.impulse <: schrev, (revsch :> _);
 //
 //----------------------------------- FREQUENCY-DEPENDENT REVERBERATION TIME ---
 // If it is desired to make the reverberation time a function of frequency, the
