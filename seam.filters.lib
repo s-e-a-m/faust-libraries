@@ -107,32 +107,12 @@ with{
 //             hbargraph("[04]a1[style:numerical]", -2,2),
 //             hbargraph("[05]a2[style:numerical]", -2,2)));
 //
-an = library("analyzers.lib");
-ba = library("basics.lib");
-co = library("compressors.lib");
-de = library("delays.lib");
-dm = library("demos.lib");
-dx = library("dx7.lib");
-en = library("envelopes.lib");
-fi = library("filters.lib");
-ho = library("hoa.lib");
-it = library("interpolators.lib");
-ma = library("maths.lib");
-mi = library("mi.lib");
-ef = library("misceffects.lib");
-os = library("oscillators.lib");
-no = library("noises.lib");
-pf = library("phaflangers.lib");
-pl = library("platform.lib");
-pm = library("physmodels.lib");
-rm = library("reducemaps.lib");
-re = library("reverbs.lib");
-ro = library("routes.lib");
-sp = library("spats.lib");
-si = library("signals.lib");
-so = library("soundfiles.lib");
-sy = library("synths.lib");
-ve = library("vaeffects.lib");
-wa = library("webaudio.lib");
-sf = library("all.lib");
-vl = library("version.lib");
+//------------------------------ SIMPLE RC-FILTER USED INTO SEAM.REVERBS.LIB ---
+rcfilter = wd.buildtree(tree_lowpass)
+with{
+  vs1(i) = wd.u_voltage(i,_);
+  r1(i) = wd.resistor(i, 47*10^3);
+  c1(i) = wd.capacitor_Vout(i, 10*10^-9);
+  tree_lowpass = vs1 : wd.series : (r1, c1);
+};
+//process = no.noise : rcfilter;
