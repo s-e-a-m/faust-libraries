@@ -20,46 +20,27 @@ sam = library("seam.ambisonic.lib");
 // MS STEREO TO FIRST ORDER B-FORMAT ENCODER
 //------------------------------------------------------------------------------
 // Converts a Mid-Side Stereo stream into Firts Order B-Format
-//
-// #### Reference
-//
-// #### Usage
-//
-// ```
-// _,_ : ms2bfmt : _,_,_,_
-// ```
-//
-// Where the two inputs are respectively:
-// Mid and Side
-//
-// Where the four outpust are respectively:
-// W,X,Y,Z
-//
 //------------------------------------------------------------------------------
-ms2bfmt = (_ <: _,_), _;
+ms2bfmt(m,s) = w,x,y,z
+with{
+  w = (m+s/2) + (m-s/2);
+  x = m;
+  y = s;
+  z = 0;
+};
 
 //------------------------------------------------------------------------------
 // LR STEREO TO FIRST ORDER B-FORMAT ENCODER
 //------------------------------------------------------------------------------
-// Converts a Left-Right Stereo stream into Mid-Side and then into
-// Firts Order B-Format
-//
-// #### Reference
-//
-// #### Usage
-//
-// ```
-// _,_ : lr2bfmt : _,_,_,_
-// ```
-//
-// Where the two inputs are respectively:
-// L,R
-//
-// Where the four outpust are respectively:
-// W,X,Y,Z
-//
+// Converts a Left-Right Stereo stream into Firts Order B-Format
 //------------------------------------------------------------------------------
-lr2ms2bfmt = sdmx : ms2bfmt;
+lr2bfmt(l,r) = w,x,y,z
+with{
+  w = (l+r/2) + (l-r/2);
+  x = (l+r/2);
+  y = (l-r/2);
+  z = 0;
+};
 
 //================================================================= DECODERS ===
 //==============================================================================

@@ -26,6 +26,19 @@ harmonizer(c) = ef.transpose(400,300,(c*0.01));
 // process = harmonizer(cents);
 // ```
 
+im_pitch_shift(w, x, s, f, sig) = de.fdelay(mDel,d(f),sig)*ma.fmin(d(f)/x,1) + de.fdelay(mDel,d(f)+w,sig)*(1-ma.fmin(d(f)/x,1))
+with {
+	mDel = ma.SR;
+	i = 1 - s;//1 - pow(2, s/12);
+	d(f) = i*vib(f) : (+ : +(w) : fmod(_,w)) ~ _;
+    vib(f) = os.osc(f); // manca depth
+};
+//ratio = hslider("RATIO", 0.99, 0.250, 2, 0.001);
+//vf = hslider("F", 0.1, 0.1, 50, 0.1);
+//process = os.osc(1000) <: _, im_pitch_shift(400,400,ratio,vf);
+
+pplpd_phaser = im_pitch_shift(400,400,0.99,0.1) + im_pitch_shift(400,400,0.98,0.2);
+
 delbank(N,delays) = _ <: par(i,N, (de.delay(d1(i),d1(i)-1)))
 with{
     d1(i) = ba.take(i+1,delays);

@@ -27,12 +27,17 @@ cmtapm(D,g) = (+ <: de.delay((ma.SR/2),int(D-1)),*(-g)) ~ *(g) : mem,_ : +;
 // > the two averagers have identical performance
 // used to test acor formula in seam.math.lib
 //
-// process = os.impulse <: eavga(acor(1000)), eavgb(acor(1000));
-eavga(a) = *(a) : +~*(1-a);
-eavgb(a) = +(+*(a))~z
+// process = os.impulse <: eavg(acor(1000)), eavg1(acor(1000));
+eavg(a) = *(a) : +~*(1-a);
+eavg1(a) = +(+*(a))~z
 with{
     z = _<:_,*(-1);
 };
+//---------------------- EXPONENTIAL AVERAGER -3dB CUTOFF FREQUENCY UP TO SR ---
+// https://www.dsprelated.com/showarticle/182.php
+aapp(fc) = 1-pow(eu, -omega(fc));
+acor(fc) = cos(omega(fc))-1+sqrt(cosq(omega(fc))-4*cos(omega(fc))+3);
+process = eavg(acor);
 //
 //------------------------------------------ ALL-PASS FILTER COEF CALCULATOR ---
 //
