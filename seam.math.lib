@@ -36,9 +36,9 @@ cosq(x) = cos(x)*cos(x);
 // sin^2(x)
 sinq(x) = sin(x)*sin(x);
 //------------------------------------------------------------- GOLDEN RATIO ---
-phi = (1+(sqrt(5)))/2;
+phi = *(1+(sqrt(5)))/2;
 // reciprocal o the golden ratio
-rphi = (sqrt(5)-1)/2;
+rphi = *(sqrt(5)-1)/2;
 //
 //
 //
