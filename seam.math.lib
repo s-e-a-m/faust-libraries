@@ -39,6 +39,10 @@ sinq(x) = sin(x)*sin(x);
 phi = *(1+(sqrt(5)))/2;
 // reciprocal o the golden ratio
 rphi = *(sqrt(5)-1)/2;
+// phi progression
+srphi(0,x) = x;
+srphi(i,x) = rphi(x) : srphi(i-1);
+//process = srphi(16,24000);
 //
 //
 //
