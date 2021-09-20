@@ -112,7 +112,7 @@ ff800_ST = si.bus(18) <: ba.selectn(18,lchannel),
 //-------------------------------------------------------------------- 18 INPUTS
 ff800_WXYZ = si.bus(18) <:
   ba.selectn(18,wchannel), ba.selectn(18,xchannel), ba.selectn(18,ychannel),
-  ba.selectn(18,zchannel) : phmeter, phmeter, phmeter, phmeter
+  ba.selectn(18,zchannel) : san.phmeter, san.phmeter, san.phmeter, san.phmeter
   with{
     zchannel = ychannel+(1);
     ychannel = xchannel+(1);

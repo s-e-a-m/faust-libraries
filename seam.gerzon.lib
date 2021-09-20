@@ -166,7 +166,7 @@ bamodule(W,X,Y,Z) = LFU,RFD,RBU,LBD
 	  LFU = 0.5 * (W + X + Y + Z);
 	  RFD = 0.5 * (W + X - Y - Z);
 	  RBU = 0.5 * (W - X - Y + Z);
-    LBD = 0.5 * (W - X - Y - Z);
+    LBD = 0.5 * (W - X + Y - Z);
 };
 //
 // process = bamodule;

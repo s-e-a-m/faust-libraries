@@ -55,11 +55,6 @@ r2d = /(ma.PI*180);
 //
 //
 //
-//---------------------- EXPONENTIAL AVERAGER -3dB CUTOFF FREQUENCY UP TO SR ---
-// https://www.dsprelated.com/showarticle/182.php
-aapp(fc) = 1-pow(eu, -omega(fc));
-acor(fc) = cos(omega(fc))-1+sqrt(cosq(omega(fc))-4*cos(omega(fc))+3);
-
 //---------------------------------------------------------------- IS PRIME? ---
 //import("stdfaust.lib");
 //https://www.geeksforgeeks.org/program-to-find-the-next-prime-number/
