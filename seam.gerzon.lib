@@ -183,6 +183,8 @@ bamodule(W,X,Y,Z) = LFU,RFD,RBU,LBD
 // #### Reference
 //
 // 1975 - Ambisonics. Part two: Studio techniques. Reproduced from Studio Sound, Vol. 17, pp 24-26, 28, 40 (August 1975)
+// 1983-gerzon-ambisonic-in-multichannel-broadcasting-and-video.pdf
+// 1985-gerzon-ambisonic-in-multichannel-broadcasting-and-video
 //
 // #### Code
 //
