@@ -203,20 +203,6 @@ bamodule(W,X,Y,Z) = LFU,RFD,RBU,LBD
 //
 // <!-- ******************************************************************** -->
 //
-// ### LR STEREO TO FIRST ORDER B-FORMAT ENCODER
-//
-// Converts a Stereo stream into Firts Order B-Format
-//
-// #### Code
-//
-// ```text
-lr2bfmt(a) = 1/sqrt(2)*(m2bfmt(a,0)+m2bfmt(-a,0));
-//
-// process = lr2bfmt(45);
-// ```
-//
-// <!-- ******************************************************************** -->
-//
 // ## DECODERS
 //
 // ### PLANAR THREE CHANNEL B-FORMAT TO FOUR LOUDSPEAKER DECODER

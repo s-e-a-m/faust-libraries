@@ -16,8 +16,8 @@ dflc(t,g) = (+ : @(t-1))~*(g) : mem;
 //-------------------------------- DELAY FEEDBACK IN LOOP - FIXED - VARIABLE ---
 dflcc(md,t,g) = (+ : de.delay(md, int(t-1)))~*(g) : mem;
 //
-//---------------------------------------------------------- ALL-PASS FILTER ---
-apf(t,g) = _ <: *(-g)+(dflc(t,g)*(1-(g*g)));
+//------------------------------------------------ SCHROEDER ALL-PASS FILTER ---
+sapf(t,g) = _ <: *(-g)+(dflc(t,g)*(1-(g*g)));
 apfmd(md,t,g) = _ <: *(-g)+(dflcc(t,g)*(1-(g*g)));
 //
 //---------------------------------------------------------------------- T60 ---
@@ -35,9 +35,9 @@ msT60(t,g) = (60/(-20*log10(g)))*t;
 // density will be 810 per second which is sufficiently close to the required
 // 1000 per second. To avoid echo cancellation and superposition, it is
 // advisable to use incommensurate delay ratios rather than the round number 3.
-ied5 = apf(5507,0.7) : apf(1831,0.7) : apf(613,0.7) : apf(199,0.7) : apf(67,0.7);
-ied8 = apf(5507,0.7) : apf(1831,0.7) : apf(613,0.7) : apf(199,0.7) : apf(67,0.7):
-       apf(23,0.7) : apf(7,0.7) : apf(2,0.7);
+ied5 = sapf(5507,0.7) : sapf(1831,0.7) : sapf(613,0.7) : sapf(199,0.7) : sapf(67,0.7);
+ied8 = sapf(5507,0.7) : sapf(1831,0.7) : sapf(613,0.7) : sapf(199,0.7) : sapf(67,0.7):
+       sapf(23,0.7) : sapf(7,0.7) : sapf(2,0.7);
 //
 //---------- MIXING OF DIRECTSOUND AND REVERBERATION - NON-EXPONENTIAL DECAY ---
 dflr(t,g) = (+ : de.delay(ma.SR/2, int(t-1)) : ied5)~*(g) : mem;
@@ -51,9 +51,9 @@ aprdw(t,g) = _ <: *(-g)+(dflr(t,g)*(1-(g*g)));
     dflc(1721,0.78),
     dflc(1873,0.76),
     dflc(2161,0.74) :>
-    apf(83,0.7) : apf(229,0.7);
+    sapf(83,0.7) : sapf(229,0.7);
   // components in reverse order
-  revsch = apf(83,0.7) : apf(229,0.7) <: // two allpass to 4 comb
+  revsch = sapf(83,0.7) : sapf(229,0.7) <: // two allpass to 4 comb
     dflc(1447,0.812), dflc(1721,0.78), dflc(1873,0.76), dflc(2161,0.74);
   // commutability test
   //process = os.impulse <: schrev, (revsch :> _);
@@ -73,7 +73,7 @@ schfdrevt = _ <: // to 4 parallel comb
   dflf(1721,0.78,4000),
   dflf(1873,0.76,3000),
   dflf(2161,0.74,2000) :>
-  apf(83,0.7) : apf(229,0.7);
+  sapf(83,0.7) : sapf(229,0.7);
 //
 //
 //
@@ -82,37 +82,35 @@ schfdrevt = _ <: // to 4 parallel comb
 //
 //
 //------------------------------------------------ AMBIOPHONIC REVERBERATION ---
-matrix = apf(47,0.708), apf(41,0.708), apf(31,0.708), apf(23,0.708),
-         apf(17,0.708), apf(11,0.708), apf(5,0.708), apf(2,0.708),
-         apf(3,0.708), apf(7,0.708), apf(13,0.708), apf(19,0.708),
-         apf(29,0.708), apf(37,0.708), apf(43,0.708), apf(53,0.708);
+matrix = sapf(47,0.708), sapf(41,0.708), sapf(31,0.708), sapf(23,0.708),
+         sapf(17,0.708), sapf(11,0.708), sapf(5,0.708), sapf(2,0.708),
+         sapf(3,0.708), sapf(7,0.708), sapf(13,0.708), sapf(19,0.708),
+         sapf(29,0.708), sapf(37,0.708), sapf(43,0.708), sapf(53,0.708);
 
 //ambiorev = revsch <: par(i, 4, _<:_,ma.neg) : matrix;
 
 ambiorev = (revL <: phase), (revR <: phase) <: matrix
 with{
-  revL = apf(281,0.708) : apf(4051,0.708) : apf(307,0.708) : apf(881,0.708) <:
+  revL = sapf(281,0.708) : sapf(4051,0.708) : sapf(307,0.708) : sapf(881,0.708) <:
          dflc(4133,0.708), dflc(4157,0.708), dflc(7307,0.708), dflc(2803,0.708);
-  revR = apf(271,0.708) : apf(4201,0.708) : apf(311,0.708) : apf(877,0.708) <:
+  revR = sapf(271,0.708) : sapf(4201,0.708) : sapf(311,0.708) : sapf(877,0.708) <:
          dflc(4111,0.708), dflc(4159,0.708), dflc(7309,0.708), dflc(2819,0.708);
   phase = par(i, 4, _<:_,ma.neg);
-  matrix = apf(47,0.708), apf(41,0.708), apf(31,0.708), apf(23,0.708),
-           apf(17,0.708), apf(11,0.708), apf(5,0.708), apf(2,0.708),
-           apf(3,0.708), apf(7,0.708), apf(13,0.708), apf(19,0.708),
-           apf(29,0.708), apf(37,0.708), apf(43,0.708), apf(53,0.708);
+  matrix = sapf(47,0.708), sapf(41,0.708), sapf(31,0.708), sapf(23,0.708),
+           sapf(17,0.708), sapf(11,0.708), sapf(5,0.708), sapf(2,0.708),
+           sapf(3,0.708), sapf(7,0.708), sapf(13,0.708), sapf(19,0.708),
+           sapf(29,0.708), sapf(37,0.708), sapf(43,0.708), sapf(53,0.708);
 };
 //process = ambiorev :> _,_;
 
-// golden ratio
-phi = (1+(sqrt(5)))/2;
 // phi-tuned all-pass reverb
-apphirev(N,t) = seq(i,N, apf(int(t*(i+1)*phi),0.708));
+apphirev(N,t) = seq(i,N, sapf(int(t*(i+1)*phi),0.708));
 // process = apphirev(53,61);
 //process = _ <: apphirev(53,61), apphirev(53,59);
 
 // unused
 som(N) = (N*(N+1))/2;
-apphirevn(N,t) = seq(i,N,apf(int(t*(i+1)*phi),(i+1)*(1/som(N)))); //troppo asciutto
+apphirevn(N,t) = seq(i,N,sapf(int(t*(i+1)*phi),(i+1)*(1/som(N)))); //troppo asciutto
 dapphirev(N,t,g,pd) =_ <: *(-g) + ((+ : @ (pd) : apphirev (N,t))~ *(g) : *(1-(g*g)));
 //-----------------------------
 
