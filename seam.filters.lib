@@ -37,7 +37,7 @@ with{
 // https://www.dsprelated.com/showarticle/182.php
 aapp(fc) = 1-pow(eu, -omega(fc));
 acor(fc) = cos(omega(fc))-1+sqrt(cosq(omega(fc))-4*cos(omega(fc))+3);
-process = eavg(acor);
+// process = eavg(acor);
 //
 //------------------------------------------ ALL-PASS FILTER COEF CALCULATOR ---
 //
