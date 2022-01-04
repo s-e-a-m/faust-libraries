@@ -39,15 +39,23 @@ sinq(x) = sin(x)*sin(x);
 //------------------------------------------------------- DEGREES TO RADIANS ---
 d2r = *(ma.PI/180);
 //------------------------------------------------------- RADIANS TO DEGREES ---
-r2d = /(ma.PI*180);
+r2d = _/ma.PI*180;
 //--------------------------------------------------------- AED TO CARTESIAN ---
-aed2xyz(a,e) = cx(a,e), cy(a,e), cz(a,e)
+aed2xyz(a,e,d) = cx(a,e,d), cy(a,e,d), cz(a,e,d)
 with{
-cx(a,e) = cos(a)*cos(e);
-cy(a,e) = sin(a)*cos(e);
-cz(a,e) = sin(e);
+cx(a,e,d) = d*(cos(a)*cos(e));
+cy(a,e,d) = d*(sin(a)*cos(e));
+cz(a,e,d) = d*(sin(e));
 };
 //process = aed2xyz;
+//--------------------------------------------------------- CARTESIAN TO AED ---
+xyz2aed(x,y,z) = a(x,y),e(x,y,z),d(x,y,z)
+with{
+    a(x,y) =  atan2(y,x);
+    e(x,y,z) = atan2(sqrt(x^2+y^2),z);
+    d(x,y,z) = sqrt(x^2+y^2+z^2);
+};
+//process = xyz2aed(1/sqrt(2),1/sqrt(2),1/sqrt(2)) : r2d, r2d, _ ;
 //====================================================================== PHI ===
 //==============================================================================
 phi = *(1+(sqrt(5)))/2;
