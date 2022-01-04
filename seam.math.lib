@@ -87,6 +87,9 @@ with{
 //integer = pm.l2s(hslider("integer", 0,0,5,0.001));
 //process = lastprime;
 
+factorial(0) = 1;
+factorial(i) = i * factorial(i-1);
+permutation(k,n) = factorial(k)/factorial(n);
 aa = library("aanl.lib");
 sf = library("all.lib");
 an = library("analyzers.lib");
