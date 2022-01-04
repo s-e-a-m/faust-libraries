@@ -6,16 +6,18 @@ sgu = library("seam.gui.lib");
 //------------------------------------------------------------------ RADIANS --–
 // Radians expressed by degrees from -180 (sx) to 180 (dx) by decimal steps
 //------------------------------------------------------------------------------
-rad = vslider("[02]Azimuth[style:knob]",0,-180,180,0.1) : deg2rad : si.smoo;
+rad = vslider("[02]Azimuth[style:knob]",0,-180,180,0.1) : sma.d2r : si.smoo;
 //------------------------------------------------------------------ RADIANS --–
 // Radians expressed by degrees from -180 (sx) to 180 (dx) by decimal steps
 //------------------------------------------------------------------------------
-frontrad = vslider("[02]Frontal Azimuth[style:knob]",0,-45,45,0.1) : deg2rad : si.smoo;
+frontrad = vslider("[02]Frontal Azimuth[style:knob]",0,-45,45,0.1) : sma.d2r : si.smoo;
 //----------------------------------------------------------------- P FACTOR --–
 // P coefficient slider from 0 to 1 by centesimal steps
 //------------------------------------------------------------------------------
-p100 = vslider("[01]P[style:knob]", 0.5, 0, 1, 0.01) : si.smoo;
+p100 = vslider("[01]P[style:knob]", 50, 0, 100, 1) : /(100) : si.smoo;
 
+aa = library("aanl.lib");
+sf = library("all.lib");
 an = library("analyzers.lib");
 ba = library("basics.lib");
 co = library("compressors.lib");
@@ -23,6 +25,7 @@ de = library("delays.lib");
 dm = library("demos.lib");
 dx = library("dx7.lib");
 en = library("envelopes.lib");
+fd = library("fds.lib");
 fi = library("filters.lib");
 ho = library("hoa.lib");
 it = library("interpolators.lib");
@@ -34,6 +37,7 @@ no = library("noises.lib");
 pf = library("phaflangers.lib");
 pl = library("platform.lib");
 pm = library("physmodels.lib");
+qu = library("quantizers.lib");
 rm = library("reducemaps.lib");
 re = library("reverbs.lib");
 ro = library("routes.lib");
@@ -42,6 +46,6 @@ si = library("signals.lib");
 so = library("soundfiles.lib");
 sy = library("synths.lib");
 ve = library("vaeffects.lib");
-wa = library("webaudio.lib");
-sf = library("all.lib");
 vl = library("version.lib");
+wa = library("webaudio.lib");
+wd = library("wdmodels.lib");

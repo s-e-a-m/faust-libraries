@@ -39,10 +39,16 @@ revlist(n) = par(i,n+1,(n+1)-i);
 scalel(a,b,c,d,x) = ((x-a)/(b-a))*(d-c);
 //----------------------------------------------------- SC SCALE EXPONENTIAL ---
 //scalexp(a,b,c,d,x) = c*((d/c)^((x-a)/(b-a)));
-
+//------------------------------------------------------------ LAZY OPERATOR ---
+mille = os.osc(1000);
+cento = os.osc(100);
+la = os.osc(440);
+rosa = no.pink_noise;
 //-------------------------------------------------------- VST INPUT MANAGER ---
 vstin(y,n) = si.bus(y),si.block(n);
 
+aa = library("aanl.lib");
+sf = library("all.lib");
 an = library("analyzers.lib");
 ba = library("basics.lib");
 co = library("compressors.lib");
@@ -50,6 +56,7 @@ de = library("delays.lib");
 dm = library("demos.lib");
 dx = library("dx7.lib");
 en = library("envelopes.lib");
+fd = library("fds.lib");
 fi = library("filters.lib");
 ho = library("hoa.lib");
 it = library("interpolators.lib");
@@ -61,6 +68,7 @@ no = library("noises.lib");
 pf = library("phaflangers.lib");
 pl = library("platform.lib");
 pm = library("physmodels.lib");
+qu = library("quantizers.lib");
 rm = library("reducemaps.lib");
 re = library("reverbs.lib");
 ro = library("routes.lib");
@@ -69,6 +77,6 @@ si = library("signals.lib");
 so = library("soundfiles.lib");
 sy = library("synths.lib");
 ve = library("vaeffects.lib");
-wa = library("webaudio.lib");
-sf = library("all.lib");
 vl = library("version.lib");
+wa = library("webaudio.lib");
+wd = library("wdmodels.lib");
