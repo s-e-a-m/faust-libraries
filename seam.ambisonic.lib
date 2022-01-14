@@ -115,6 +115,11 @@ pbf2poly(n,p) = polygon
       polygon(n) = par(i, n, pbf2m);
 };
 
+//------------------------------------------------------------------------------
+fuma2sn3d(W,X,Y,Z) = W*(1/sqrt(2)), X, Y, Z;
+fuma2acn_sn3d(W,X,Y,Z) = fuma2sn3d(W,X,Y,Z) : _, ro.cross(2), _ : _,_, ro.cross(2);
+//process = fuma2acn_sn3d;
+
 aa = library("aanl.lib");
 sf = library("all.lib");
 an = library("analyzers.lib");
