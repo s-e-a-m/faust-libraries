@@ -35,7 +35,9 @@ sinq(x) = sin(x)*sin(x);
 //------------------------------------------------------------------------------
 //
 //------------------------------------------------------------------------------
-//
+// https://en.wikipedia.org/wiki/Inverse_trigonometric_functions
+// https://en.wikipedia.org/wiki/Spherical_coordinate_system
+// https://en.wikipedia.org/wiki/Atan2
 //------------------------------------------------------- DEGREES TO RADIANS ---
 d2r = *(ma.PI/180);
 //------------------------------------------------------- RADIANS TO DEGREES ---
@@ -77,40 +79,6 @@ isos = 331.4; // interior
 //-------------------------------------------------------- METERS TO SAMPLES ---
 emt2samp(mt) = int(mt*ma.SR/esos);
 imt2samp(mt) = int(mt*ma.SR/isos);
-//
-//
-//
-//---------------------------------------------------------------- IS PRIME? ---
-//import("stdfaust.lib");
-//https://www.geeksforgeeks.org/program-to-find-the-next-prime-number/
-isprime = int <: b, min25 :> _
-  with{
-      a = select2(_<=1,_,0); // false
-      b = a <: select2(_<=3,0,_); // true ->
-      c = a <: select2(%(2)==0,_,0);
-      d = c <: select2(%(3)==0,_,0);
-      e = d <: select2(%(5)==0,_,0);
-      f = e <: select2(%(7)==0,_,0);
-      g = f <: select2(%(11)==0,_,0);
-      h = g <: select2(%(13)==0,_,0);
-      i = h <: select2(%(17)==0,_,0);
-      l = i <: select2(%(19)==0,_,0);
-      m = l <: select2(%(23)==0,_,0);
-      min25 = d <: select2(_<25,m,_);
-};
-
-//--------------------------------------------------------------- LAST PRIME ---
-lastprime = isprime <: (ro.cross(2),_ : select2(t,_,_))~a
-with{
-    t = _>0;
-    a = _ <: select2(_<=1,_,2);
-};
-//integer = pm.l2s(hslider("integer", 0,0,5,0.001));
-//process = lastprime;
-
-
-
-
 
 aa = library("aanl.lib");
 sf = library("all.lib");
