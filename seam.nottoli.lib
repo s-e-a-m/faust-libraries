@@ -79,7 +79,7 @@ gnalp(D,g) = _ <: ( + : de.delay((ma.SR/2),int(D-1)))~*(g),_ : *(1-(g*g)), *(-g)
 //-------------------------------------------------------------- CHARLIEVERB ---
 //-------------------------------------------------------------- CSOUND --------
 //-------------------------------------------------------------- PORTING -------
-import("stdfaust.lib");
+//import("stdfaust.lib");
 
 // GLOBAL INTERFACE
 parameters(x) = hgroup("CharlieVerb",x);
