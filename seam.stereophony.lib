@@ -82,10 +82,10 @@ sdmx = _,_ <: nsum, ndif;
 // Mid, Side
 //
 //------------------------------------------------------------------------------
-midside(x,p,rad) = m,s
+midside(p,rad) = _ <: m, s
   with{
-    m = (p*x)+((1-p)*(x*cos(rad)));
-    s = x*(sin(-rad));
+    m = _ <: (*(p)) + ((1-p)*(*cos(rad)));
+    s = *(sin(rad));
 };
 
 //------------------------------------------------------------------------------
@@ -111,10 +111,10 @@ midside(x,p,rad) = m,s
 // Mid, Side
 //
 //------------------------------------------------------------------------------
-xy90(x,rad) = left,right
+xy90(rad) = _ <: left,right
   with{
-    left =  ((1.415*x)+(x*(cos(rad)))+(x*(sin(-rad))))/(2.83);
-    right = ((1.415*x)+(x*(cos(rad)))+(x*(sin(rad))))/(2.83);
+    left =  (*(sqrt(2))+(*(cos(rad)))+(*(sin(-rad))))/(2.83);
+    right = (*(sqrt(2))+(*(cos(rad)))+(*(sin(rad))))/(2.83);
 };
 
 //------------------------------------------------------------------------------
@@ -265,7 +265,7 @@ ortf(x,rad) = left,right
 // Mid, Side
 //
 //------------------------------------------------------------------------------
-mspan_lr(x,p,rad) = midside(x,p,rad) : sdmx;
+mspan_lr(p,rad) = midside(p,rad) : sdmx;
 
 //------------------------------------------------------------------------------
 // CURTIS ROADS CONSTANT POWER PANNING
@@ -286,10 +286,10 @@ mspan_lr(x,p,rad) = midside(x,p,rad) : sdmx;
 // Left and Right
 //
 //------------------------------------------------------------------------------
-crcppan(x,rad) = left,right
+crcppan(rad) = _ <: left,right
   with{
-    left = x*((sqrt(2)/2)*(cos(rad)+sin(-rad)));
-    right = x*((sqrt(2)/2)*(cos(rad)-sin(-rad)));
+    left = _*((sqrt(2)/2)*(cos(rad)+sin(-rad)));
+    right = _*((sqrt(2)/2)*(cos(rad)-sin(-rad)));
 };
 
 //------------------------------------------------------------------------------
