@@ -189,14 +189,18 @@ bamodule(W,X,Y,Z) = LFU,RFD,RBU,LBD
 // #### Code
 //
 // ```text
-m2bfmt(m,a,e) = w,x,y,z
+//import("stdfaust.lib");
+m2bfmt(m,a,e) = w(m),x(m,a,e),y(m,a,e),z(m,e)
   with{
-    w = m*(1/sqrt(2));
-    x = m*cos(a)*cos(e);
-    y = m*sin(a)*cos(e);
-    z = m*sin(e);
+    w(m) = m*(1/sqrt(2));
+    x(m,a,e) = m*cos(a)*cos(e);
+    y(m,a,e) = m*sin(a)*cos(e);
+    z(m,e) = m*sin(e);
 };
-// process = m2bfmt(16,23);
+// a = hslider("azimuth", 0,0,360,1) : si.smoo;
+// e = hslider("elevation", 0,0,360,1) : si.smoo;
+// d2r = *(ma.PI/180);
+// process = os.osc(1000),!,!,! <: m2bfmt(_,d2r(a),d2r(e));
 // ```
 //
 // <!-- ******************************************************************** -->
