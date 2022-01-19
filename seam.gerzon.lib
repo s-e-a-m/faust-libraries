@@ -189,15 +189,14 @@ bamodule(W,X,Y,Z) = LFU,RFD,RBU,LBD
 // #### Code
 //
 // ```text
-// m2bfmt(azi,elv) = bfmt
-//   with{
-//     W = *(1/sqrt(2));
-//     X = *cos(d2r(azi))*cos(d2r(elv));
-//     Y = *sin(d2r(azi))*cos(d2r(elv));
-//     Z = *sin(d2r(elv));
-//     bfmt = _ <: W,X,Y,Z;
-// };
-//
+m2bfmt(a,e) = bfmt
+  with{
+    W = *(1/sqrt(2));
+    X = *cos(a)*cos(e);
+    Y = *sin(a)*cos(e);
+    Z = *sin(e);
+    bfmt = _ <: W,X,Y,Z;
+};
 // process = m2bfmt(16,23);
 // ```
 //
