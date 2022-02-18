@@ -38,6 +38,9 @@ with{
 aapp(fc) = 1-pow(eu, -omega(fc));
 acor(fc) = cos(omega(fc))-1+sqrt(cosq(omega(fc))-4*cos(omega(fc))+3);
 // process = eavg(acor);
+//-------------------------------------------------------- DC BLOCKER AT 5Hz ---
+dcblock = _ <: (_- seq(i,4,eavg(acor(5))));
+//process = no.pink_noise : dcblock;
 //
 //------------------------------------------ ALL-PASS FILTER COEF CALCULATOR ---
 //
