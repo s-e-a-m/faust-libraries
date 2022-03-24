@@ -33,6 +33,8 @@ eavg1(a) = +(+*(a))~z
 with{
     z = _<:_,*(-1);
 };
+//------------------------------------------------- LOW PASS ONE POLE FILTER ---
+lp1p(hz) = eavg(acor(hz));
 //---------------------- EXPONENTIAL AVERAGER -3dB CUTOFF FREQUENCY UP TO SR ---
 // https://www.dsprelated.com/showarticle/182.php
 aapp(fc) = 1-pow(eu, -omega(fc));

@@ -83,7 +83,13 @@ isos = 331.4; // interior
 //-------------------------------------------------------- METERS TO SAMPLES ---
 emt2samp(mt) = int(mt*ma.SR/esos);
 imt2samp(mt) = int(mt*ma.SR/isos);
-
+//---------------------------------------------------------------- SOFT CLIP ---
+softclip(x) = x <: dist1, dist2, dist3 :> _;
+    dist1(x) = (x <= -1) * (-2/3);
+    dist2(x) = (x >= -1) * (x <= 1) * (x-x^3/3);
+    dist3(x) = (x >= 1) * (2/3);
+//process = os.osc(100)*1 : softclip
+//
 aa = library("aanl.lib");
 sf = library("all.lib");
 an = library("analyzers.lib");

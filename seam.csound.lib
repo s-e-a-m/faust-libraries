@@ -1,9 +1,9 @@
-//############################################################ ambisonic.lib ###
+//############################################################### csound.lib ###
 //
-// A library for general ambisonic documentation
+// A library for csound opcodes
 //
-// * ENCODERS
-// * DECODERS
+// *
+// *
 // *
 // *
 // *
@@ -38,7 +38,7 @@ code has no obligation to be LGPL or GPL. For example you are free to choose a
 commercial or closed source license or any other license if you decide so.
 *******************************************************************************/
 
-declare name "Ambisonic Elements Faust Library";
+declare name "CSound Opcodes Faust Library";
 declare version "0.1";
 declare author "Giuseppe Silvi";
 declare license "CC4";
@@ -47,6 +47,29 @@ scs = library("seam.csound.lib");
 
 //================================================================== OPCODES ===
 //==============================================================================
+//------------------------------------------------------------------------------
+// DCBLOCK
+// dcblock — A DC blocking filter.
+//------------------------------------------------------------------------------
+// Implements the DC blocking filter
+// Y[i] = X[i] - X[i-1] + (igain * Y[i-1])
+// Based on work by Perry Cook.
+// Syntax
+// ares dcblock ain [, igain]
+// Initialization
+// igain -- the gain of the filter, which defaults to 0.99
+//
+// #### Reference
+// https://csound.com/docs/manual/dcblock.html
+//
+// #### Usage
+//
+// ```
+// _ : dcblock(igain) : _
+// ```
+//------------------------------------------------------------------------------
+dcblock(igain) = _ <: _ - mem: +~*(igain);
+//
 //------------------------------------------------------------------------------
 // TONE
 // A first-order recursive low-pass filter with variable frequency response.
@@ -74,7 +97,7 @@ with{
   c1 = 1-c2;
   c2 = b - sqrt((b*b)-1.0);
 };
-
+//
 //------------------------------------------------------------------------------
 // ATONE
 // atone — A hi-pass filter whose transfer functions are the complements of the
@@ -98,7 +121,7 @@ with{
 //
 //------------------------------------------------------------------------------
 atone(freq) = _ <: _ - tone(freq);
-
+//
 //------------------------------------------------------------------------------
 // PHASER1
 // First-order allpass filters arranged in a series.
