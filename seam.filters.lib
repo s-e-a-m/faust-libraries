@@ -36,6 +36,8 @@ with{
 };
 //------------------------------------------------- LOW PASS ONE POLE FILTER ---
 lp1p(hz) = eavg(acor(hz));
+//--------------------------------------------------------- HIGH PASS FILTER ---
+hp1(fc) = _<:_-(lp1p(fc));
 //---------------------- EXPONENTIAL AVERAGER -3dB CUTOFF FREQUENCY UP TO SR ---
 // https://www.dsprelated.com/showarticle/182.php
 aapp(fc) = 1-pow(eu, -sma.omega(fc));
