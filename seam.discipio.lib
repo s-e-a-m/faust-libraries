@@ -142,7 +142,7 @@ grain(seed,var1,timeIndex,memWriteDel,cntrlLev, divDur, x) =
         };
     };
   // par (how much grains/instances do you want?)
-  grainN(voices,timeIndex,memWriteDel,cntrlLev, divDur,x) =
+  grainN(voices,var1,timeIndex,memWriteDel,cntrlLev, divDur,x) =
     par(i, voices,
            grain(i,var1,timeIndex,memWriteDel,cntrlLev, divDur,x/voices));
 
@@ -157,7 +157,8 @@ GcntrlLev = hslider("cntrlLev", .5, 0, 1, .001);
 
 GnVoices = 8;
 GdivDur = 21;
-granular_sampling(nVoices, timeIndex, memWriteDel, cntrlLev, divDur, x) =
-               grainN(nVoices, timeIndex, memWriteDel, cntrlLev, divDur,x) :> _;
+granular_sampling(nVoices, var1, timeIndex, memWriteDel, cntrlLev, divDur, x) =
+  grainN(nVoices, var1, timeIndex, memWriteDel, cntrlLev, divDur,x)
+  :> _;
 
 //process = os.osc(600): granular_sampling(GnVoices, GtimeIndex,GmemWriteDel, GcntrlLev, GdivDur);
