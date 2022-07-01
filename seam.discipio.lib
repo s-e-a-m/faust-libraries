@@ -5,8 +5,8 @@ delMax = 2^16;
 //Sepcific delay line with a maximum delay of 1 second
 delayfb(del,fb) = (+ : de.delay(ma.SR,ba.sec2samp(d)))~*(fb)
 with{
-    d = min(0, del);
-    dmax = d : ba.sec2samp : ma.np2;
+  d = min(0, del);
+  dmax = d : ba.sec2samp : ma.np2;
 };
 //------------------------------------------------------------------ MAPPERS ---
 mapsum(x,s,m) = s+(x*(m));
@@ -103,7 +103,7 @@ grain(seed,var1,timeIndex,memWriteDel,cntrlLev, divDur, x) =
       durationJitter = primenoise(seed+1) * .1 + .1;
       positionJitter = primenoise(seed+2) * (1-memWriteDel)/100;
       // buffer size
-      bufferSize = varUno*196000;
+      bufferSize = var1*196000;
       // hann window
       hann(x) = sin(ma.PI * x) ^ 2.0;
       // a phasor that read new params only when: y_1 < y_2
@@ -144,7 +144,7 @@ grain(seed,var1,timeIndex,memWriteDel,cntrlLev, divDur, x) =
   // par (how much grains/instances do you want?)
   grainN(voices,timeIndex,memWriteDel,cntrlLev, divDur,x) =
     par(i, voices,
-           grain(i,varUno,timeIndex,memWriteDel,cntrlLev, divDur,x/voices));
+           grain(i,var1,timeIndex,memWriteDel,cntrlLev, divDur,x/voices));
 
 // timeIndex1 - a signal between -1 and -0.5
 GtimeIndex = hslider("timeIndex1", -1, -1, -0.5, .001);
@@ -153,7 +153,7 @@ GmemWriteDel = hslider("memWriteDel1", 0, 0, 1, .001);
 volume = hslider("volume", 0, 0, 10, .001);
 // cntrlLev: a signal between 0 and 1 (1 max, 0 no grains)
 GcntrlLev = hslider("cntrlLev", .5, 0, 1, .001);
-// varUno distance (in meters) between the two farthest removed loudspeakers
+// var1 distance (in meters) between the two farthest removed loudspeakers
 
 GnVoices = 8;
 GdivDur = 21;
