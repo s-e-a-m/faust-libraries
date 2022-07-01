@@ -13,6 +13,7 @@ declare author "Giuseppe Silvi";
 declare license "CC3";
 
 sfi = library("seam.filters.lib");
+sma = library("seam.math.lib");
 
 //================================================================== FILTERS ===
 //==============================================================================
@@ -37,8 +38,8 @@ with{
 lp1p(hz) = eavg(acor(hz));
 //---------------------- EXPONENTIAL AVERAGER -3dB CUTOFF FREQUENCY UP TO SR ---
 // https://www.dsprelated.com/showarticle/182.php
-aapp(fc) = 1-pow(eu, -omega(fc));
-acor(fc) = cos(omega(fc))-1+sqrt(cosq(omega(fc))-4*cos(omega(fc))+3);
+aapp(fc) = 1-pow(eu, -sma.omega(fc));
+acor(fc) = cos(sma.omega(fc))-1+sqrt(sma.cosq(sma.omega(fc))-4*cos(sma.omega(fc))+3);
 // process = eavg(acor);
 //-------------------------------------------------------- DC BLOCKER AT 5Hz ---
 dcblock = _ <: (_- seq(i,4,eavg(acor(5))));

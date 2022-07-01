@@ -6,7 +6,7 @@ declare license "CC3";
 
 // calling standard faust libraries
 import("stdfaust.lib");
-
+/*
 // ## SEAM LIBS
 // ### standard faust lib extensions
 import("seam.basic.lib");
@@ -38,7 +38,7 @@ import("seam.mixer.lib");
 
 // ### instrument specific literature
 import("seam.vcs3.lib");
-
+*/
 // ### standard faust lib extensions
 san = library("seam.analyzers.lib");
 sba = library("seam.basic.lib");
@@ -61,6 +61,7 @@ scy = library("seam.cyclone.lib");
 // ### author specific literature
 sln = library("seam.nono.lib");
 sgn = library("seam.nottoli.lib");
+sds = library("seam.discipio.lib");
 
 // ### live electronics stuff
 sgu = library("seam.gui.lib");
