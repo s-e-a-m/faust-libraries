@@ -64,21 +64,12 @@ hp1(fc) = _<:_-(sfi.lp1p(fc));
 
 //================================sampleread
 
-sampleread_wannabe(ratio, memchunk, x) = x <: (it.frwtable(N, S, 0.0, wIdx, _, rIdx))
-                             with{
-                                N = 5;
-                                S = 44100; //TODO change with SR
-                                rIdx = os.phasor(S, ratio);
-                                wIdx = ba.period(S);
-               };
-
 sampleread(var1,ratio, memchunk, sig) =
 // delay frazionario                * crossfade
-  de.fdelay(maxDelay,d,sig)         *    ma.fmin(d/xfade,1) +
-  de.fdelay(maxDelay,d+bufsize,sig) * (1-ma.fmin(d/xfade,1))
+  de.fdelay(delMax,d,sig)         *    ma.fmin(d/xfade,1) +
+  de.fdelay(delMax,d+bufsize,sig) * (1-ma.fmin(d/xfade,1))
 with {
-	maxDelay = 65536;
-    bufsize = int(min(maxDelay, pm.l2s(var1)) * (memchunk) : si.smoo);
+    bufsize = int(min(delMax, pm.l2s(var1)) * (memchunk) : si.smoo);
     xfade = 128;
 	d = (1 - ratio : si.smoo) : (+ : +(bufsize) : fmod(_,bufsize)) ~ _;
 };
