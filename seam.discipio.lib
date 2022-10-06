@@ -3,11 +3,16 @@ import("seam.lib");
 //-------------------------------------------------------------------- DELAY ---
 delMax = 2^16;
 //Sepcific delay line with a maximum delay of 1 second
-delayfb(del,fb) = (+ : de.delay(ma.SR,ba.sec2samp(d)))~*(fb)
+//delayfb(del,fb) = (+ : de.delay(ma.SR,d))~*(fb)
+//with{
+//  d = min(0, del) : ba.sec2samp;
+//};
+
+delayfb(del,fb) = (+ : de.delay(ma.SR,d(del)))~*(fb)
 with{
-  d = min(0, del);
-  dmax = d : ba.sec2samp : ma.np2;
+  d(del) = max(0, del) : ba.sec2samp;
 };
+
 //------------------------------------------------------------------ MAPPERS ---
 mapsum(x,s,m) = s+(x*(m));
 mapsub(x,s,m) = s-(x*(m));
@@ -17,7 +22,7 @@ mapcond(x) = select2(x>0.5,1, (1-x)*2);
 // returns the average absolute value over a specific time frame
 // (one may use RMS measures, instead, or other amplitude-following methods);
 // output range is [0, 1]
-integrator(s) = an.amp_follower(s);
+integrator(s) = an.abs_envelope_rect(s);
 //----------------------------------------------------------------- LOCALMAX ---
 // returns the maximum signal amplitude (absolute value) in a given time frame;
 // frame duration is dynamically adjusted: the next frame duration is set at the
