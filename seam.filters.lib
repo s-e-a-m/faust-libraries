@@ -26,8 +26,13 @@ cmtapm(D,g) = (+ <: de.delay((ma.SR/2),int(D-1)),*(-g)) ~ *(g) : mem,_ : +;
 // > eavga is a two-multiply exponential averager
 // > eavgb is a one-multiply exponential averager
 // > the two averagers have identical performance
-// used to test acor formula in seam.math.lib
+// > used to test acor formula in seam.math.lib
 //
+// The “app” subscript in Eq. (1) stands for approximation
+aapp(fc) = 1-pow(ma.E, 0-sma.omega(fc));
+// acor not works below 4Hz at 96KHz
+acor(fc) = cos(sma.omega(fc))-1+sqrt(sma.cosq(sma.omega(fc))-4*cos(sma.omega(fc))+3);
+// process = eavg(acor);
 // process = os.impulse <: eavg(acor(1000)), eavg1(acor(1000));
 eavg(a) = *(a) : +~*(1-a);
 eavg1(a) = +(+*(a))~z
@@ -35,14 +40,12 @@ with{
     z = _<:_,*(-1);
 };
 //------------------------------------------------- LOW PASS ONE POLE FILTER ---
-lp1p(hz) = eavg(acor(hz));
+lp1pa(hz) = eavg(aapp(hz));
+lp1pc(hz) = eavg(acor(hz));
+// process = no.noise <: sfi.lp1pa(0.5),sfi.lp1pc(4);
 //--------------------------------------------------------- HIGH PASS FILTER ---
-hp1(fc) = _<:_-(lp1p(fc));
-//---------------------- EXPONENTIAL AVERAGER -3dB CUTOFF FREQUENCY UP TO SR ---
-// https://www.dsprelated.com/showarticle/182.php
-aapp(fc) = 1-pow(eu, -sma.omega(fc));
-acor(fc) = cos(sma.omega(fc))-1+sqrt(sma.cosq(sma.omega(fc))-4*cos(sma.omega(fc))+3);
-// process = eavg(acor);
+hp1a(fc) = _<:_-(lp1pa(fc));
+hp1c(fc) = _<:_-(lp1pc(fc));
 //-------------------------------------------------------- DC BLOCKER AT 5Hz ---
 dcblock = _ <: (_- seq(i,4,eavg(acor(5))));
 //process = no.pink_noise : dcblock;
