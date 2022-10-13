@@ -8,16 +8,12 @@ delMax = 2^16;
 //  d = min(0, del) : ba.sec2samp;
 //};
 
-delayfb(del,fb) = (+ : de.delay(ma.SR,d(del)))~*(fb)
-with{
-  d(del) = max(0, del) : ba.sec2samp;
-};
-
+delayfb(del,fb) = (+ : de.delay(ma.SR,ba.sec2samp(del)))~*(fb) : *(1-fb);
 //------------------------------------------------------------------ MAPPERS ---
 mapsum(x,s,m) = s+(x*(m));
 mapsub(x,s,m) = s-(x*(m));
 mapmul(x,s,m) = m*(x+s);
-mapcond(x) = select2(x>0.5,1, (1-x)*2);
+mapcond(x) = select2(x>0.5, 1, (1-(max(0,(min(1,x)))))*2);
 //--------------------------------------------------------------- INTEGRATOR ---
 // returns the average absolute value over a specific time frame
 // (one may use RMS measures, instead, or other amplitude-following methods);
