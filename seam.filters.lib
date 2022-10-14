@@ -132,6 +132,74 @@ with{
   tree_lowpass = vs1 : wd.series : (r1, c1);
 };
 //process = no.noise : rcfilter;
+//----------------- Vadim Zavalishin's TOPOLOGY PRESERVING TRANSFORM FILTERS ---
+// TPT version of the One Pole and SVF Filter by Vadim Zavalishin
+// reference : (by Will Pirkle)
+// http://www.willpirkle.com/Downloads/AN-4VirtualAnalogFilters.2.0.pdf
+
+// OnePoleTPT filter function
+onePoleTPT(cf, x) = loop ~ _ : ! , si.bus(3)
+    with {
+        g = tan(cf * ma.PI * (1/ma.SR));
+        G = g / (1.0 + g);
+        loop(s) = u , lp , hp , ap
+            with {
+                v = (x - s) * G;
+                u = v + lp;
+                lp = v + s;
+                hp = x - lp;
+                ap = lp - hp;
+            };
+    };
+// outs
+LPTPT(cf, x) = onePoleTPT(cf, x) : (_ , ! , !);
+HPTPT(cf, x) = onePoleTPT(cf, x) : (! , _ , !);
+// TEST
+//import("stdfaust.lib");
+//process = no.noise <: LPTPT(1), HPTPT(1000);
+
+// SVFTPT filter function
+SVFTPT(K, Q, CF, x) = circuitout : !,!,_,_,_,_,_,_,_,_
+    with{
+        g = tan(CF * ma.PI / ma.SR);
+        R = 1.0 / (2.0 * Q);
+        G1 = 1.0 / (1.0 + 2.0 * R * g + g * g);
+        G2 = 2.0 * R + g;
+
+        circuit(s1, s2) = u1 , u2 , lp , hp , bp, notch, apf, ubp, peak, bshelf
+            with{
+                hp = (x - s1 * G2 - s2) * G1;
+                v1 = hp * g;
+                bp = s1 + v1;
+                v2 = bp * g;
+                lp = s2 + v2;
+                u1 = v1 + bp;
+                u2 = v2 + lp;
+                notch = x - ((2*R)*bp);
+                apf = x - ((4*R)*bp);
+                ubp = ((2*R)*bp);
+                peak = lp -hp;
+                bshelf = x + (((2*K)*R)*bp);
+            };
+    // choose the output from the SVF Filter (ex. bshelf)
+    circuitout = circuit ~ si.bus(2);
+    };
+
+// Outs = (lp , hp , bp, notch, apf, ubp, peak, bshelf)
+// SVFTPT(K, Q, CF, x) = (Filter-K, Filter-Q, Frequency Cut)
+
+// outs Filters Bank
+LPTPTsvf(K, Q, CF, x) = SVFTPT(K, Q, CF, x) : _,!,!,!,!,!,!,!;
+HPTPTsvf(K, Q, CF, x) = SVFTPT(K, Q, CF, x) : !,_,!,!,!,!,!,!;
+// with bandwidth
+BPTPTsvf(K, BW, CF, x) = SVFTPT(K, Q, CF, x*(BW/CF)) : !,!,_,!,!,!,!,!
+    with{
+        Q = CF / BW;
+        };
+// TEST
+//import("stdfaust.lib");
+//process = no.noise : BPTPTsvf(0, 1, 10000);
+
 
 aa = library("aanl.lib");
 sf = library("all.lib");
