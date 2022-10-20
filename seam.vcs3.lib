@@ -6,7 +6,7 @@
 // * MATRIX
 // *
 // *
-// *
+// * GUI
 //
 //##############################################################################
 
@@ -57,14 +57,7 @@ svc = library("seam.vcs3.lib");
 // #### Usage
 //
 // ```
-//
-//import ("stdfaust.lib");
-//osc1_g(x) = hgroup("[001]OSCILLATOR 1", x);
-//freq  = osc1_g(vslider("[001]FREQUENCY[style:knob][scale:exp]", 100,1,10000,0.01) : si.smoo);shape = osc1_g(vslider("[002]SHAPE[style:knob]", 5,0,10,0.1)/10 : si.smoo);
-//samp = osc1_g(vslider("[003]SINE[style:knob]",0,0,1,0.001):si.smoo);
-//pamp = osc1_g(vslider("[004]SAW[style:knob]",0,0,1,00.1):si.smoo);
-//
-//process = vcs3osc1(freq,shape,samp,pamp);
+// process = svc.vcs3osc1(svc.freq1,svc.shape1,svc.samp1,svc.pamp1);
 // ```
 //
 // Where
@@ -81,7 +74,7 @@ vcs3osc1(f,s,sl,pl) = shaped(f,s,sl), saw(f,pl)
   with{
     phasor(f) = os.lf_sawpos(f);
     sine(f,s) = sin(phasor(f)*2*ma.PI) : *(0.5*sin(s*(ma.PI)));
-    wsine(f,s) = sin(phasor(f)*(-1)*ma.PI) : +(2/sqPI) : *(cos(s*(ma.PI)));
+    wsine(f,s) = sin(phasor(f)*(-1)*ma.PI) : +(2/ma.PI) : *(cos(s*(ma.PI)));
     shaped(f,s,sl) = (sine(f,s)+wsine(f,s))*sl;
     saw(f,pl) = (phasor(f)-(0.5))*pl;
 };
@@ -94,16 +87,7 @@ vcs3osc1(f,s,sl,pl) = shaped(f,s,sl), saw(f,pl)
 // #### Usage
 //
 // ```
-//
-//import ("stdfaust.lib");
-//
-//osc2_g(x) = hgroup("[001]OSCILLATOR 2", x);
-//freq  = osc2_g(vslider("[001]FREQUENCY[style:knob][scale:exp]", 100,1,10000,0.01) : si.smoo);
-//shape = osc2_g(vslider("[002]SHAPE[style:knob]", 5,0,10,0.1)/10 : si.smoo);
-//sqamp = osc2_g(vslider("[002]AMP SQUARE[style:knob]",0,0,1,0.001) : si.smoo);
-//tramp = osc2_g(vslider("[003]AMP TRI[style:knob]",0,0,1,00.1) : si.smoo);
-//
-//process = vcs3osc2(freq,shape,sqamp,tramp);
+//process = svc.vcs3osc2(svc.freq2,svc.shape2,svc.sqamp2,svc.tramp2);
 // ```
 //
 // Where
@@ -116,36 +100,13 @@ vcs3osc1(f,s,sl,pl) = shaped(f,s,sl), saw(f,pl)
 // (SHAPED)SQUARE and TRIANGLE
 //
 //------------------------------------------------------------------------------
-vcs3osc2(f,s,ss,tl) = square(f,s), triangle(tl)
+vcs3osc2(f,s,ss,tl) = square(f,s)*ss, triangle(f,s)*tl
   with{
-
-    saw(f) = 2*os.lf_sawpos(clippedFreq) - 1
-    with {
-      clippedFreq = max(20.0,abs(f)); // use lf_sawpos(freq) for LFOs (freq < 20 Hz)
-    };
-
-    pulsetrain(f,s) = diffdel(saw(freqC),del) with {
-     // non-interpolated-delay version: diffdel(x,del) = x - x@int(del+0.5);
-     // linearly interpolated delay version (sounds good to me):
-     diffdel(x,del) = x-x@int(del)*(1-ma.frac(del))-x@(int(del)+1)*ma.frac(del): *(-1);
-     // Third-order Lagrange interpolated-delay version (see filters.lib):
-     // diffdel(x,del) = x - fdelay3(DELPWR2,max(1,min(DELPWR2-2,ddel)));
-     DELPWR2 = 2048; // Needs to be a power of 2 when fdelay*() used above.
-     delmax = DELPWR2-1; // arbitrary upper limit on diff delay (duty=0.5)
-     SRmax = 96000.0; // assumed upper limit on sampling rate
-     fmin = SRmax / float(2.0*delmax); // 23.4 Hz (audio freqs only)
-     freqC = max(f,fmin); // clip frequency at lower limit
-     period = (float(ma.SR) / freqC); // actual period
-     ddel = s * period; // desired delay
-     del = max(0,min(delmax,ddel));
+   square(f,s) = os.lf_pulsetrain(f,s); // deve andare in continua!
+   triangle(f,s) = square(f,s) : fi.pole(p) : *(gain) with {
+   gain = 4.0*f/ma.SR; // for aproximate unit peak amplitude
+   p = 0.999;
    };
-
-   square(f,s) = (pulsetrain(f,s))*ss; //variable duty cycle square wave
-
-    triangle(f) = square(f,0.5) : fi.pole(p) : *(gain)*tl with {
-      gain = 4.0*f/ma.SR;
-      p = 0.999;
-    };
 };
 // OSCILLATOR 3
 //------------------------------------------------------------------------------
@@ -246,6 +207,20 @@ with{
     d(x) = x-x';
     square(f,a) = (t(f)) <: _-(abs*_) : /(f) : *(a) : d : /(f) : *(5000) : d : /(f) : *(4000) ;
 };
+//==============================================================================
+//================================================================= VCS3 GUI ===
+//==============================================================================
+osc1_g(x) = hgroup("[001]OSCILLATOR 1", x);
+freq1  = osc1_g(vslider("[001]FREQUENCY[style:knob]", 100,1,10000,0.01) : si.smoo);
+shape1 = osc1_g(vslider("[002]SHAPE[style:knob]", 5,0,10,0.1)/10 : si.smoo);
+samp1 = osc1_g(vslider("[003]SINE[style:knob]",0,0,1,0.001) : si.smoo);
+pamp1 = osc1_g(vslider("[004]SAW[style:knob]",0,0,1,0.001) : si.smoo);
+
+osc2_g(x) = hgroup("[001]OSCILLATOR 2", x);
+freq2  = osc2_g(vslider("[001]FREQUENCY[style:knob]", 100,1,10000,0.01) : si.smoo);
+shape2 = osc2_g(vslider("[002]SHAPE[style:knob]", 5,0,10,0.1)*(0.1)) : si.smoo;
+sqamp2 = osc2_g(vslider("[003]SQUARE[style:knob]",0,0,1,0.001) : si.smoo);
+tramp2 = osc2_g(vslider("[004]TRIANGLE[style:knob]",0,0,1,0.001) : si.smoo);
 
 aa = library("aanl.lib");
 sf = library("all.lib");
