@@ -79,74 +79,92 @@ declare name "granular_sampling for AUDIBLE ECOSYSTEMICS n.2";
 declare version "xxx";
 declare author "Luca Spanedda";
 declare author "Dario Sanfilippo";
-declare description "Realised on composer's instructions of the year 2017
-                     edited in L’Aquila, Italy";
+declare description "Realised on composer's instructions of the year 2017 edited in L’Aquila, Italy";
 
-primesnumbers(index) = ba.take(index , list)
+primeNumbers(index) = ba.take(index , list)
   with{
     list = sma.primes;
 };
 
-primenoise(seed) = (+(primesnumbers(1000+seed))~*(1103515245))/(2147483647.0);
+noise(seed) = (+(primeNumbers(seed + 1)) ~ *(1103515245)) / 2147483647;
 
 
-grain(seed,var1,timeIndex,memWriteDel,cntrlLev, divDur, x) =
-  hann(readingSegment) * buffer(bufferSize, readPtr, x)
+grain(seed,var1,timeIndex,memWriteDel,cntrlLev,divDur,x) = 
+(hann(readingSegment) * buffer(bufferSize, readPtr, x)) : vdelay
     with{
-      // density
-      _grainRate = (cntrlLev*(100-1))+1;
-      // target grain duration in seconds
-      _grainDuration = 0.023 + ((1 - memWriteDel) / divDur);
-      // target grain position in the buffer
-      _grainPosition = ((timeIndex)+1)/2;
-      // make sure to have decorrelated noises
-      // grain.dur.jitter: 0.1 - constant value
-      durationJitter = primenoise(seed+1) * .1 + .1;
-      positionJitter = primenoise(seed+2) * (1-memWriteDel)/100;
-      // buffer size
-      bufferSize = var1*196000;
-      // hann window
-      hann(x) = sin(ma.PI * x) ^ 2.0;
-      // a phasor that read new params only when: y_1 < y_2
-      phasorLocking = loop ~ _
-        with {
-          loop(y_1) = ph , unlock
-            with{
-              y_2 = y_1';
-              ph = os.phasor(1, ba.sAndH(unlock, _grainRate));
-              unlock = (y_1 < y_2) + 1 - 1';
-            };
-        };
-      // two outputs of the phasor: phasor, trigger(y_1<y_2)
-      phasor = phasorLocking : _ , !;
-      unlocking = phasorLocking : ! , _;
-      // new param with lock function based on the phasor
-      lock(param) = ba.sAndH(unlocking, param);
-      // TO DO: wrap & receive param from AE2
-      grainPosition = lock(_grainPosition * positionJitter);
-      // TO DO: wrap & receive param from AE2
-      grainRate = lock(_grainRate);
-      // TO DO: wrap & receive param from AE2
-      grainDuration = lock(_grainDuration * durationJitter);
-      // maximum allowed grain duration in seconds
-      maxGrainDuration = 1.0 / grainRate;
-      // phase segment multiplication factor to complete a Hann cycle in the
-      // target duration
-      phasorSlopeFactor = maxGrainDuration / min(maxGrainDuration, grainDuration);
-      readingSegment = min(1.0, phasor * phasorSlopeFactor);
-      // read pointer
-      readPtr = grainPosition * bufferSize + readingSegment *
-                (ma.SR / (grainRate * phasorSlopeFactor));
-      buffer(length, readPtr, x) = it.frwtable(5, 1920000, .0, writePtr, x, readPtr)
-        with {
-          writePtr = ba.period(length);
-        };
-    };
-  // par (how much grains/instances do you want?)
-  grainN(voices,var1,timeIndex,memWriteDel,cntrlLev, divDur,x) =
-    par(i, voices,
-           grain(i,var1,timeIndex,memWriteDel,cntrlLev, divDur,x/voices));
 
+        // density
+        _grainRate = (cntrlLev*(100-1))+1; 
+        // target grain duration in seconds
+        _grainDuration = 0.023 + ((1 - memWriteDel) / divDur); 
+        // target grain position in the buffer
+        _grainPosition = ((timeIndex)+1)/2;
+        // make sure to have decorrelated noises
+        // grain.dur.jitter: 0.1 - constant value
+        durationJitter = noise(2 * seed) * .1 + .1; 
+        positionJitter = noise(2 * seed + 1) * (1 - memWriteDel) / 100;
+
+        // buffer size
+        bufferSize = var1 * ma.SR;
+        // hann window
+        hann(x) = sin(ma.PI * x) ^ 2.0;
+
+        // a phasor that read new params only when: y_1 < y_2
+        phasorLocking = loop ~ _
+            with {
+                loop(y_1) = ph , unlock
+                    with{
+                        y_2 = y_1';
+                        ph = os.phasor(1, ba.sAndH(unlock, _grainRate));
+                        unlock = (y_1 < y_2) + 1 - 1';
+                    };
+            };
+
+        // two outputs of the phasor: phasor, trigger(y_1<y_2)
+        phasor = phasorLocking : _ , !;
+        unlocking = phasorLocking : ! , _;
+
+        // new param with lock function based on the phasor
+        lock(param) = ba.sAndH(unlocking, param);   
+
+        // TO DO: wrap & receive param from AE2
+        grainPosition = lock(_grainPosition * positionJitter); 
+        // TO DO: wrap & receive param from AE2
+        grainRate = lock(_grainRate);
+        // TO DO: wrap & receive param from AE2
+        grainDuration = lock(_grainDuration * durationJitter);
+
+        // maximum allowed grain duration in seconds
+        maxGrainDuration = 1.0 / grainRate; 
+        // phase segment multiplication factor to complete a Hann cycle in the target duration
+        phasorSlopeFactor = maxGrainDuration / min(maxGrainDuration, grainDuration);  
+
+
+        readingSegment = min(1.0, phasor * phasorSlopeFactor);
+
+        // decorrelation delay. Instead of 1 control w: hslider("decorrelation", 1, 0, 1, .001)
+        noisePadding = 1 * lock(noise(seed+3)) : abs;
+            vdelay(x) = x : de.sdelay(ma.SR, 1024, noisePadding * ma.SR);
+
+        // read pointer
+        readPtr = grainPosition * bufferSize + readingSegment 
+            * (ma.SR / (grainRate * phasorSlopeFactor));
+
+        buffer(length, readPtr, x) = it.frwtable(5, 1920000, .0, writePtr, x, readPtr)
+            with{
+                writePtr = ba.period(length);
+            };
+    };
+
+// par (how much grains/instances do you want?)
+grainN(voices,var1,timeIndex,memWriteDel,cntrlLev,divDur,x) = 
+    par(i, voices, grain(i,var1,timeIndex,memWriteDel,cntrlLev,divDur,(x/voices)));
+
+granular_sampling(nVoices,var1,timeIndex,memWriteDel,cntrlLev,divDur,x) =
+    grainN(nVoices,var1,timeIndex,memWriteDel,cntrlLev,divDur,x) :> _ ;
+
+
+// DEMO GUI //////////////////////////////////////////////////////////////
 // timeIndex1 - a signal between -1 and -0.5
 GtimeIndex = hslider("timeIndex1", -1, -1, -0.5, .001);
 // memWriteDel1 - a signal between 0 and 1
@@ -155,11 +173,9 @@ volume = hslider("volume", 0, 0, 10, .001);
 // cntrlLev: a signal between 0 and 1 (1 max, 0 no grains)
 GcntrlLev = hslider("cntrlLev", .5, 0, 1, .001);
 // var1 distance (in meters) between the two farthest removed loudspeakers
-
-GnVoices = 8;
+Gvar1 = 3;
+GnVoices = 2;
 GdivDur = 21;
-granular_sampling(nVoices, var1, timeIndex, memWriteDel, cntrlLev, divDur, x) =
-  grainN(nVoices, var1, timeIndex, memWriteDel, cntrlLev, divDur,x)
-  :> _;
+//////////////////////////////////////////////////////////////////////////
 
-//process = os.osc(600): granular_sampling(GnVoices, GtimeIndex,GmemWriteDel, GcntrlLev, GdivDur);
+//process = os.osc(1000) <: granular_sampling(GnVoices,Gvar1,GtimeIndex,GmemWriteDel,GcntrlLev,GdivDur);
