@@ -89,19 +89,19 @@ primeNumbers(index) = ba.take(index , list)
 noise(seed) = (+(primeNumbers(seed + 1)) ~ *(1103515245)) / 2147483647;
 
 
-grain(seed,var1,timeIndex,memWriteDel,cntrlLev,divDur,x) = 
+grain(seed,var1,timeIndex,memWriteDel,cntrlLev,divDur,x) =
 (hann(readingSegment) * buffer(bufferSize, readPtr, x)) : vdelay
     with{
 
         // density
-        _grainRate = (cntrlLev*(100-1))+1; 
+        _grainRate = (cntrlLev*(100-1))+1;
         // target grain duration in seconds
-        _grainDuration = 0.023 + ((1 - memWriteDel) / divDur); 
+        _grainDuration = 0.023 + ((1 - memWriteDel) / divDur);
         // target grain position in the buffer
         _grainPosition = ((timeIndex)+1)/2;
         // make sure to have decorrelated noises
         // grain.dur.jitter: 0.1 - constant value
-        durationJitter = noise(2 * seed) * .1 + .1; 
+        durationJitter = noise(2 * seed) * .1 + .1;
         positionJitter = noise(2 * seed + 1) * (1 - memWriteDel) / 100;
 
         // buffer size
@@ -125,19 +125,19 @@ grain(seed,var1,timeIndex,memWriteDel,cntrlLev,divDur,x) =
         unlocking = phasorLocking : ! , _;
 
         // new param with lock function based on the phasor
-        lock(param) = ba.sAndH(unlocking, param);   
+        lock(param) = ba.sAndH(unlocking, param);
 
         // TO DO: wrap & receive param from AE2
-        grainPosition = lock(_grainPosition * positionJitter); 
+        grainPosition = lock(_grainPosition * positionJitter);
         // TO DO: wrap & receive param from AE2
         grainRate = lock(_grainRate);
         // TO DO: wrap & receive param from AE2
         grainDuration = lock(_grainDuration * durationJitter);
 
         // maximum allowed grain duration in seconds
-        maxGrainDuration = 1.0 / grainRate; 
+        maxGrainDuration = 1.0 / grainRate;
         // phase segment multiplication factor to complete a Hann cycle in the target duration
-        phasorSlopeFactor = maxGrainDuration / min(maxGrainDuration, grainDuration);  
+        phasorSlopeFactor = maxGrainDuration / min(maxGrainDuration, grainDuration);
 
 
         readingSegment = min(1.0, phasor * phasorSlopeFactor);
@@ -147,7 +147,7 @@ grain(seed,var1,timeIndex,memWriteDel,cntrlLev,divDur,x) =
             vdelay(x) = x : de.sdelay(ma.SR, 1024, noisePadding * ma.SR);
 
         // read pointer
-        readPtr = grainPosition * bufferSize + readingSegment 
+        readPtr = grainPosition * bufferSize + readingSegment
             * (ma.SR / (grainRate * phasorSlopeFactor));
 
         buffer(length, readPtr, x) = it.frwtable(5, 1920000, .0, writePtr, x, readPtr)
@@ -157,7 +157,7 @@ grain(seed,var1,timeIndex,memWriteDel,cntrlLev,divDur,x) =
     };
 
 // par (how much grains/instances do you want?)
-grainN(voices,var1,timeIndex,memWriteDel,cntrlLev,divDur,x) = 
+grainN(voices,var1,timeIndex,memWriteDel,cntrlLev,divDur,x) =
     par(i, voices, grain(i,var1,timeIndex,memWriteDel,cntrlLev,divDur,(x/voices)));
 
 granular_sampling(nVoices,var1,timeIndex,memWriteDel,cntrlLev,divDur,x) =
@@ -179,3 +179,16 @@ GdivDur = 21;
 //////////////////////////////////////////////////////////////////////////
 
 //process = os.osc(1000) <: granular_sampling(GnVoices,Gvar1,GtimeIndex,GmemWriteDel,GcntrlLev,GdivDur);
+
+//Triangular waveform wavetable
+
+triwaveform(tablesize) =
+    1-abs(float(ba.period(tablesize) / tablesize) - 0.5)*(2);
+
+osctri(freq) = rdtable(tablesize, triwaveform(tablesize), int(os.phasor(tablesize,freq)))
+with {
+    tablesize = pl.tablesize;
+};
+
+//freq = 1000;
+//process = osctri(freq), os.oscsin(freq);
