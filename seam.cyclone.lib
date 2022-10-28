@@ -108,6 +108,16 @@ delta(x) = x-x'; // Signal of sample differences
 //==============================================================================
 stepcounter = ba.time;
 
+
+//===============================================================================
+//===================================== PEAKAMP~ ================================ 
+//Report the maximum amplitude of a signal ======================================
+//peakamp~ monitors an incoming signal and reports the absolute value of the peak 
+//amplitude of the signal it has received since the last time it was reported.
+
+peakamp(t) = ba.peakholder(ba.sec2samp(t));
+process = peakamp(125);
+
 aa = library("aanl.lib");
 sf = library("all.lib");
 an = library("analyzers.lib");
