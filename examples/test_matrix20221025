@@ -1,0 +1,39 @@
+import("seam.lib");
+import("seam.vcs3.lib");
+
+switch(in) = checkbox("IN %3inn") : si.smoo
+  with { 
+      inn = in + (1);
+};
+
+outcol(in,col) = vgroup("OUT %3coln", par(in, in, *(switch(in)))) :> _
+  with {
+      coln = col + (1);
+};
+//par successione parallela di funzioni, in questo caso è la funzione "*switch"
+
+//process = no.noise, os.osc(1000) : outcol(2,7); //Come dovrebbe apparire più o meno il process finale del Vcs3
+
+matrix(in,out) = hgroup("MATRIX %in %out", si.bus(in) <: par(out, out, outcol(in, out)));
+// si.bus(in) serve per dare tutte le stesse entrate a tutte le uscite
+
+router(a,b,c,d,e,f,g,h,i) = a,b,c,d,e,f;
+meter = hbargraph("meter",-1,1);
+//process = vmeter;
+
+process = (router : 
+          svc.vcs3osc1(svc.freq1,svc.shape1,svc.samp1,svc.pamp1),
+          svc.vcs3osc2(svc.freq2,svc.shape2,svc.sqamp2,svc.tramp2),
+          svc.vcs3osc3(svc.freq3,svc.shape3,svc.sqamp3,svc.tramp3),
+          no.pink_noise, si.bus(1), choppeRM(0.45,_,_): 
+          
+          matrix(9,9))~si.bus(9) : meter, si.bus(2), si.block(6) : ro.crossNM(1,2);
+
+/*
+process = svc.vcs3osc1(svc.freq1,svc.shape1,svc.samp1,svc.pamp1),
+          svc.vcs3osc2(svc.freq2,svc.shape2,svc.sqamp2,svc.tramp2),
+          svc.vcs3osc3(svc.freq3,svc.shape3,svc.sqamp3,svc.tramp3),
+          par(i,10,0) :
+          
+          sro.matrixfb(16,16);
+          */
