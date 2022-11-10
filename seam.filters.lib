@@ -10,6 +10,8 @@
 declare name "SEAM Filters - Library";
 declare version "0.1";
 declare author "Giuseppe Silvi";
+declare author "Luca Spanedda";
+declare author "Davide Tedesco";
 declare license "CC3";
 
 sfi = library("seam.filters.lib");
@@ -54,8 +56,11 @@ dcblock = _ <: (_- seq(i,4,eavg(acor(5))));
 //
 // fc = hslider("fc",1,1,10000,1) : si.smoo : max(bw/2) ;
 // bw = hslider("bw", 0,0,1000,1) : si.smoo;
-bp2(fc,bw) = fi.bandpass(1,fc-(bw/2),fc+(bw/2));
-// process = no.pink_noise : bp2(fc,bw);
+bpbw(fc,bw) = fi.bandpass(1,fcn(fc,bw)-(bw/2),fcn(fc,bw)+(bw/2))
+    with{
+        fcn(fc,bw) = fc : max(bw/2);
+    };
+// process = no.pink_noise : bpbw(fc,bw);
 //------------------------------------------ ALL-PASS FILTER COEF CALCULATOR ---
 //
 // REFERENCES:

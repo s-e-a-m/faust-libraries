@@ -25,6 +25,7 @@ integrator(s) = an.abs_envelope_rect(s);
 // end of the previous frame
 localmax(frame) = ba.peakholder(frame);
 //--------------------------------------------------------------- SAMPLEREAD ---
+/*
 sampleread(var1,ratio, memchunk, sig) =
 // delay frazionario                * crossfade
   de.fdelay(delMax,d,sig)         *    ma.fmin(d/xfade,1) +
@@ -34,6 +35,18 @@ with {
     xfade = 128;
 	d = (1 - ratio : si.smoo) : (+ : +(bufsize) : fmod(_,bufsize)) ~ _;
 };
+*/
+
+
+sampleRead(memBuffer, ratio, maxChunk,x) =
+it.frwtable(1,192000 * (memBuffer), .0, ba.period(memBuffer * ma.SR), x, rIdx)
+    with {
+    //clip the smallest chunk
+    memChunk(maxChunk) = (maxChunk  : max(0.001, min(1))) * memBuffer * ma.SR;
+    rIdx = os.phasor(memChunk(maxChunk), (ma.SR / memChunk  (maxChunk)) * ratio);
+    };
+
+//process = os.osc(4) <: _, sampleRead(1,0.1,1);
 //-------------------------------------------------------- GRANULAR SAMPLING ---
 // read sample sequences off subsequent buffer memory chunks, and envelopes the
 // signal chunk with a pseudo-Gaussian envelope curve; the particular
