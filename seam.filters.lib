@@ -50,6 +50,12 @@ hp1c(fc) = _<:_-(lp1pc(fc));
 dcblock = _ <: (_- seq(i,4,eavg(acor(5))));
 //process = no.pink_noise : dcblock;
 //
+//------------------------------------------------ 2nd ORDER BANDPASS FILTER ---
+//
+// fc = hslider("fc",1,1,10000,1) : si.smoo : max(bw/2) ;
+// bw = hslider("bw", 0,0,1000,1) : si.smoo;
+bp2(fc,bw) = fi.bandpass(1,fc-(bw/2),fc+(bw/2));
+// process = no.pink_noise : bp2(fc,bw);
 //------------------------------------------ ALL-PASS FILTER COEF CALCULATOR ---
 //
 // REFERENCES:
