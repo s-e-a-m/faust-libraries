@@ -56,11 +56,20 @@ dcblock = _ <: (_- seq(i,4,eavg(acor(5))));
 //
 // fc = hslider("fc",1,1,10000,1) : si.smoo : max(bw/2) ;
 // bw = hslider("bw", 0,0,1000,1) : si.smoo;
-bpbw(fc,bw) = fi.bandpass(1,fcn(fc,bw)-(bw/2),fcn(fc,bw)+(bw/2))
+/*bpbw(fc,bw) = fi.bandpass(1,fcn(fc,bw)-(bw/2),fcn(fc,bw)+(bw/2))
     with{
         fcn(fc,bw) = fc : max(bw/2);
+    };*/
+//CORRETTO
+bpbw(fc,bw) = fi.bandpass( 1, fln(fc,bw), fun(fc,bw) )
+    with {
+        fcn(fc,bw) = fc : max(bw/2);
+        fln(fc,bw) = fcn(fc,bw)-(bw/2) : max(ma.EPSILON, min(ma.SR/2));
+        fun(fc,bw) = fcn(fc,bw)+(bw/2) : max(ma.EPSILON, min(ma.SR/2));
     };
-// process = no.pink_noise : bpbw(fc,bw);
+
+//process = no.pink_noise : bpbw(3000,303);
+process = no.noise : bpbw(0,0);
 //------------------------------------------ ALL-PASS FILTER COEF CALCULATOR ---
 //
 // REFERENCES:
@@ -71,7 +80,7 @@ bpbw(fc,bw) = fi.bandpass(1,fcn(fc,bw)-(bw/2),fcn(fc,bw)+(bw/2))
 // response is very different. This code only supports 1st order or 2nd order
 // variants.
 //
-// 1st order allpass filters shift the phase by 180 degrees, while the 2nd order
+// 1st order allpass fstretchingilters shift the phase by 180 degrees, while the 2nd order
 // shifts the phase by 360 degrees. The "center frequency" of Fc defines where
 // the phase response should be halfway to the max shift.
 //

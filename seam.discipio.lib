@@ -8,7 +8,8 @@ delMax = 2^16;
 //  d = min(0, del) : ba.sec2samp;
 //};
 
-delayfb(del,fb) = (+ : de.delay(ma.SR,ba.sec2samp(del)))~*(fb) : *(1-fb);
+//delayfb(del,fb) = (+ : de.delay(ma.SR,ba.sec2samp(del)))~*(fb);
+delayfb(del,fb) = sre.dflcc(ma.SR,ba.sec2samp(del),fb);
 //------------------------------------------------------------------ MAPPERS ---
 mapsum(x,s,m) = s+(x*(m));
 mapsub(x,s,m) = s-(x*(m));
@@ -23,7 +24,7 @@ integrator(s) = an.abs_envelope_rect(s);
 // returns the maximum signal amplitude (absolute value) in a given time frame;
 // frame duration is dynamically adjusted: the next frame duration is set at the
 // end of the previous frame
-localmax(frame) = ba.peakholder(frame);
+localmax(x, frame) = x : ba.peakholder(frame*ma.SR); //CORRETTO
 //--------------------------------------------------------------- SAMPLEREAD ---
 /*
 sampleread(var1,ratio, memchunk, sig) =
@@ -173,8 +174,18 @@ grain(seed,var1,timeIndex,memWriteDel,cntrlLev,divDur,x) =
 grainN(voices,var1,timeIndex,memWriteDel,cntrlLev,divDur,x) =
     par(i, voices, grain(i,var1,timeIndex,memWriteDel,cntrlLev,divDur,(x/voices)));
 
-granular_sampling(nVoices,var1,timeIndex,memWriteDel,cntrlLev,divDur,x) =
-    grainN(nVoices,var1,timeIndex,memWriteDel,cntrlLev,divDur,x) :> _ ;
+granular_sampling(nVoices,var1,timeIndex,memWriteDel,cntrlLev,divDur,x) =  x*0;
+    /*grainN(nVoices,var1,
+    timeIndexN(timeIndex),
+    memWriteDelN(memWriteDel),
+    cntrlLevN(cntrlLev),
+    divDur,x) :> _
+    with{
+        timeIndexN(timeIndex) = timeIndex : min(1) : max(-1);
+        memWriteDelN(memWriteDel) = memWriteDel : min(1) : max(0);
+        cntrlLevN(cntrlLev) = cntrlLev : min(1) : max(0) ;
+    };*/
+
 
 
 // DEMO GUI //////////////////////////////////////////////////////////////
