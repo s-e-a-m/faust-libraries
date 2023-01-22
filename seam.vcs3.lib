@@ -4,7 +4,7 @@
 //
 // * OSCILLATORS
 // * MATRIX
-// *
+// * RING MODULATOR
 // *
 // * GUI
 //
@@ -57,7 +57,7 @@ svc = library("seam.vcs3.lib");
 // #### Usage
 //
 // ```
-// process = svc.vcs3osc1(svc.freq1,svc.shape1,svc.samp1,svc.pamp1);
+//process = svc.vcs3osc1(svc.freq1,svc.shape1,svc.samp1,svc.pamp1);
 // ```
 //
 // Where
@@ -70,7 +70,7 @@ svc = library("seam.vcs3.lib");
 // (SHAPED)SINE and SAW
 //
 //------------------------------------------------------------------------------
-vcs3osc1(f,s,sl,pl) = shaped(f,s,sl), saw(f,pl)
+vcs3osc1(f,s,sl,pl,x) = shaped(f,s,sl), saw(f,pl)
   with{
     phasor(f) = os.lf_sawpos(f);
     sine(f,s) = sin(phasor(f)*2*ma.PI) : *(0.5*sin(s*(ma.PI)));
@@ -100,7 +100,7 @@ vcs3osc1(f,s,sl,pl) = shaped(f,s,sl), saw(f,pl)
 // (SHAPED)SQUARE and TRIANGLE
 //
 //------------------------------------------------------------------------------
-vcs3osc2(f,s,ss,tl) = square(f,s)*ss, triangle(f,s)*tl
+vcs3osc2(f,s,ss,tl,x) = square(f,s)*ss, triangle(f,s)*tl
   with{
    square(f,s) = os.lf_pulsetrain(f,s); // deve andare in continua!
    triangle(f,s) = square(f,s) : fi.pole(p) : *(gain) with {
@@ -117,7 +117,7 @@ vcs3osc2(f,s,ss,tl) = square(f,s)*ss, triangle(f,s)*tl
 // #### Usage
 //
 // ```
-//process = svc.vcs3osc(svc.freq3,svc.shape3,svc.sqamp3,svc.tramp3);
+//process = svc.vcs3osc3(svc.freq3,svc.shape3,svc.sqamp3,svc.tramp3);
 // ```
 //
 // Where
@@ -130,7 +130,7 @@ vcs3osc2(f,s,ss,tl) = square(f,s)*ss, triangle(f,s)*tl
 // (SHAPED)SQUARE and TRIANGLE
 //
 //------------------------------------------------------------------------------
-vcs3osc3(f,s,ss,tl) = square(f,s)*ss, triangle(f,s)*tl
+vcs3osc3(f,s,ss,tl,x) = square(f,s)*ss, triangle(f,s)*tl
   with{
    square(f,s) = os.lf_pulsetrain(f,s); // deve andare in continua!
    triangle(f,s) = square(f,s) : fi.pole(p) : *(gain) with {
@@ -202,6 +202,42 @@ freq3  = osc3_g(vslider("[001]FREQUENCY[style:knob]", 10,0.025,500,0.01) : si.sm
 shape3 = osc3_g(vslider("[002]SHAPE[style:knob]", 5,0,10,0.1)*(0.1)) : si.smoo;
 sqamp3 = osc3_g(vslider("[003]SQUARE[style:knob]",0,0,1,0.001) : si.smoo);
 tramp3 = osc3_g(vslider("[004]TRIANGLE[style:knob]",0,0,1,0.001) : si.smoo);
+
+//==============================================================================
+//================================================================= MATRIX ===
+//==============================================================================
+
+switch(in) = checkbox("IN %3inn") : si.smoo
+  with { 
+      inn = in + (1);
+};
+
+outcol(in,col) = vgroup("OUT %3coln", par(in, in, *(switch(in)))) :> _
+  with {
+      coln = col + (1);
+};
+//par successione parallela di funzioni, in questo caso è la funzione "*switch"
+
+//process = no.noise, os.osc(1000) : outcol(2,7); //Come dovrebbe apparire più o meno il process finale del Vcs3
+
+matrix(in,out) = hgroup("MATRIX %in %out", si.bus(in) <: par(out, out, outcol(in, out)));
+// si.bus(in) serve per dare tutte le stesse entrate a tutte le uscite
+
+//==============================================================================
+//================================================================= Ring modulator ===
+//==============================================================================
+
+//process = os.osc(100)*(0.1), os.osc(1000) : ba.peakholder(150),_;
+
+// t = threshold (peakholder)
+overdrive(x,t) = x <: ma.tanh((_*t))+(1-t)*_;
+
+// c = carrier/portante
+// m = modulator
+// t = envelope follower time sec
+choppeRM(t,c,m) = c * overdrive(m,ba.peakholder(ba.sec2samp(t)));
+
+//process = os.osc(500), os.osc(0.01) : choppeRM(0.45);
 
 aa = library("aanl.lib");
 sf = library("all.lib");
