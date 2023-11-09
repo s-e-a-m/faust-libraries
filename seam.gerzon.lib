@@ -150,6 +150,13 @@ abmodule(LFU,RFD,RBU,LBD) = W,X,Y,Z
 // process = abmodule;
 // ```
 //
+abmodulex(LFU,RFD,RBU,LBD) = a0,a1,a2,a3
+	with{
+    a0 = 0.5 * (LFU + RFD + RBU + LBD);
+	  a1 = 0.5 * (LFU - RFD - RBU + LBD);
+	  a2 = 0.5 * (LFU - RFD + RBU - LBD);
+    a3 = 0.5 * (LFU + RFD - RBU - LBD);
+};
 // <!-- ******************************************************************** -->
 //
 // ### GENERIC BA MODULE WITHOUT SHELVING

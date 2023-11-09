@@ -51,9 +51,9 @@ shw = library("seam.hardware.lib");
 //-------------------------------------------- SELECT THE HARDWARE INTERFACE ---
 
 //============================ RME FireFace 800 ================================
-chstrip_ff800 = vgroup("[01] INPUT CHANNEL", ff800 : inpeq);
-lrstrip_ff800 = vgroup("[01] STEREO INPUT CHANNEL", ff800_ST : inpeq, inpeq);
-wxyzrip_ff800 = vgroup("[01] B-FORMAT INPUT CHANNEL", ff800_WXYZ : inpeq, inpeq, inpeq, inpeq);
+chstrip_ff800 = vgroup("[01] INPUT CHANNEL", ff800 : smx.inpeq);
+lrstrip_ff800 = vgroup("[01] STEREO INPUT CHANNEL", ff800_ST : smx.inpeq, smx.inpeq);
+wxyzrip_ff800 = vgroup("[01] B-FORMAT INPUT CHANNEL", ff800_WXYZ : smx.inpeq, smx.inpeq, smx.inpeq, smx.inpeq);
 
 // da studiare per outsel
 //selectoutn(n, s) = _ <: par(i, n, *(s==i));
@@ -91,7 +91,7 @@ ff800 = ba.selectn(20,channel) : san.phmeter
 //------------------------------------- RME FireFace 800 - STEREO INPUT SELECTOR
 //-------------------------------------------------------------------- 18 INPUTS
 ff800_ST = si.bus(18) <: ba.selectn(18,lchannel),
-                         ba.selectn(18,rchannel) : phmeter, phmeter
+                         ba.selectn(18,rchannel) : san.phmeter, san.phmeter
   with{
     rchannel = lchannel+(1);
     lchannel = nentry("[01] RME FF800 - INPUT SELECTOR
@@ -160,7 +160,7 @@ wxyzrip_s18i8 = vgroup("[01] B-FORMAT INPUT CHANNEL", s18i8_WXYZ : inpeq, inpeq,
 //==============================================================================
 //-------------------------------- Focusrite Scarlett 18i8 - MONO INPUT SELECTOR
 //-------------------------------------------------------------------- 18 INPUTS
-s18i8 = ba.selectn(18,channel) : phmeter
+s18i8 = ba.selectn(18,channel) : san.phmeter
   with{
     channel = nentry("[01] Focusrite Scarlett 18i8 - INPUT SELECTOR
       [style:menu{
@@ -187,7 +187,7 @@ s18i8 = ba.selectn(18,channel) : phmeter
 //------------------------------ Focusrite Scarlett 18i8 - STEREO INPUT SELECTOR
 //-------------------------------------------------------------------- 16 INPUTS
 s18i8_ST = si.bus(16) <: ba.selectn(16,lchannel),
-                         ba.selectn(16,rchannel) : phmeter, phmeter
+                         ba.selectn(16,rchannel) : san.phmeter, san.phmeter
   with{
     rchannel = lchannel+(1);
     lchannel = nentry("[01] Focusrite Scarlett 18i8 - INPUT SELECTOR
@@ -206,7 +206,7 @@ s18i8_ST = si.bus(16) <: ba.selectn(16,lchannel),
 //-------------------------------------------------------------------- 16 INPUTS
 s18i8_WXYZ = si.bus(16) <:
   ba.selectn(16,wchannel), ba.selectn(16,xchannel), ba.selectn(16,ychannel),
-  ba.selectn(16,zchannel) : phmeter, phmeter, phmeter, phmeter
+  ba.selectn(16,zchannel) : san.phmeter, san.phmeter, san.phmeter, san.phmeter
   with{
     zchannel = ychannel+(1);
     ychannel = xchannel+(1);
@@ -329,6 +329,9 @@ with {
   // take N number-value pairs and give the number with the maximum value
   find_max_index(N) = seq(i,N-2, (index_comparator,si.bus(2*(N-i-2)))) : index_comparator;
 };
+
+san = library("seam.analyzers.lib");
+smx = library("seam.mixer.lib");
 
 aa = library("aanl.lib");
 sf = library("all.lib");
