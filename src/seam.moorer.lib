@@ -1,0 +1,32 @@
+declare name "SEAM Moorer - Library";
+declare version "0.2";
+declare author "Giuseppe Silvi";
+declare license "CC3";
+//
+import("seam.lib");
+//========================================================= MOORER FUNCTIONS ===
+//==============================================================================
+smo = library("seam.moorer.lib");
+//------------------------------------------------------- all-pass fig. 1(a) ---
+//apf(t,g,x) = (x+_ : *(-) <: _+x,_ : @(t-1),_)~(0-_) : +; // ir sbagliato
+//apf(t,g,x) = (x+_ : *(-g) <: _+x,_ : @(t-1),_)~(0-_) : mem+_; // ir corretto
+apf(t,g,x) = (x+_ : *(-g) <: _+x,_ : de.delay(ma.SR,t-1),_)~(0-_) : mem+_;
+// process = os.impulse : apf(1,0.7);
+//
+//----------------------------------------------------------- comb fig. 2(a) ---
+//comb(t,g) = (+ : @(t-1))~*(g) : mem;
+comb(t,g) = (+ : de.delay(ma.SR,t-1))~*(g) : mem;
+//process = os.impulse : comb(1,0.9);
+//
+//---------------------------------------- n-channel ambiophonic all-pass matrix
+//------------------------------------------------- (non presente nell'articolo)
+apfn(0,t,g) = _;
+apfn(1,t,g) = apf(t,g);
+apfn(n,t,g) = apf(t,g) <: _,apfn(n-1,t,g);
+//process = ba.pulsen(1,ma.SR) : apfn(16,1,0.7); // esempio a 16 uscite
+//
+//----------------------------------------------------- oscillating all-pass ---
+apfo(0,t,g,x) = x;
+apfo(1,t,g,x) = apf(t,g,x);
+apfo(n,t,g,x) = (x+_ : *(-g) <: _+x,_ : apfo(n-1,t,g),_ : de.delay(ma.SR,t-1),_)~(0-_) : mem+_;
+//process = os.impulse : apfo(2,1,0.5);

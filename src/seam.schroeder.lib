@@ -1,0 +1,90 @@
+declare name "SEAM Schroeder - Library";
+declare version "0.2";
+declare author "Daniele Annese";
+declare author "Anthony Di Furia";
+declare author "Giuseppe Silvi";
+declare author "Francesco Vitucci";
+declare license "CC3";
+//
+import("seam.lib");
+//============= SCHROEDER - NATURAL SOUNDING ARTIFICIAL REVERBERATION - 1962 ===
+//==============================================================================
+//--------------------------------------------------- DELAY FEEDBACK IN LOOP ---
+dfl(t,g) = (+ : @(t))~*(g);
+//process = os.impulse : dfl(1,1/sqrt(2));
+//
+//------------------------------------------- DELAY FEEDBACK IN LOOP - FIXED ---
+dflc(t,g) = (+ : @(t-1))~*(g) : mem;
+//process = os.impulse : dflc(1,1/sqrt(2));
+//
+//-------------------------------- DELAY FEEDBACK IN LOOP - FIXED - VARIABLE ---
+dflcv(md,t,g) = (+ : de.delay(md, int(t-1)))~*(g) : mem;
+//process = os.impulse : dflcv(ma.SR,1,1/sqrt(2));
+//
+//------------------------------------------------ SCHROEDER ALL-PASS FILTER ---
+apf(t,g) = _ <: *(-g)+(dflc(t,g)*(1-(g*g)));
+//process = os.impulse : apf(1,1/sqrt(2));
+//
+apfv(md,t,g) = _ <: *(-g)+(dflcv(md,t,g)*(1-(g*g)));
+//process = os.impulse : apfv(ma.SR,1,1/sqrt(2));
+//
+//---------------------------------------------------------------------- T60 ---
+// For a feedback loop with open loop gain g, the sound level decay by
+// -20*log(g) decibels for every trip around the feedback loop. Since every
+// round trip takes t second, the time for a 60dB decay is
+msT60(t,g) = (60/(-20*log10(g)))*t;
+//process = msT60(0.1,1/sqrt(2)); // 2 seconds
+//
+//------------------------------------------------- INCREASE OF ECHO DENSITY ---
+// The delay of each section is made about 1/3 of the preceding delay. Thus, the
+// delay of the n-th unit will be t1(1/3)^n-1. The gains are most conveniently
+// made equal to about 0.7. [...] The effective echo density of 5 loops in
+// series will be approximately 81/t1. For t1 = 0.1 sec, the effective echo
+// density will be 810 per second which is sufficiently close to the required
+// 1000 per second. To avoid echo cancellation and superposition, it is
+// advisable to use incommensurate delay ratios rather than the round number 3.
+ied5 = apf(5507,1/sqrt(2)) : apf(1831,1/sqrt(2)) : apf(613,1/sqrt(2)) : apf(199,1/sqrt(2)) : apf(67,1/sqrt(2));
+//process = os.impulse : ied5;
+//
+ied8 = apf(5507,1/sqrt(2)) : apf(1831,1/sqrt(2)) : apf(613,1/sqrt(2)) : apf(199,1/sqrt(2)) : apf(67,1/sqrt(2)) : apf(23,1/sqrt(2)) : apf(7,1/sqrt(2)) : apf(2,1/sqrt(2));
+//process = os.impulse : ied8;
+//
+//---------- MIXING OF DIRECTSOUND AND REVERBERATION - NON-EXPONENTIAL DECAY ---
+dflr(t,g) = (+ : de.delay(ma.SR/2, int(t-1)) : ied5)~*(g) : mem;
+//process = os.impulse : dflr(1,1/sqrt(2));
+aprdw(t,g) = _ <: *(-g)+(dflr(t,g)*(1-(g*g)));
+//process = os.impulse : aprdw(1,1/sqrt(2));
+//
+//------------------------------------------------- THE COMB FILTER APPROACH ---
+// The values of the delays t1 through t4 are spread [...] between 30 and 45 ms
+// here in prime numbers at 48KHz from 1440 to 2160 samples.
+schrev = _ <: // to 4 parallel comb
+  dflc(1447,0.812),
+  dflc(1721,0.78),
+  dflc(1873,0.76),
+  dflc(2161,0.74) :>
+  apf(83,0.7) : apf(229,0.7);
+  // components in reverse order
+  revsch = apf(83,0.7) : apf(229,0.7) <: // two allpass to 4 comb
+    dflc(1447,0.812), dflc(1721,0.78), dflc(1873,0.76), dflc(2161,0.74);
+  // commutability test
+//process = os.impulse <: schrev, (revsch :> _);
+//
+//----------------------------------- FREQUENCY-DEPENDENT REVERBERATION TIME ---
+// If it is desired to make the reverberation time a function of frequency, the
+// gains g1 through g4 in have to be made frequency dependent. For this, a
+// simple RC-section in each feedback loop will suffice. In this manner further
+// realism can be added to the artificial reverberation by making the
+// reverberation time larger for the low frequencies. This trend of
+// reverberation time with frequency is typical of many concert halls and
+// cathedrals.
+//
+dflf(t,g,fc) = (+ : de.delay(ma.SR/2, int(t-1)))~scy.onepole(fc)*(g) : mem;
+//process = os.impulse : dflf(1,1/sqrt(2),1000);
+schfdrevt = _ <: // to 4 parallel comb
+  dflf(1447,0.812,5000),
+  dflf(1721,0.78,4000),
+  dflf(1873,0.76,3000),
+  dflf(2161,0.74,2000) :>
+  apf(83,0.7) : apf(229,0.7);
+process = os.impulse : schfdrevt;
