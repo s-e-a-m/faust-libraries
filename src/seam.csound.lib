@@ -1,0 +1,86 @@
+declare name "CSound Opcodes Faust Library";
+declare version "0.2";
+declare author "Giuseppe Silvi";
+declare license "CC4";
+//
+import("seam.lib");
+//=========================================================== CSOUND OPCODES ===
+//==============================================================================
+scs = library("seam.csound.lib");
+//------------------------------------------------------------------------------
+// DCBLOCK
+// dcblock — A DC blocking filter.
+//------------------------------------------------------------------------------
+// Implements the DC blocking filter
+// Y[i] = X[i] - X[i-1] + (igain * Y[i-1])
+// Based on work by Perry Cook.
+// Syntax
+// ares dcblock ain [, igain]
+// Initialization
+// igain -- the gain of the filter, which defaults to 0.99
+//
+// #### Reference
+// https://csound.com/docs/manual/dcblock.html
+//
+// #### Usage
+//
+// ```
+// _ : dcblock(igain) : _
+// ```
+//------------------------------------------------------------------------------
+dcblock(igain) = _ <: _ - mem: +~*(igain);
+//process = 1 : dcblock(0.99);
+//
+//------------------------------------------------------------------------------
+// TONE
+// A first-order recursive low-pass filter with variable frequency response.
+//------------------------------------------------------------------------------
+// tone is a 1 term IIR filter. Its formula is:
+// y[n] = c1 * x[n] + c2 * y[n-1]
+// where
+// b = 2 - cos(2 π hp/sr)
+// c2 = b - sqrt(b2 - 1.0)
+// c1 = 1 - c2
+//
+// #### Reference
+// https://csound.com/docs/manual//tone.html
+//
+// #### Usage
+//
+// ```
+// _ : tone(cf) : _
+// ```
+//
+//------------------------------------------------------------------------------
+tone(cf) = _*c1 : (+~_ *(c2))
+with{
+  b = 2 - (cos(2*ma.PI*(cf/ma.SR)));
+  c1 = 1-c2;
+  c2 = b - sqrt((b*b)-1.0);
+};
+//process = no.pink_noise : tone(100);
+//
+//------------------------------------------------------------------------------
+// ATONE
+// atone — A hi-pass filter whose transfer functions are the complements of the
+// tone opcode.
+//------------------------------------------------------------------------------
+// atone is a filter whose transfer functions is the complement of tone.
+// atone is thus a form of high-pass filter whose transfer functions represent
+// the “filtered out” aspects of their complements. However, power scaling is
+// not normalized in atone but remains the true complement of the corresponding
+// unit. Thus an audio signal, filtered by parallel matching tone and atone
+// units, would under addition simply reconstruct the original spectrum.
+//
+// #### Reference
+// https://csound.com/docs/manual//tone.html
+//
+// #### Usage
+//
+// ```
+// _ : atone(freq) : _
+// ```
+//
+//------------------------------------------------------------------------------
+atone(freq) = _ <: _ - tone(freq);
+//process = no.pink_noise : atone(1000);

@@ -1,0 +1,145 @@
+declare name "SEAM Filters - Library";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare author "Luca Spanedda";
+declare author "Davide Tedesco";
+declare license "CC3";
+//
+import("seam.lib");
+//================================================================== FILTERS ===
+//==============================================================================
+sfi = library("seam.filters.lib");
+// https://www.dsprelated.com/showarticle/182.php
+// > eavga is a two-multiply exponential averager
+// > eavgb is a one-multiply exponential averager
+// The “app” subscript in Eq. (1) stands for approximation
+aapp(fc) = 1-pow(ma.E, 0-sma.omega(fc));
+// process = aapp(24000);
+// acor not works below 4Hz at 96KHz
+acor(fc) = cos(sma.omega(fc))-1+sqrt(sma.cosq(sma.omega(fc))-4*cos(sma.omega(fc))+3);
+// process = acor(24000);
+//----------------------------------------------------- EXPONENTIAL AVERAGER ---
+//------------------------------------------------------------- TWO MULTIPLY ---
+eavg2(a,x) = x*(a) : +~*(1-a);
+// process = os.impulse : eavg2(0.5);
+// process = os.impulse : eavg2(aapp(6000));
+//------------------------------------------------------------- ONE MULTIPLY ---
+eavg1(a,x) = (x+_ : *(a) : +~_)~(0-_);
+// process = os.impulse : eavg1(0.5);
+// process = os.impulse <: eavg(0.5), eavg1(0.5);
+//------------------------------------------------- LOW PASS ONE POLE FILTER ---
+lp1p(hz,x) = eavg1(aapp(hz),x);
+// process = no.pink_noise : lp1p(7);
+lp1pc(hz,x) = eavg1(acor(hz),x);
+// process = no.noise <: lp1p(10), lp1pc(10);
+//--------------------------------------------------------- HIGH PASS FILTER ---
+hp1a(fc,x) = x-(lp1p(fc,x));
+// process = no.pink_noise : hp1a(10000);
+//------------------------------------------ COMPUTER MUSIC TUTORIAL ALLPASS ---
+cmtap(t,g) = (+ <: de.delay(ma.SR,t-1),*(-g))~ *(g) : mem,_ : +;
+// process = os.impulse : cmtap(1,1/sqrt(2));
+//
+//-------------------------------------------------------- DC BLOCKER AT 5Hz ---
+dcblock(x) = x <: (x-seq(i,4,lp1p(5)));
+//process = 1 : dcblock;
+//
+//------------------------------------------ ALL-PASS FILTER COEF CALCULATOR ---
+//
+// REFERENCES:
+// https://www.dsprelated.com/showcode/182.php
+//
+// 1st order allpass fstretchingilters shift the phase by 180 degrees, while
+// the 2nd order shifts the phase by 360 degrees. The "center frequency" of
+// Fc defines where the phase response should be halfway to the max shift.
+//
+// Bilinear transform
+// g(fc) = tan(ma.PI*(fc/ma.SR));
+//
+ap2coeff(fc,q) = g(fc), b0(fc,q), b1(fc,q), b2, a1(fc,q), a2(fc,q)
+with{
+  g(fc) = sma.w(fc);
+  d(q)  = 1/q;
+  k(fc,q)  = 1/(1 + (d(q)*g(fc)) + (g(fc)*g(fc)));
+  b0(fc,q) = (1 - (g(fc)*d(q)) + (g(fc)*g(fc))) * k(fc,q);
+  b1(fc,q) = 2 * ((g(fc)*g(fc)) - 1) * k(fc,q);
+  b2 = 1;
+  a1 = b1;
+  a2 = b0;
+};
+// process = ap2coeff(24000,1);
+ap1coeff(fc,q) = g(fc), b0(fc), b1, b2, a1(fc), a2
+with{
+ g(fc) = sma.w(fc);
+ b0(fc) = (g(fc)-1)/(g(fc)+1);
+ b1 = 1;
+ b2 = 0;
+ a1 = b0;
+ a2 = 0;
+};
+// process = ap1coeff(24000,1);
+//
+//----------------- Vadim Zavalishin's TOPOLOGY PRESERVING TRANSFORM FILTERS ---
+// TPT version of the One Pole and SVF Filter by Vadim Zavalishin
+// reference : (by Will Pirkle)
+// http://www.willpirkle.com/Downloads/AN-4VirtualAnalogFilters.2.0.pdf
+// OnePoleTPT filter function
+onePoleTPT(cf, x) = loop ~ _ : ! , si.bus(3)
+    with {
+        g = tan(cf * ma.PI * (1/ma.SR));
+        G = g / (1.0 + g);
+        loop(s) = u , lp , hp , ap
+            with {
+                v = (x - s) * G;
+                u = v + lp;
+                lp = v + s;
+                hp = x - lp;
+                ap = lp - hp;
+            };
+    };
+// process = no.pink_noise : onePoleTPT(1000);
+LPTPT(cf, x) = onePoleTPT(cf, x) : (_ , ! , !);
+// process = no.pink_noise : LPTPT(1000);
+HPTPT(cf, x) = onePoleTPT(cf, x) : (! , _ , !);
+//process = no.pink_noise : HPTPT(1000);
+
+// SVFTPT filter function
+SVFTPT(K, Q, CF, x) = circuitout : !,!,_,_,_,_,_,_,_,_
+    with{
+        g = tan(CF * ma.PI / ma.SR);
+        R = 1.0 / (2.0 * Q);
+        G1 = 1.0 / (1.0 + 2.0 * R * g + g * g);
+        G2 = 2.0 * R + g;
+
+        circuit(s1, s2) = u1 , u2 , lp , hp , bp, notch, apf, ubp, peak, bshelf
+            with{
+                hp = (x - s1 * G2 - s2) * G1;
+                v1 = hp * g;
+                bp = s1 + v1;
+                v2 = bp * g;
+                lp = s2 + v2;
+                u1 = v1 + bp;
+                u2 = v2 + lp;
+                notch = x - ((2*R)*bp);
+                apf = x - ((4*R)*bp);
+                ubp = ((2*R)*bp);
+                peak = lp -hp;
+                bshelf = x + (((2*K)*R)*bp);
+            };
+    // choose the output from the SVF Filter (ex. bshelf)
+    circuitout = circuit ~ si.bus(2);
+    };
+
+// Outs = (lp , hp , bp, notch, apf, ubp, peak, bshelf)
+// SVFTPT(K, Q, CF, x) = (Filter-K, Filter-Q, Frequency Cut)
+
+// outs Filters Bank
+LPTPTsvf(K, Q, CF, x) = SVFTPT(K, Q, CF, x) : _,!,!,!,!,!,!,!;
+HPTPTsvf(K, Q, CF, x) = SVFTPT(K, Q, CF, x) : !,_,!,!,!,!,!,!;
+// with bandwidth
+BPTPTsvf(K, BW, CF, x) = SVFTPT(K, Q, CF, x*(BW/CF)) : !,!,_,!,!,!,!,!
+    with{
+        Q = CF / BW;
+        };
+// TEST
+//import("stdfaust.lib");
+//process = no.noise : BPTPTsvf(0, 1, 10000);

@@ -1,0 +1,17 @@
+declare name "SEAM NLD - Library";
+declare version "0.2";
+declare author "Giuseppe Silvi";
+declare license "CC3";
+//
+import("seam.lib");
+//==================================================== NON-LINEAR DISTORSION ===
+//==============================================================================
+snl = library("seam.nld.lib");
+//---------------------------------------------------------------- SOFT CLIP ---
+softclip(x) = x <: dist1, dist2, dist3 :> _;
+    dist1(x) = (x <= -1) * (-2/3);
+    dist2(x) = (x >= -1) * (x <= 1) * (x-x^3/3);
+    dist3(x) = (x >= 1) * (2/3);
+// process = os.osc(1000) : softclip;
+//--------------------------------------------------------------------- TANH ---
+// process = os.osc(100)*10 <: aa.tanh1,ma.tanh;

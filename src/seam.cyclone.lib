@@ -1,0 +1,82 @@
+declare name "CYclone Faust Library";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare license "CC4";
+//
+import("seam.lib");
+//=================================================== MAX MSP AND GEN~ CLONE ===
+//==============================================================================
+scy = library("seam.cyclone.lib");
+//-------------------------------------------------------- CLIP TO MIN ~ MAX ---
+clip(a,b,x) = x : max(a) : min(b);
+// process = clip(-0.7,0.7, os.osc(200));
+//----------------------------------------------------------------- onepole~ ---
+onepole(fc) = *(a) : +~*(ac)
+with{
+    a= sin(abs(fc)*2*ma.PI/ma.SR) : clip(0,1);
+    ac = 1-a;
+};
+//--------------------------------------------------------- CROSSOVER.gendsp ---
+// A crossover shelf filter that sums to an allpass. This cross over filter
+// should have equal phase response. It is useful when used in a spatializer,
+// to not distort the final image.
+//------------------------------------------------------------------------------
+crossover(freq) = _ <: low,hi
+with{
+	f2rad = (freq*2*ma.PI)/ma.SR;
+	// filter coefficients
+	ffc = (sin(f2rad)-1) / cos(f2rad); // 1st
+	sfc = (ffc+1)/2; // 2nd
+	b1(x) = loop~_ : *(ffc), _ : +
+	  with{loop = _ <: *(ffc), _ : x-_,_;};
+	b2(x) = loop~_ : !,_
+	  with{loop = _ <: x-_,_ : *(sfc),_ <:_,!,_+_ <: +,!,_ ;};
+    hi = _<:b1-low;
+    low = b2:b2;
+};
+// process = no.pink_noise : crossover(600);
+//----------------------------------------------------------- BIQUAD~.gendsp ---
+biquad(a0,a1,a2,b1,b2) = _ <:
+  @(2)*(a2), @(1)*(a1), *(a0) :> _ :
+  ma.sub~(_ <: *(b1), @(1)*(b2) :> _);
+// process = biquad;
+//-------------------------------------------------------------- GEN allpass ---
+//----------------------------------------------------- II order coeffcients ---
+apcoef(cf,Q)   =   a0,a1,a2,b1,b2
+with{
+    twopi   =   2*ma.PI;
+    omega = cf * twopi/ma.SR;
+    sn = sin(omega);
+    cs = cos(omega);
+    alpha = sn * (0.5)/Q;
+
+    b0 = 1./(1.+alpha);
+    b1 = (-2.*cs)*b0;
+    a1 = b1;
+    a0 = (1.-alpha)*b0;
+    b2 = a0;
+    a2 = 1.0;
+};
+//-------------------------------------------------- II order allpass filter ---
+apf(cf,Q)=    _,apcoef(cf,Q) : biquad;
+//----------------------------------------------------------------- hilbert~ ---
+//----------------------------------------------------------------- VI order ---
+hr  =   apf(374.1,0.1093) : apf(666.8,0.4210) : apf(17551,0.5750);
+hi  =   apf(35.61,0.2571) : apf(3723,0.3464) : apf(6786,0.1200);
+hilbert =   _<: hr,hi; // coefficients by Alessio Mastrorillo
+
+delta(x) = x-x'; // Signal of sample differences
+stepcounter = ba.time;
+peakamp(t) = ba.peakholder(ba.sec2samp(t));
+
+
+// fixdenorm : This operator detects denormal numbers and replaces them with zero.
+// Note: As of Max 6.0 the x87 control flags are set to flush to zero and disable
+// exception handling in audio processing, so denormal fixing should only be
+// required for exported code. A denormal number is a floating point value very
+// close to zero (filling the underflow gap). Calculations with denormal values
+// can be up to 100 times more expensive, so it is often beneficial to replace
+// them with zeroes. Denormals often occur in feedback loops with multipliers,
+// such as filters, delays and exponential decays. Denormal detection is based
+// on a bitmask. Note that feedback operators in gen~ (delay, history) apply
+// fixdenorm to their input signals by default.

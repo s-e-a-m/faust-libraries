@@ -1,0 +1,46 @@
+declare name "SEAM Basic - Library";
+declare version "0.2";
+declare author "Giuseppe Silvi";
+declare license "CC3";
+//
+import("seam.lib");
+//========================================================== BASIC FUNCTIONS ===
+//==============================================================================
+sba = library("seam.basic.lib");
+//---------------------------------------------------------- SWEEP FUNCTIONS ---
+//----------------------------------------- FAUST BASIC FUNCTION SWEEP FIXES ---
+// It truly counts from 0 to (p*t)-1
+sweep(p,t) = p : %(int(*(t):max(1)))~+(1');
+// process = sweep(1,10);
+//----------------------------------------------- LINEAR SWEEP UP TO NYQUIST ---
+lsweep(sec,t) = (ma.SR/2) : %(int(*(t):max(1)))~+((1/sec)');
+// process = lsweep(0.01,1);
+//------------------------------------------------------ ZERO PADDING SWEEP  ---
+zsweep(p) = (sweep((p*2+1),1)<(p)) : sweep(p);
+// process = zsweep(10);
+//----------------------------------------- ONE SAMPLE PULSE @ ZERO CROSSING ---
+zerox(x) = (x'<0) & (x>=0);
+// process = os.osc(1000) <: _, zerox;
+//----------------------------------------------------------- LIST FUNCTIONS ---
+//------------------------------------------------- GENERATE A DOWNWARD LIST ---
+revlist(n) = par(i,n,(n)-i);
+// process = revlist(23);
+//-------------------------------------------------------------------- SCALE ---
+//--------------------------------------------------------- SC SCALE LINENAR ---
+scalel(a,b,c,d,x) = ((x-a)/(b-a))*(d-c);
+// process = os.osc(1000) : scalel(-1,1,0,1);
+//-------------------------------------------------------------------- LOGIC ---
+//-------------------------------------------------------- VST INPUT MANAGER ---
+vstin(y,n) = si.bus(y),si.block(n);
+//process = vstin(1,3);
+//------------------------------------------------------------ LAZY OPERATOR ---
+mille = os.osc(1000);
+//process = mille;
+cento = os.osc(100);
+//process = cento;
+la = os.osc(440);
+//process = la;
+rosa = no.pink_noise;
+//process = rosa;
+nyq = ma.SR/2;
+//process = nyq;

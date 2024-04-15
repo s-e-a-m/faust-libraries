@@ -1,0 +1,75 @@
+declare name "SEAM Analyzers - Library";
+declare version "0.2";
+declare author "Giuseppe Silvi";
+declare license "CC3";
+//
+import("seam.lib");
+//================================================================ ANALYZERS ===
+//==============================================================================
+san = library("seam.analyzers.lib");
+//--------------------------------------------------------------- PEAK METERS --
+pvmeter(x) = attach(x,
+  an.amp_follower(0.150, x) : ba.linear2db :
+  vbargraph("[90][unit:dB]", -70, +6)
+  );
+// process = os.osc(1000)*ba.db2linear(-7) : pvmeter;
+//
+phmeter(x) = attach(x,
+  an.amp_follower(0.150, x) : ba.linear2db :
+  hbargraph("[90][unit:dB]", -70, +6)
+  );
+// process = os.osc(1000)*ba.db2linear(-7) : phmeter;
+//
+//---------------------------------------------------- SOUND LEVEL WEIGHTING ---
+//--------------------------------------------------- ANSI S1.43-1997 - 2007 ---
+//---------------------------------------------- AMERICAN NATIONAL STANDARDS ---
+//--------------------- SPECIFICATIONS FOR INTEGRATING-AVERAGING SOUND LEVEL ---
+// https://en.wikipedia.org/wiki/A-weighting
+// https://github.com/s-e-a-m/References/blob/master/aavv/ansi.s1.43.1997.pdf
+//
+//-------------------------------------------------------------- FREQUENCIES ---
+awf1 = 20.598997;
+awf2 = 107.65265;
+awf3 = 737.86223;
+awf4 = 12194.22;
+awf5 = 158.48932;
+//-------------------------------------- SCALE FACTORS TO HAVE 0dB at 1000Hz ---
+C1000 = 0.0619;
+B1000 = 0.1696;
+A1000 = 1.9997;
+//--------------------------------------------------------- A WEIGHTING OF f ---
+aweight(f) = 20*log10(
+  (awf4^2*f^4) /
+  ((f^2+awf1^2) * sqrt((f^2+awf2^2) * (f^2+awf3^2)) * (f^2+awf4^2))
+  ) +(A1000);
+//process = aweight(100);
+//--------------------------------------------------------- B WEIGHTING OF f ---
+bweight(f) = 20*log10(
+             (awf4^2*f^3) /
+             ((f^2+awf1^2) * (f^2+awf4^2) * sqrt((f^2+awf5^2)))
+             ) +(B1000);
+//process = bweight(100);
+//--------------------------------------------------------- C WEIGHTING OF f ---
+cweight(f) = 20*log10(
+             (awf4^2*f^2) /
+             ((f^2+awf1^2) * (f^2+awf4^2))
+             ) +(C1000);
+//process = cweight(1000);
+//--------------------------------------------------------- PITCH TRACKER ---
+// From faust documentation
+upt(a,x) = a*ma.SR / max(M,1) - a * ma.SR * (M == 0)
+with{
+  // positive zero crossing
+  xcr = (x' < 0) & (x >= 0);
+  // counts of crossing
+  xcnt = +(xcr)~ %(int(a));
+  // windows of counts
+  wnd = xcr & (xcnt == a);
+  // counting samples inside windows
+  N = (+(1) : *(1 - wnd)) ~ _;
+  // sample and hold the number of cycles
+  M = ba.sAndH(N == 0, N' + 1);
+};
+//a = hslider("n cycles", 1, 1, 100, 1);
+ptrack(a,x) = x : fi.dcblockerat(80) : (fi.lowpass(1) : upt(a)) ~ max(100);
+//process = os.osc(1000) : ptrack(10);

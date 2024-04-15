@@ -1,0 +1,78 @@
+declare name "SEAM Math - Library";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare license "CC3";
+//
+import("seam.lib");
+//=========================================================== MATH FUNCTIONS ===
+//==============================================================================
+sma = library("seam.math.lib");
+//----------------------------------------------------------------------- PI ---
+//----------------------------------------------- QUAD PRECISION 81 DECIMALS ---
+PIq = 3.14159265358979323846264338327950288419716939937510582097494459230781640;
+// process = PIq;
+PIc = atan(1)*4;
+// process = PIc;
+twoPI = 2*ma.PI;
+// process = twoPI;
+//-------------------------------------------------------------------- OMEGA ---
+omega(fc) = fc*twoPI/ma.SR;
+// process = omega(24000);
+//------------------------------------------------------- BILINEAR TRANSFORM ---
+w(fc) = tan(ma.PI*fc/ma.SR/2);
+// process = w(24000);
+//------------------------------------------------------------ SIN^2 - COS^2 ---
+cosq(x) = cos(x)*cos(x);
+// process = cosq(ma.PI);
+sinq(x) = sin(x)*sin(x);
+// process = sinq(3/2*ma.PI);
+//======================================================== POLAR | CARTESIAN ===
+//==============================================================================
+// https://en.wikipedia.org/wiki/Inverse_trigonometric_functions
+// https://en.wikipedia.org/wiki/Spherical_coordinate_system
+// https://en.wikipedia.org/wiki/Atan2
+//------------------------------------------------------- DEGREES TO RADIANS ---
+d2r(d) = d*(ma.PI/180);
+// process = d2r(0);
+//------------------------------------------------------- RADIANS TO DEGREES ---
+r2d(r) = r/ma.PI*180;
+// process = r2d(0);
+//--------------------------------------------------------- AED TO CARTESIAN ---
+aed2xyz(a,e,d) = cx(a,e,d), cy(a,e,d), cz(a,e,d)
+with{
+  cx(a,e,d) = d*(cos(a)*cos(e));
+  cy(a,e,d) = d*(sin(a)*cos(e));
+  cz(a,e,d) = d*(sin(e));
+};
+// process = aed2xyz(0,0,1);
+//--------------------------------------------------------- CARTESIAN TO AED ---
+xyz2aed(x,y,z) = a(x,y),e(x,y,z),d(x,y,z)
+with{
+  a(x,y)   = atan2(y,x);
+  e(x,y,z) = atan2(sqrt(x^2+y^2),z);
+  d(x,y,z) = sqrt(x^2+y^2+z^2);
+};
+// process = xyz2aed(1,1,1) : r2d, r2d, _;
+//---------------------------------------------------------------------- PHI ---
+phi(x) = x*(1+(sqrt(5)))/2;
+// process = phi(1);
+//
+// reciprocal o the golden ratio
+rphi(x) = x*(sqrt(5)-1)/2;
+// process = rphi(1);
+//
+// phi progression
+srphi(0,x) = x;
+srphi(i,x) = rphi(x) : srphi(i-1);
+// process = par(i,16,srphi(i,sba.nyq));
+//--------------------------------------------------------------- FACTORIALS ---
+factorial(0) = 1;
+factorial(i) = i * factorial(i-1);
+// permutazioni possibili senza ricorsioni
+permutation(k,n) = factorial(k)/factorial(n);
+//----------------------------------------------------------- SPEED OF SOUND ---
+esos = 344; // exterior
+isos = 331.4; // interior
+//-------------------------------------------------------- METERS TO SAMPLES ---
+emt2samp(mt) = int(mt*ma.SR/esos);
+imt2samp(mt) = int(mt*ma.SR/isos);
