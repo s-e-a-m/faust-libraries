@@ -1,0 +1,25 @@
+declare name "SEAM Stereophony - Library";
+declare version "0.2";
+declare author "Giuseppe Silvi";
+declare license "CC3";
+//
+import("seam.lib");
+//========================================================== BASIC FUNCTIONS ===
+//==============================================================================
+sst = library("seam.stereophony.lib");
+//------------------------------------------------ SUM AND DIFFERENCE MATRIX ---
+//--------------------------------------- NORMALIZED SUM BETWEEN TWO SIGNALS ---
+nsum(x,y) = (x+y)/sqrt(2);
+//-------------------------------- NORMALIZED DIFFERENCE BETWEEN TWO SIGNALS ---
+ndif(x,y) = (x-y)/sqrt(2);
+//--------------------------------------------------------- LR <-> MS MATRIX ---
+sdmx(x,y) = nsum(x,y), ndif(x,y);
+sdmxw(p) = sdmx : *(1-p), *(p);
+//
+//-------------------------------------------------------------------- MSPAN ---
+mspan(p,rad,x) = x <: m, s
+  with{
+    m(x) = x*(p) + (x*(1-p)*(cos(rad)));
+    s(x) = x*(sin(rad));
+};
+// process = os.osc(1000) : mspan(0.5,ma.PI/2);

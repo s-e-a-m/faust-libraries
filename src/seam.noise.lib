@@ -1,0 +1,12 @@
+declare name "SEAM noises - Library";
+declare version "0.2";
+declare author "Giuseppe Silvi";
+declare license "CC3";
+//
+import("seam.lib");
+//======================================== MULTICHANNEL PINK NOISE GENERATOR ===
+//==============================================================================
+sno = library("seam.noises.lib");
+//
+multipink(N,g) = no.multinoise(N) : par(i,N,no.pink_filter : *(g));
+// process = multipink(4,0.5);

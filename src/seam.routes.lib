@@ -1,3 +1,13 @@
+declare name "SEAM Routes - Library";
+declare version "0.2";
+declare author "Giuseppe Silvi";
+declare license "CC3";
+//
+import("seam.lib");
+//========================================================= ROUTES FUNCTIONS ===
+//==============================================================================
+sro = library("seam.routes.lib");
+//
 matrix(IN,OUT) = xy(IN,OUT)
   with{
     switch(nin) = checkbox("IN %3inn") : si.smoo
@@ -10,10 +20,9 @@ matrix(IN,OUT) = xy(IN,OUT)
     };
     xy(IN,OUT) = vgroup("Matrix %IN x %OUT", par(in, IN, _) <: par(out, OUT, outrow(IN, out)));
 };
-
 //process = no.pink_noise, os.osc(1000) <: matrix(4, 4);
-
-matrix(IN,OUT) = (si.bus(2*IN) :> si.bus(IN) : xy(IN,OUT)) ~ (feedback(OUT))
+//
+matrixfbk(IN,OUT) = (si.bus(2*IN) :> si.bus(IN) : xy(IN,OUT)) ~ (feedback(OUT))
   with{
     feedback(OUT) = si.bus(OUT): *(0),*(0),*(0),*(0),*(0);
     switch(IN) = checkbox("IN %3inn") : si.smoo
@@ -26,4 +35,4 @@ matrix(IN,OUT) = (si.bus(2*IN) :> si.bus(IN) : xy(IN,OUT)) ~ (feedback(OUT))
     };
     xy(IN,OUT) = vgroup("Matrix %IN x %OUT", par(in, IN, _) <: par(out, OUT, outrow(IN, out)));
 };
-//process = matrix(5,5);
+//process = matrixfbk(5,5);

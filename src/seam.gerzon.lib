@@ -1,0 +1,214 @@
+declare name "Michael Gerzon - Library";
+declare version "0.2";
+declare author "Giuseppe Silvi";
+declare license "CC3";
+//
+import("seam.lib");
+//=============================================== MICHAEL GERZON EARLY WORKS ===
+//==============================================================================
+smg = library("seam.gerzon.lib");
+//--------------------------------------------------------------------- 1970 ---
+//--------- SURROUND SOUND FROM 2-CHANNEL STEREO - SUM-AND-DIFFERENCE LAYOUT ---
+//
+// https://github.com/s-e-a-m/References/blob/master/Gerzon-Michael 1970-GERZON-Surround_sound_from_2-channel_stereo_A4.pdf
+// https://github.com/s-e-a-m/References/blob/master/Gerzon-Michael/1971-GERZON-A_year_of_surround_sound_A4.pdf
+//
+//         F
+//      •  |  •
+//   •     |     •
+// L ----- + ----- R
+//   •     |     •
+//      •  |  •
+//         B
+// ```
+//
+lrfb(L,R) = L,R,F,B
+  with{
+    F = (L+R)/sqrt(2);
+    B = (L-R)/sqrt(2);
+};
+//process = sno.multipink(2,0.5) : lrfb;
+//
+//--------------------------------------------------------------------- 1970 ---
+//-------------- SURROUND SOUND FROM 2-CHANNEL STEREO - IDEAL LS ARRANGEMENT ---
+//
+// https://github.com/s-e-a-m/References/blob/master/Gerzon-Michael/1970-GERZON-Surround_sound_from_2-channel_stereo_A4.pdf
+// https://github.com/s-e-a-m/References/blob/master/Gerzon-Michael/1971-GERZON-A_year_of_surround_sound_A4.pdf
+//
+//  B ---------- C
+//  |            |
+//  |            |
+//  |            |
+//  |            |
+//  A ---------- D
+//
+lrsurrls(L,R) = B,C,A,D
+  with{
+    A = L*(0.924) - R*(0.383);
+    B = L*(0.924) + R*(0.383);
+    C = L*(0.383) + R*(0.924);
+    D = L*(-0.383) + R*(0.924);
+};
+// process = sno.multipink(2,0.5) : lrsurrls;
+//
+//------------------------------------------ 1971 - A YEAR OF SURROUND SOUND ---
+// https://github.com/s-e-a-m/References/blob/master/Gerzon-Michael/1970-GERZON-A_year_of_surround_sound_A4.pdf
+//
+//  L ---------- R
+//  |            |
+//  |            |
+//  |            |
+//  |            |
+//  kL -------- kR
+//
+lrsurrrs(k,L,R) = L,R,kL(k),kR(k)
+  with{
+    kc(k) = max(0.5,min(1,k));
+    kL(k) = (kc(k)*L)-((1-kc(k))*R);
+    kR(k) = (kc(k)*R)-((1-kc(k))*L);
+};
+//process = sno.multipink(2,0.5) : lrsurrrs(1);
+//
+//--------------------------------------------------------------- AMBISONICS ---
+//----------------------------------------------------------------- ABMODULE ---
+//--------------------------------------- GENERIC AB MODULE WITHOUT SHELVING ---
+//
+// https://www.michaelgerzonphotos.org.uk/articles/Ambisonics%202.pdf
+//
+abmodule(LFU,RFD,RBU,LBD) = W,X,Y,Z
+	with{
+    W = 0.5 * (LFU + RFD + RBU + LBD);
+	  X = 0.5 * (LFU + RFD - RBU - LBD);
+	  Y = 0.5 * (LFU - RFD - RBU + LBD);
+	  Z = 0.5 * (LFU - RFD + RBU - LBD);
+};
+// process = sno.multipink(4,0.5) : abmodule;
+//
+//----------------------------------------------------------------- BAMODULE ---
+//--------------------------------------- GENERIC BA MODULE WITHOUT SHELVING ---
+//
+bamodule(W,X,Y,Z) = LFU,RFD,RBU,LBD
+  with{
+	  LFU = 0.5 * (W + X + Y + Z);
+	  RFD = 0.5 * (W + X - Y - Z);
+	  RBU = 0.5 * (W - X - Y + Z);
+    LBD = 0.5 * (W - X + Y - Z);
+};
+// process = sno.multipink(4,0.5) : bamodule;
+//
+//----------------------------------------------------------------- ENCODERS ---
+//------------------------------------- MONO TO FIRST ORDER B-FORMAT ENCODER ---
+//
+// 1975 - Ambisonics. Part two: Studio techniques. Reproduced from Studio Sound, Vol. 17, pp 24-26, 28, 40 (August 1975)
+// 1983-gerzon-ambisonic-in-multichannel-broadcasting-and-video.pdf
+// 1985-gerzon-ambisonic-in-multichannel-broadcasting-and-video
+//
+m2bfmt(a,e,m) = w(m), x(a,e,m), y(a,e,m), z(e,m)
+  with{
+    w(m) = m*(1/sqrt(2));
+    x(a,e,m) = m*cos(a)*cos(e);
+    y(a,e,m) = m*sin(a)*cos(e);
+    z(e,m) = m*sin(e);
+};
+// process = os.osc(1000) : m2bfmt(sma.d2r(45),sma.d2r(45));
+//
+//---------------------------------------------------------------------- UHJ ---
+//-------------------------------------------------------------------- UTILS ---
+//
+j = fi.pospass(32, 35) : *(2), !;
+//
+//----------------------------------------------------- B-FORMAT TO UHJ LRTQ ---
+//
+// https://en.wikipedia.org/wiki/Ambisonic_UHJ_format
+//
+bfmt2uhj(W,X,Y,Z) = L,R,T,Q
+  with{
+    S = (0.9396926*W) + (0.1855740*X);
+    D = j((-0.3420201 * W) + (0.5098604 * X)) + (0.6554516 * Y);
+    L = (S + D)/2;
+    R = (S - D)/2;
+    T = j((-0.1432 * W) + (0.6512 * X)) - (0.7071 * Y);
+    Q = 0.9772 * Z
+    ;
+};
+// process = bfmt2uhj;
+//
+//---------------------------------------- FOUR CHANNEL LRTQ UHJ TO B-FORMAT ---
+//
+// 1983-gerzon-ambisonic-in-multichannel-broadcasting-and-video
+//
+uhj2bfmt(L,R,T,Q) = W(L,R,T),X(L,R,T),Y(L,R,T),Z(Q)
+  with{
+    W(L,R,T) = (0.982*sst.nsum(L,R)) + j(0.197*((0.828*sst.ndif(L,R))+(0.768*T)));
+    X(L,R,T) = (0.419*sst.nsum(L,R)) - j(0.828*(sst.ndif(L,R)+(0.768*T)));
+    Y(L,R,T) = j(0.187*sst.nsum(L,R)) + ((0.796*sst.ndif(L,R))-(0.676*T));
+    Z(Q) = 1.023*Q;
+};
+// process = uhj2bfmt;
+//
+//---------------------------------------------- FIRST ORDER B-FORMAT ROTATE ---
+//
+brotate(a,e,W,X,Y,Z) = W1,X1,Y1,Z1
+  with{
+    W1 = W;
+    X1 = (X*cos(a))-(Y*sin(e));
+    Y1 = (Y*cos(a))-(X*sin(e));
+    Z1 = Z;
+};
+// process = brotate(16,23);
+//
+//----------------------------------------------------- THREE CHANNEL STEREO ---
+//
+// Three channel pan-pot with low frequency phase correlation
+//
+// [Studio Sound, June 1990](http://www.audiosignal.co.uk/Resources/Three_channels_A4.pdf)
+//
+lrcpan(pot,x) = l,r,c
+  with{
+    plr = (pot) + (0.5);
+    l = x*((1 - (plr)) * (pot) * (-2.0));
+    c = x*(cos(pot*ma.PI));
+    r = x*((plr) * (pot) * (2.0));
+};
+//process = lrcpan(0.5);
+//
+//------------------------------------------------------------------------------
+//-------------------------------------------------------------- FDN REVERBS ---
+//------------------------------------------------------------------------------
+// GERZON FDN 1
+mgfdn1(d,fb) = (+ : de.delay(ma.SR/2,d-1))~*(fb) : mem;
+// process = os.impulse : mgfdn1(1,0.45);
+//
+mgfdn2(d1,d2,fb) = (+ <: de.delay(ma.SR/2,d1-1) +
+                         de.delay(ma.SR/2,d2-1))~*(fb) : mem;
+// process = os.impulse : mgfdn2(1,2,0.45);
+
+mgfdn3(d1,d2,fb1,fb2,a11,a12,a21,a22) = (
+    delays(d1,d2) : matrix(a11,a12,a21,a22))~fdbk(fb1,fb2) : mem, mem
+with {
+    routing(a,b,c,d) = a+c,b+d;
+    delays(d1,d2) = routing : de.delay(ma.SR/2,d1-1), de.delay(ma.SR/2,d2-1);
+    matrix(a11,a12,a21,a22) = _,_<: *(a11) + *(a12), *(a21) + *(a22);
+    fdbk(fb1,fb2) = *(fb1), *(fb2);
+};
+//process = os.impulse <: mgfdn3(1,2,0.5,0.5,0.9,-0.5,-0.5,0.9);
+//
+mgfdn3o(d1,d2,fb1,fb2,theta) = (delays(d1,d2) : matrix(theta))~fdbk : mem, mem
+with {
+    routing(a,b,c,d) = a+c,b+d;
+    delays(d1,d2) = routing : de.delay(ma.SR/2,d1-1), de.delay(ma.SR/2,d2-1);
+    matrix(theta) = _,_<: *(cos(theta)) - *(sin(theta)),
+                          *(sin(theta)) + *(cos(theta));
+    fdbk = *(fb1), *(fb2);
+};
+//process = os.impulse <: mgfdn3o(1009,2579,0.4,0.4,ma.PI/2);
+//
+mgfdn4(d1,d2,d3,d4,fb1,fb2,fb3,fb4) = (delays : matrix)~fdbk
+with {
+    routing(a,b,c,d,e,f,g,h) = a+e,b+f,c+g,d+h;
+    delays = routing : de.delay(ma.SR/2,d1-1), de.delay(ma.SR/2,d2-1),
+                       de.delay(ma.SR/2,d3-1), de.delay(ma.SR/2,d4-1);
+    matrix = ro.hadamard(4);
+    fdbk = *(fb1), *(fb2), *(fb3), *(fb4);
+};
+// process = os.impulse <: mgfdn4(13,17,21,8209,0.1,0.2,0.3,0.5) :> _,_;
