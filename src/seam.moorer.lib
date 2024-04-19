@@ -6,7 +6,7 @@ declare license "CC3";
 import("seam.lib");
 //========================================================= MOORER FUNCTIONS ===
 //==============================================================================
-smo = library("seam.moorer.lib");
+sjm = library("seam.moorer.lib");
 //------------------------------------------------------- all-pass fig. 1(a) ---
 //apf(t,g,x) = (x+_ : *(-) <: _+x,_ : @(t-1),_)~(0-_) : +; // ir sbagliato
 //apf(t,g,x) = (x+_ : *(-g) <: _+x,_ : @(t-1),_)~(0-_) : mem+_; // ir corretto

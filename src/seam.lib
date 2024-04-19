@@ -11,23 +11,22 @@ sba = library("seam.basic.lib");
 sma = library("seam.math.lib");
 sfi = library("seam.filters.lib");
 sre = library("seam.reverbs.lib");
-
+sno = library("seam.noises.lib");
 // ### michael gerzon and general ambisonic teory
-smg = library("seam.gerzon.lib");
 sam = library("seam.ambisonic.lib");
-
 // ### stereophony and perception
 sst = library("seam.stereophony.lib");
 shr = library("seam.hrtf.lib");
-
 // ### CSound and MaxMsp object cloning
 scs = library("seam.csound.lib");
 scy = library("seam.cyclone.lib");
-
 // ### author specific literature
+sds = library("seam.discipio.lib");
+smg = library("seam.gerzon.lib");
 sln = library("seam.nono.lib");
 sgn = library("seam.nottoli.lib");
-sds = library("seam.discipio.lib");
+sjm = library("seam.moorer.lib");
+sms = library("seam.schroeder.lib");
 
 // ### live electronics stuff
 sgu = library("seam.gui.lib");
@@ -36,5 +35,3 @@ smx = library("seam.mixer.lib");
 
 // ### instrument specific literature
 svc = library("seam.vcs3.lib");
-
-als = library("allseam.lib");
