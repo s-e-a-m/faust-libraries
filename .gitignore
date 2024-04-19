@@ -6,7 +6,7 @@ _appunti
 *.m
 *.eps
 *.jpg
-*.pdf
+#*.pdf
 *.cpp
 #*-svg/
 
