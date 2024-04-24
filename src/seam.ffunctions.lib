@@ -1,0 +1,12 @@
+declare name "SEAM Filters - Foreign Functions";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare license "CC3";
+//
+import("seam.lib");
+//================================================================== FILTERS ===
+//==============================================================================
+sff = library("seam.ffunctions.lib");
+
+// next prime
+np = ffunction(int next_pr(int), "nextprime.h","");

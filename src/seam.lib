@@ -28,6 +28,8 @@ smg = library("seam.gerzon.lib");
 sjm = library("seam.moorer.lib");
 sms = library("seam.schroeder.lib");
 
+sff = library("seam.ffunctions.lib");
+
 // ### live electronics stuff
 // sgu = library("seam.gui.lib");
 // shw = library("seam.hardware.lib");
