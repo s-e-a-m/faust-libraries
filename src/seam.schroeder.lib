@@ -6,7 +6,7 @@ declare author "Giuseppe Silvi";
 declare author "Francesco Vitucci";
 declare license "CC3";
 //
-import("stdfaust.lib");
+import("seam.lib");
 //============= SCHROEDER - NATURAL SOUNDING ARTIFICIAL REVERBERATION - 1962 ===
 //==============================================================================
 sms = library("seam.schroeder.lib");
@@ -50,10 +50,12 @@ t60(t,g) = (60/(-20*log10(g)))*t;
 // advisable to use incommensurate delay ratios rather than the round number 3.
 ied5 = apf(5507,1/sqrt(2)) : apf(1831,1/sqrt(2)) : apf(613,1/sqrt(2)) : apf(199,1/sqrt(2)) : apf(67,1/sqrt(2));
 //process = os.impulse : ied5;
+apfn(N,t,g) = seq(i,N,apf(ba.take(i+1,t),g));
+//process = os.impulse <: apfn(9,(spn.p3t),1/sqrt(2));
 //
 //---------- MIXING OF DIRECTSOUND AND REVERBERATION - NON-EXPONENTIAL DECAY ---
 mdrned(t,g) = _ <: *(-g)+(((+ : de.delay(ma.SR/2, int(t-1)) : ied5)~*(g) : mem)*(1-(g*g)));
-process = os.impulse : mdrned(1,1/sqrt(2));
+//process = os.impulse : mdrned(1,1/sqrt(2));
 //
 //------------------------------------------------- THE COMB FILTER APPROACH ---
 // The values of the delays t1 through t4 are spread [...] between 30 and 45 ms
