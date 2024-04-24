@@ -6,7 +6,7 @@ declare author "Giuseppe Silvi";
 declare author "Francesco Vitucci";
 declare license "CC3";
 //
-import("seam.lib");
+import("stdfaust.lib");
 //============= SCHROEDER - NATURAL SOUNDING ARTIFICIAL REVERBERATION - 1962 ===
 //==============================================================================
 sms = library("seam.schroeder.lib");
@@ -22,6 +22,10 @@ dflc(t,g) = (+ : @(t-1))~*(g) : mem;
 dflcv(md,t,g) = (+ : de.delay(md, int(t-1)))~*(g) : mem;
 //process = os.impulse : dflcv(ma.SR,1,1/sqrt(2));
 //
+//------------------------ SLIDING DELAY FEEDBACK IN LOOP - FIXED - VARIABLE ---
+dflcvs(md,t,g) = (+ : de.sdelay(md, int(t-1)))~*(g) : mem;
+//process = ba.pulsen(1,ma.SR/3) : dflcvs(ma.SR,2+os.osc(10),1/sqrt(2));
+//
 //------------------------------------------------ SCHROEDER ALL-PASS FILTER ---
 apf(t,g) = _ <: *(-g)+(dflc(t,g)*(1-(g*g)));
 //process = os.impulse : apf(1,1/sqrt(2));
@@ -33,7 +37,7 @@ apfv(md,t,g) = _ <: *(-g)+(dflcv(md,t,g)*(1-(g*g)));
 // For a feedback loop with open loop gain g, the sound level decay by
 // -20*log(g) decibels for every trip around the feedback loop. Since every
 // round trip takes t second, the time for a 60dB decay is
-msT60(t,g) = (60/(-20*log10(g)))*t;
+t60(t,g) = (60/(-20*log10(g)))*t;
 //process = msT60(0.1,1/sqrt(2)); // 2 seconds
 //
 //------------------------------------------------- INCREASE OF ECHO DENSITY ---
@@ -47,10 +51,8 @@ msT60(t,g) = (60/(-20*log10(g)))*t;
 ied5 = apf(5507,1/sqrt(2)) : apf(1831,1/sqrt(2)) : apf(613,1/sqrt(2)) : apf(199,1/sqrt(2)) : apf(67,1/sqrt(2));
 //process = os.impulse : ied5;
 //
-ied8 = apf(5507,1/sqrt(2)) : apf(1831,1/sqrt(2)) : apf(613,1/sqrt(2)) : apf(199,1/sqrt(2)) : apf(67,1/sqrt(2)) : apf(23,1/sqrt(2)) : apf(7,1/sqrt(2)) : apf(2,1/sqrt(2));
-//process = os.impulse : ied8;
-//
 //---------- MIXING OF DIRECTSOUND AND REVERBERATION - NON-EXPONENTIAL DECAY ---
+//da rifare scompattando dflr
 dflr(t,g) = (+ : de.delay(ma.SR/2, int(t-1)) : ied5)~*(g) : mem;
 //process = os.impulse : dflr(1,1/sqrt(2));
 aprdw(t,g) = _ <: *(-g)+(dflr(t,g)*(1-(g*g)));
