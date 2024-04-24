@@ -72,17 +72,20 @@ mdrned(t,g) = _ <: *(-g)+(((+ : de.delay(ma.SR/2, int(t-1)) : ied5)~*(g) : mem)*
 //------------------------------------------------- THE COMB FILTER APPROACH ---
 // The values of the delays t1 through t4 are spread [...] between 30 and 45 ms
 // here in prime numbers at 48KHz from 1440 to 2160 samples.
-schrev = _ <: // to 4 parallel comb
-  dflc(1447,0.812),
-  dflc(1721,0.78),
-  dflc(1873,0.76),
-  dflc(2161,0.74) :>
-  apf(83,0.7) : apf(229,0.7);
+dflapf = _ <: // to 4 parallel comb
+  dflc(673,0.89),
+  dflc(1447,0.78),
+  dflc(1811,0.74),
+  dflc(2111,0.63) :>
+  apf(173,1/sqrt(2)) : apf(229,1/sqrt(2));
   // components in reverse order
-  revsch = apf(83,0.7) : apf(229,0.7) <: // two allpass to 4 comb
-    dflc(1447,0.812), dflc(1721,0.78), dflc(1873,0.76), dflc(2161,0.74);
+apfdfl = apf(173,1/sqrt(2)) : apf(229,1/sqrt(2)) <: // two allpass to 4 comb
+  dflc(673,0.89),
+  dflc(1447,0.78),
+  dflc(1811,0.74),
+  dflc(2111,0.63);
   // commutability test
-//process = os.impulse <: schrev, (revsch :> _);
+//process = ba.pulse(ma.SR*5) <: dflapf,(apfdfl :> _);
 //
 //----------------------------------- FREQUENCY-DEPENDENT REVERBERATION TIME ---
 // If it is desired to make the reverberation time a function of frequency, the
