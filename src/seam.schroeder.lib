@@ -52,11 +52,8 @@ ied5 = apf(5507,1/sqrt(2)) : apf(1831,1/sqrt(2)) : apf(613,1/sqrt(2)) : apf(199,
 //process = os.impulse : ied5;
 //
 //---------- MIXING OF DIRECTSOUND AND REVERBERATION - NON-EXPONENTIAL DECAY ---
-//da rifare scompattando dflr
-dflr(t,g) = (+ : de.delay(ma.SR/2, int(t-1)) : ied5)~*(g) : mem;
-//process = os.impulse : dflr(1,1/sqrt(2));
-aprdw(t,g) = _ <: *(-g)+(dflr(t,g)*(1-(g*g)));
-//process = os.impulse : aprdw(1,1/sqrt(2));
+mdrned(t,g) = _ <: *(-g)+(((+ : de.delay(ma.SR/2, int(t-1)) : ied5)~*(g) : mem)*(1-(g*g)));
+process = os.impulse : mdrned(1,1/sqrt(2));
 //
 //------------------------------------------------- THE COMB FILTER APPROACH ---
 // The values of the delays t1 through t4 are spread [...] between 30 and 45 ms
