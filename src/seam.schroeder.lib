@@ -22,28 +22,12 @@ dflc(t,g) = (+ : @(t-1))~*(g) : mem;
 dflcv(md,t,g) = (+ : de.delay(md, int(t-1)))~*(g) : mem;
 //process = os.impulse : dflcv(ma.SR,1,1/sqrt(2));
 //
-//------------------------- SMOOTH DELAY FEEDBACK IN LOOP - FIXED - VARIABLE ---
-dflcvs(md,it,t,g) = (+ : de.sdelay(md,it,int(t-1)))~*(g) : mem;
-/*
-process = ba.pulsen(1,ma.SR/3) : dflcvs(ma.SR,256,tmod(1000,250,0.4),1/sqrt(2))
-with{
-    tmod(t,r,f) = t+os.osc(f)*r;
-};
-*/
-//
 //------------------------------------------------ SCHROEDER ALL-PASS FILTER ---
 apf(t,g) = _ <: *(-g)+(dflc(t,g)*(1-(g*g)));
 //process = os.impulse : apf(1,1/sqrt(2));
 //
 apfv(md,t,g) = _ <: *(-g)+(dflcv(md,t,g)*(1-(g*g)));
 //process = os.impulse : apfv(ma.SR,1,1/sqrt(2));
-//
-//------------------------- SMOOTH DELAY FEEDBACK IN LOOP - FIXED - VARIABLE ---
-apfvs(md,it,t,g) = _ <: *(-g)+(dflcvs(md,it,t,g)*(1-(g*g)));
-process = ba.pulsen(1,ma.SR/3) : apfvs(ma.SR,256,tmod(3500,200,1),os.osc(0.1))
-with{
-    tmod(t,r,f) = t+os.osc(f)*r;
-};
 //
 //---------------------------------------------------------------------- T60 ---
 // For a feedback loop with open loop gain g, the sound level decay by
@@ -60,7 +44,11 @@ t60(t,g) = (60/(-20*log10(g)))*t;
 // density will be 810 per second which is sufficiently close to the required
 // 1000 per second. To avoid echo cancellation and superposition, it is
 // advisable to use incommensurate delay ratios rather than the round number 3.
-ied5 = apf(5507,1/sqrt(2)) : apf(1831,1/sqrt(2)) : apf(613,1/sqrt(2)) : apf(199,1/sqrt(2)) : apf(67,1/sqrt(2));
+ied5 = apf(5507,1/sqrt(2)) :
+       apf(1831,1/sqrt(2)) :
+       apf(613,1/sqrt(2))  :
+       apf(199,1/sqrt(2))  :
+       apf(67,1/sqrt(2));
 //process = os.impulse : ied5;
 apfn(N,t,g) = seq(i,N,apf(ba.take(i+1,t),g));
 //process = os.impulse <: apfn(9,(spn.p3t),1/sqrt(2));

@@ -4,9 +4,13 @@ declare author "Giuseppe Silvi";
 declare license "CC3";
 //
 import("seam.lib");
-//======================================== MULTICHANNEL PINK NOISE GENERATOR ===
+//=================================================================== NOISES ===
 //==============================================================================
 sno = library("seam.noises.lib");
-//
+//---------------------------------------- MULTICHANNEL PINK NOISE GENERATOR ---
 multipink(N,g) = no.multinoise(N) : par(i,N,no.pink_filter : *(g));
 // process = multipink(4,0.5);
+//
+rndw(f,imin,imax,omin,omax) = no.pink_noise :
+                              sfi.lp1p(f) : sba.scalel(imin,imax,omin,omax);
+//process = rndw(1,-0.01,0.01,0,1);
