@@ -5,15 +5,19 @@ declare author "Anthony Di Furia";
 declare author "Giuseppe Silvi";
 declare author "Francesco Vitucci";
 declare license "CC3";
-//
+
 import("seam.lib");
+
+//==============================================================================
 //============= SCHROEDER - NATURAL SOUNDING ARTIFICIAL REVERBERATION - 1962 ===
 //==============================================================================
+
 sms = library("seam.schroeder.lib");
+
 //--------------------------------------------------- DELAY FEEDBACK IN LOOP ---
 dfl(t,g) = (+ : @(t))~*(g);
 //process = os.impulse : dfl(1,1/sqrt(2));
-//
+
 //------------------------------------------- DELAY FEEDBACK IN LOOP - FIXED ---
 dflc(t,g) = (+ : @(t-1))~*(g) : mem;
 //process = os.impulse : dflc(1,1/sqrt(2));
