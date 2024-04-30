@@ -42,14 +42,10 @@ apfv(md,t,g) = _ <: *(-g)+(dflcv(md,t,g)*(1-(g*g)));
 t60(t,g) = (60/(-20*log10(g)))*t;
 //process = msT60(0.1,1/sqrt(2)); // 2 seconds
 
-
 //------------------------------------------------- INCREASE OF ECHO DENSITY ---
 // direct implementation of five all-pass in serie.
-ied5 = apf(5507,1/sqrt(2)) :
-  apf(1831,1/sqrt(2)) :
-  apf(613,1/sqrt(2))  :
-  apf(199,1/sqrt(2))  :
-  apf(67,1/sqrt(2));
+ied5 = apf(5507,1/sqrt(2)) : apf(1831,1/sqrt(2)) : apf(613,1/sqrt(2)) :
+       apf(199,1/sqrt(2)) : apf(67,1/sqrt(2));
 //process = os.impulse : ied5;
 
 // same as ied5 with variable times
@@ -57,29 +53,18 @@ apfn(N,md,t,g) = seq(i,N,apfv(md,ba.take(i+1,t),g));
 //process = os.impulse <: apfn(9,(spn.p3t),1/sqrt(2));
 
 //---------- MIXING OF DIRECTSOUND AND REVERBERATION - NON-EXPONENTIAL DECAY ---
-mdrned(t,g) = _ <: *(-g)+(
-  ((+ : de.delay(ma.SR/2, int(t-1)) : ied5)~*(g) : mem)*(1-(g*g))
-);
+mdrned(t,g) = _ <: *(-g)+(((+ : de.delay(ma.SR/2, int(t-1)) : ied5)~*(g) : mem)*(1-(g*g)));
 //process = os.impulse : mdrned(1,1/sqrt(2));
 
 //------------------------------------------------- THE COMB FILTER APPROACH ---
 // The values of the delays t1 through t4 are spread [...] between 30 and 45 ms
 // here in prime numbers at 48KHz from 1440 to 2160 samples.
-dflapf = _ <:
-  dflc(673,0.89), dflc(1447,0.78), dflc(1811,0.74), dflc(2111,0.63) :>
-  apf(173,1/sqrt(2)) : apf(229,1/sqrt(2));
-  // components in reverse order
+dflapf = _ <: dflc(673,0.89), dflc(1447,0.78), dflc(1811,0.74), dflc(2111,0.63) :>
+              apf(173,1/sqrt(2)) : apf(229,1/sqrt(2));
+// components in reverse order
 apfdfl = apf(173,1/sqrt(2)) : apf(229,1/sqrt(2)) <:
   dflc(673,0.89), dflc(1447,0.78), dflc(1811,0.74), dflc(2111,0.63);
-  // commutability test
-//process = ba.pulse(ma.SR*5) <: dflapf,(apfdfl :> _);
 
 //----------------------------------- FREQUENCY-DEPENDENT REVERBERATION TIME ---
 dflf(t,g,fc) = (+ : de.delay(ma.SR/2, int(t-1)))~scy.onepole(fc)*(g) : mem;
 //process = os.impulse : dflf(1,1/sqrt(2),1000);
-
-schfdrevt = _ <:
-  dflf(1447,0.812,5000), dflf(1721,0.78,4000),
-  dflf(1873,0.76,3000), dflf(2161,0.74,2000) :>
-  apf(83,0.7) : apf(229,0.7);
-//process = os.impulse : schfdrevt;
