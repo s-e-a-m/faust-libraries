@@ -66,9 +66,8 @@ apfdfl = apf(173,1/sqrt(2)) : apf(229,1/sqrt(2)) <:
   dflc(673,0.89), dflc(1447,0.78), dflc(1811,0.74), dflc(2111,0.63);
 
 //----------------------------------- FREQUENCY-DEPENDENT REVERBERATION TIME ---
-//dflf(t,g,fc) = (+ : de.delay(ma.SR/2, int(t-1)))~scy.onepole(fc)*(g) : mem;
 dflf(md,t,g,d) = (+ : de.delay(md,t-1))~sfi.eavg2(d)*(g) : mem;
-//process = os.impulse : dflf(1,1/sqrt(2),1000);
+//process = os.impulse : dflf(ma.SR,1,1/sqrt(2),0.9);
 
 //------------------------------------------------ AMBIOPHONIC-REVERBERATION ---
 //--- nested all-pass ----------------------------------------------------------
