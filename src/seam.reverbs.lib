@@ -1,0 +1,26 @@
+declare name "SEAM Reverbs - Library";
+declare version "0.2";
+declare author "Daniele Annese";
+declare author "Anthony Di Furia";
+declare author "Giuseppe Silvi";
+declare author "Francesco Vitucci";
+declare license "CC3";
+
+import("seam.lib");
+
+//==============================================================================
+//============= SCHROEDER - NATURAL SOUNDING ARTIFICIAL REVERBERATION - 1962 ===
+//==============================================================================
+
+sre = library("seam.reverbs.lib");
+
+//------------------------------------------------------------ T60 EQUATIONS ---
+tau(t60,g) = (-20*log10(abs(g))*t60)/60;
+gain(t60,t) = 10^((60*t)/(-20*t60));
+//----------------------------------------------------------- OLD SAMPLERATE ---
+jcSR = 25000;
+imSR = 25000;
+jdSR = 29761;
+//------------------------------------- OLD Samplerate to Current Samplerate ---
+adaptSR(oldSR,samples) = samples * ma.SR / oldSR;
+//process = adaptSR(oldSR,101);

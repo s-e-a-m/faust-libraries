@@ -10,7 +10,7 @@ san = library("seam.analyzers.lib");
 sba = library("seam.basic.lib");
 sma = library("seam.math.lib");
 sfi = library("seam.filters.lib");
-// sre = library("seam.reverbs.lib");
+sre = library("seam.reverbs.lib");
 sno = library("seam.noises.lib");
 // ### general ambisonic teory
 // sam = library("seam.ambisonic.lib");
