@@ -49,8 +49,8 @@ ied5 = apf(5507,1/sqrt(2)) : apf(1831,1/sqrt(2)) : apf(613,1/sqrt(2)) :
 //process = os.impulse : ied5;
 
 // same as ied5 with variable times
-apfn(N,md,t,g) = seq(i,N,apfv(md,ba.take(i+1,t),g));
-//process = os.impulse <: apfn(9,(spn.p3t),1/sqrt(2));
+apfs(N,md,t,g) = seq(i,N,apfv(md,ba.take(i+1,t),g));
+//process = os.impulse <: apfs(9,(spn.p3t),1/sqrt(2));
 
 //---------- MIXING OF DIRECTSOUND AND REVERBERATION - NON-EXPONENTIAL DECAY ---
 mdrned(t,g) = _ <: *(-g)+(((+ : de.delay(ma.SR/2, int(t-1)) : ied5)~*(g) : mem)*(1-(g*g)));
@@ -68,3 +68,13 @@ apfdfl = apf(173,1/sqrt(2)) : apf(229,1/sqrt(2)) <:
 //----------------------------------- FREQUENCY-DEPENDENT REVERBERATION TIME ---
 dflf(t,g,fc) = (+ : de.delay(ma.SR/2, int(t-1)))~scy.onepole(fc)*(g) : mem;
 //process = os.impulse : dflf(1,1/sqrt(2),1000);
+
+//------------------------------------------------ AMBIOPHONIC-REVERBERATION ---
+//--- nested all-pass ----------------------------------------------------------
+apfn(0,t,g) = _;
+apfn(1,t,g) = apf(t,g);
+apfn(n,t,g) = apf(t,g) <: _,apfn(n-1,t,g);
+//process = os.impulse : apfn(32,1,1/sqrt(2));
+//--- matrix - crossing section at input to reorder outputs --------------------
+matrix = ro.cross(4), si.bus(4) : par(i,8, apfn(2,1,1/sqrt(2)));
+//process = os.impulse : apf(173,1/sqrt(2)) : apf(229,1/sqrt(2)) <: dflc(673,0.89), dflc(1447,0.78), dflc(1811,0.74), dflc(2111,0.63) <: par(i,4,_,0-_) : matrix;
