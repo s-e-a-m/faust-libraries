@@ -1,10 +1,90 @@
+declare name "SEAM Dattorro - Library";
+declare version "0.2";
+declare author "Daniele Annese";
+declare author "Anthony Di Furia";
+declare author "Giuseppe Silvi";
+declare author "Francesco Vitucci";
+declare license "CC3";
+
 import("seam.lib");
-
-// funzione per l'adattamento dei valori
+//==============================================================================
+//============= SCHROEDER - NATURAL SOUNDING ARTIFICIAL REVERBERATION - 1962 ===
+//==============================================================================
+//
+//------------------------------------------------------ SAMPLE RATE ADAPTER ---
+//--- jdSR = 29761 TO ACTUAL SAMPLERATE ----------------------------------------
 adapt(val) = sre.adaptSR(sre.jdSR,val);
-
-/*SLIDER-----------------------------------------------*/
-
+//process = adapt(4217);
+//
+//----------------------------------------------------- TWO MULTIPLY ALLPASS ---
+//--- TO OBTAIN SCHROEDER'S IR INVERT g
+//--- FIXED t
+apf2m(t,g,x) = (x+_ <: @(max(0,t-1)),*(g))~(*(-g)) : mem+_;
+//process = os.impulse : apf2m(1,1/sqrt(2));
+//
+//------------------------------------ TWO MULTIPLY ALLPASS WITH 2 EXTRA TAP ---
+//--- FIXED t
+apf2m2tap(t,tap1,tap2,g,x) = (x+_ <:
+  @(max(0,t-1)),*(g),@(tap1),@(tap2))~(*(-g)) : mem+_,_,_;
+//process = os.impulse : apf2m2tap(2656,1913,335,1/sqrt(2));
+//
+//------------------------------------ TWO MULTIPLY ALLPASS MODULATING DELAY ---
+//--- VARIABLE t
+apf2mex(t,g,ex,x) = (x+_ <:
+  de.sdelay(ma.SR,512,(t-1)+(oscS*ex)),*(-g))~(*(g)) : mem+_;
+//process = ba.pulsen(1,ma.SR/50) : apf2mex(adapt(908),ddiff1,exui);
+//
+//---------------------------------------------------------- INPUT DIFFUSION ---
+inputDiffusion = +/2 : de.delay(mymax, pdly) :
+  sfi.eavg2(bw) :
+  apf2m(adapt(142),idif1) :
+  apf2m(adapt(107),idif1) :
+  apf2m(adapt(379),idif2) :
+  apf2m(adapt(277),idif2);
+//process = ba.pulsen(1,ma.SR/3) <: inputDiffusion;
+//
+//------------------------------------------------------------------- R TANK ---
+r = apf2mex(adapt(908),ddiff1,exui) <:
+  (@(adapt(4217)) : sfi.eavg2(damp) : *(decay) :
+  apf2m2tap(adapt(2656),adapt(1913),adapt(335),ddiff2) : (_ <:
+    @(adapt(3163)),
+    @(adapt(1996)),
+    @(adapt(121))),_,_),
+    @(adapt(266)),
+    @(adapt(2974)),
+    @(adapt(2111));
+//process = ba.pulsen(1,ma.SR/3) : r;
+//
+//------------------------------------------------------------------- L TANK ---
+l = apf2mex(adapt(672),ddiff1,exui) <:
+  (@(adapt(4453)) : sfi.eavg2(damp) : *(decay) :
+  apf2m2tap(adapt(1800),adapt(187),adapt(1228),ddiff2) : (_ <:
+    @(adapt(3720)),
+    @(adapt(1066)),
+    @(adapt(2673))),_,_),
+    @(adapt(353)),
+    @(adapt(3627)),
+    @(adapt(1990));
+//process = ba.pulsen(1,ma.SR/3) : l;
+//process = ba.pulsen(1,ma.SR/3) <: l,r;
+//
+//------------------------------------------------------------ COMPLETE TANK ---
+tank = _ <:
+  (ro.cross(2),si.bus(2) :> l,r :
+  _,ro.crossNM(7,1),si.bus(7))~(par(i,2,*(decay))) : si.block(2),si.bus(14);
+//process = ba.pulsen(1,ma.SR/3) <: tank;
+//
+//---------------------------------------------------------- TAP ACCUMULATOR ---
+accumulator = route(14,4,
+                   (12,1),(13,1),(8,1),(10,2),(7,2),(3,2),(1,2), // LEFT
+                   (5,3),(6,3),(2,3),(4,4),(14,4),(11,4),(9,4)) // RIGHT
+                   : -*(0.6),-*(0.6);
+//process = accumulator;
+//
+//------------------------------------------------- COMPLETE DATTORRO DESIGN ---
+//process = dattorro;
+//
+//-------------------------------------------------------- UTILITIES GUI ECC ---
 mymax = 96000;
 pdly = vslider("[0]preDelay", 0, 0, mymax, 1); //si può impostare SR
 decay = vslider("[1]decay", 0.5, 0, 0.99999, 0.00001) : si.smoo;
@@ -20,49 +100,5 @@ exgroup(x) = hgroup("[6]Excursion", x);
 oscRadio = exgroup(vslider("Osc[style:radio{'Sine':0;'Tri':1;'Sqare':2}]",0, 0, 2, 1));
 oscS = select3(oscRadio,os.osc(0.07),os.triangle(0.07),os.square(0.07));
 exui = exgroup(vslider("Amp", 16, 0, 100, 0.001));
-dattorro = hgroup("Dattorro Reverb",
-            inputDiffusion : tank : tap : accumulator);
-
-/*FILTRI-----------------------------------------------*/
-//lp1p(a) = _*(a) : +~*(1-a);
-//apf(idif, t) = (+ <: de.delay(mymax, t),*(idif) : _,_)~*(-idif) : mem,_ : +;
-//process = os.impulse <: apf(1/sqrt(2),1),sjm.apf(1,1/sqrt(2));
-
-//apf2(idif, t) = (ma.sub <: (de.delay(mymax, t) <: _,_,_),*(idif) : *(idif),_,+)~_ : !,_,_;
-apf3(t,g,x) = (x+_ : *(-g) <: _+x, _ : del(t-1),_)~(0-_) : mx
-with{
-    del(t,x) = de.delay(ma.SR,t,x),x;
-    mx(a,b,c) = b,mem(a),mem(a)+c;
-};
-//process = os.impulse <: apf2(1/sqrt(2),2656), apf2o(2656,1/sqrt(2)),sjm.apf(2656,1/sqrt(2));
-
-apfm(idif, t, ex) = (+ : (*(idif) <: de.sdelay(mymax, 512, t+(oscS*ex)), _))~*(idif) : -;
-
-/*-----------------------------------------------------*/
-
-inputDiffusion = +/2 : de.delay(mymax, pdly) : sfi.eavg2(bw) : sjm.apf(adapt(142),idif1) : sjm.apf(adapt(107),idif1) : sjm.apf(adapt(379),idif2) : sjm.apf(adapt(277),idif2);
-//process = os.impulse <: inputDiffusion;
-
-r = apfm(ddiff1, adapt(908), exui) <: _, (de.delay(mymax, adapt(4217)) : sfi.eavg2(damp) : *(decay) : apf3(adapt(2656),ddiff2) : _,_, de.delay(mymax, adapt(3163)));
-//process = r;
-
-l = apfm(ddiff1, adapt(672), exui) <: _, (de.delay(mymax, adapt(4453)) : sfi.eavg2(damp) : *(decay) : apf3(adapt(1800),ddiff2) : _,_, de.delay(mymax, adapt(3720)));
-//process = l;
-//process = l,r;
-
-//tank = _ <: (ro.cross(2),_,_ : _,ro.cross(2),_ : +,+ : r,l : mat)~(_*(decay),_*(decay)) : !,!,_,_,_,_,_,_;
-tank = (ro.cross(2),si.bus(2) :> (l : ro.crossNM(3,1)), r : _, ro.crossNM(6,1))~(par(i,2,*(decay)));
-process = _ <: tank;
-
-mat = route(8,8,(1,3),(2,4),(3,5),(4,1),(5,6),(6,7),(7,8),(8,2));
-
-tap = (_<: de.delay(mymax,adapt(266)),de.delay(mymax,adapt(2974)),de.delay(mymax,adapt(2111))),
-(_ <: de.delay(mymax,adapt(1913)),de.delay(mymax,adapt(335))),
-(_ <: de.delay(mymax,adapt(1996)),de.delay(mymax,adapt(121))),
-(_ <: de.delay(mymax,adapt(1990)),de.delay(mymax,adapt(353)),de.delay(mymax,adapt(3627))),
-(_ <: de.delay(mymax,adapt(187)),de.delay(mymax,adapt(1228))),
-(_ <: de.delay(mymax,adapt(1066)),de.delay(mymax,adapt(2673)));
-
-accumulator = route(14,4,(1,3),(2,3),(3,2),(4,4),(5,2),(6,3),(7,2),(8,4),(9,1),(10,1),(11,4),(12,2),(13,4),(14,1)) : par(i,4,*(0.6)) : -,- : ro.cross(2);
-
-//process = dattorro;
+//
+dattorro = hgroup("Dattorro Reverb", inputDiffusion : tank : accumulator);

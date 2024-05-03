@@ -35,8 +35,8 @@ lp1pc(hz,x) = eavg1(acor(hz),x);
 //--------------------------------------------------------- HIGH PASS FILTER ---
 hp1a(fc,x) = x-(lp1p(fc,x));
 // process = no.pink_noise : hp1a(10000);
-//------------------------------------------ COMPUTER MUSIC TUTORIAL ALLPASS ---
-cmtap(t,g) = (+ <: de.delay(ma.SR,t-1),*(-g))~ *(g) : mem,_ : +;
+//----------------------------------------------------- TWO MULTIPLY ALLPASS ---
+apf2(md,t,g) = (+ <: de.delay(md,t-1),*(-g))~ *(g) : mem,_ : +;
 // process = os.impulse : cmtap(1,1/sqrt(2));
 //
 //-------------------------------------------------------- DC BLOCKER AT 5Hz ---
