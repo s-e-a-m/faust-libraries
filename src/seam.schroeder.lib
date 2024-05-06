@@ -14,7 +14,7 @@ import("seam.lib");
 
 sms = library("seam.schroeder.lib");
 
-//--------------------------------------------------- DELAY FEEDBACK IN LOOP ---
+//=================================================== DELAY FEEDBACK IN LOOP ---
 // direct implementation, bad impulse response
 dfl(t,g) = (+ : @(t))~*(g);
 //process = os.impulse : dfl(1,1/sqrt(2));
@@ -29,52 +29,62 @@ dflc(t,g) = (+ : @(t-1))~*(g) : mem;
 dflcv(md,t,g) = (+ : de.delay(md, int(t-1)))~*(g) : mem;
 //process = os.impulse : dflcv(ma.SR,1,1/sqrt(2));
 
-//------------------------------------------------ SCHROEDER ALL-PASS FILTER ---
+//========================================================== ALL-PASS FILTER ===
 apf(t,g) = _ <: *(-g)+(dflc(t,g)*(1-(g*g)));
 //process = os.impulse : apf(1,1/sqrt(2));
 
-//------------------------------------- SCHROEDER ALL-PASS FILTER - VARIABLE ---
+//----------------------------------------------- ALL-PASS FILTER - VARIABLE ---
 // runtime variable delay - max del required
 apfv(md,t,g) = _ <: *(-g)+(dflcv(md,t,g)*(1-(g*g)));
 //process = os.impulse : apfv(ma.SR,1,1/sqrt(2));
 
-//---------------------------------------------------------------------- T60 ---
+//====================================================================== T60 ===
 t60(t,g) = (60/(-20*log10(g)))*t;
 //process = msT60(0.1,1/sqrt(2)); // 2 seconds
 
-//------------------------------------------------- INCREASE OF ECHO DENSITY ---
+//================================================= INCREASE OF ECHO DENSITY ===
 // direct implementation of five all-pass in serie.
 ied5 = apf(5507,1/sqrt(2)) : apf(1831,1/sqrt(2)) : apf(613,1/sqrt(2)) :
        apf(199,1/sqrt(2)) : apf(67,1/sqrt(2));
 //process = os.impulse : ied5;
 
-// same as ied5 with variable times
+//----------------------------- INCREASE OF ECHO DENSITY WITH VARIABLE TIMES ---
 apfs(N,md,t,g) = seq(i,N,apfv(md,ba.take(i+1,t),g));
 //process = os.impulse <: apfs(9,(spn.p3t),1/sqrt(2));
 
-//---------- MIXING OF DIRECTSOUND AND REVERBERATION - NON-EXPONENTIAL DECAY ---
-mdrned(t,g) = _ <: *(-g)+(((+ : de.delay(ma.SR/2, int(t-1)) : ied5)~*(g) : mem)*(1-(g*g)));
+//------------------------ INCREASE OF ECHO DENSITY WITH NEXT PRIME FUNCTION ---
+// N = order
+// t = smallest t
+// m = base for m^i => step (3 for 1/3 ratio)
+apfnp(md,t,m) = seq(i,8,sms.apfv(md,t*m^i : max(sff.np,1), 1/sqrt(2-(i/10))));
+//process = os.impulse : apfnp(ma.SR,2,3);
+
+//========== MIXING OF DIRECTSOUND AND REVERBERATION - NON-EXPONENTIAL DECAY ===
+mdrned(t,g) = _ <: *(-g)+(((+ : de.delay(ma.SR/2, int(t-1)) : apfnp)~*(g) : mem)*(1-(g*g)));
 //process = os.impulse : mdrned(1,1/sqrt(2));
 
-//------------------------------------------------- THE COMB FILTER APPROACH ---
-// The values of the delays t1 through t4 are spread [...] between 30 and 45 ms
-// here in prime numbers at 48KHz from 1440 to 2160 samples.
+//================================================= THE COMB FILTER APPROACH ===
 dflapf = _ <: dflc(673,0.89), dflc(1447,0.78), dflc(1811,0.74), dflc(2111,0.63) :>
               apf(173,1/sqrt(2)) : apf(229,1/sqrt(2));
-// components in reverse order
+
 apfdfl = apf(173,1/sqrt(2)) : apf(229,1/sqrt(2)) <:
   dflc(673,0.89), dflc(1447,0.78), dflc(1811,0.74), dflc(2111,0.63);
 
-//----------------------------------- FREQUENCY-DEPENDENT REVERBERATION TIME ---
+//=================================== FREQUENCY-DEPENDENT REVERBERATION TIME ===
 dflf(md,t,g,d) = (+ : de.delay(md,t-1))~sfi.eavg2(d)*(g) : mem;
 //process = os.impulse : dflf(ma.SR,1,1/sqrt(2),0.9);
 
-//------------------------------------------------ AMBIOPHONIC-REVERBERATION ---
-//--- nested all-pass ----------------------------------------------------------
+//================================================ AMBIOPHONIC-REVERBERATION ===
+//---------------------------------------------------------- NESTED ALL-PASS ---
 apfn(0,t,g) = _;
 apfn(1,t,g) = apf(t,g);
 apfn(n,t,g) = apf(t,g) <: _,apfn(n-1,t,g);
 //process = os.impulse : apfn(32,1,1/sqrt(2));
-//--- matrix - crossing section at input to reorder outputs --------------------
+
+//------------------------------------------------------------------- MATRIX ---
 matrix = ro.cross(4), si.bus(4) : par(i,8, apfn(2,1,1/sqrt(2)));
-//process = os.impulse : apf(173,1/sqrt(2)) : apf(229,1/sqrt(2)) <: dflc(673,0.89), dflc(1447,0.78), dflc(1811,0.74), dflc(2111,0.63) <: par(i,4,_,0-_) : matrix;
+
+//-------------------------------------------- 16 CH AMBIOPHONIC REV EXAMPLE ---
+//process = os.impulse : apf(173,1/sqrt(2)) : apf(229,1/sqrt(2)) <:
+//  dflc(673,0.89), dflc(1447,0.78), dflc(1811,0.74), dflc(2111,0.63) <:
+//  par(i,4,_,0-_) : matrix;
