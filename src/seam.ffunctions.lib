@@ -9,4 +9,4 @@ import("seam.lib");
 sff = library("seam.ffunctions.lib");
 
 // next prime
-np = ffunction(int next_pr(int), "nextprime.h","");
+np = ffunction(int next_pr(int), "../h/nextprime.h","");
