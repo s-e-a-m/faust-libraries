@@ -66,4 +66,4 @@ par(i,ba.count(clbcf),lbcf(adapt(ba.take(i+1,clbcf)+stsp),roomsize,damp))
 //=================================================== Adapted Freeverb (LR) ===
 adaptedFreeverb(roomsize,damp,stsp) =
 hgroup("Freeverb",_ <: adaptedFreeverbL(roomsize,damp),adaptedFreeverbR(roomsize,damp,stsp) : *(0.5),*(0.5));
-process = adaptedFreeverb(12,0.5,0.1);
+//process = adaptedFreeverb(0.75,1,12);
