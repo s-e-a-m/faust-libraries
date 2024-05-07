@@ -86,6 +86,6 @@ apfn(n,t,g) = apf(t,g) <: _,apfn(n-1,t,g);
 matrix = ro.cross(4), si.bus(4) : par(i,8, apfn(2,1,1/sqrt(2)));
 
 //-------------------------------------------- 16 CH AMBIOPHONIC REV EXAMPLE ---
-//process = os.impulse : apf(173,1/sqrt(2)) : apf(229,1/sqrt(2)) <:
-//  dflc(673,0.89), dflc(1447,0.78), dflc(1811,0.74), dflc(2111,0.63) <:
-//  par(i,4,_,0-_) : matrix;
+ambiorev =  apf(173,1/sqrt(2)) : apf(229,1/sqrt(2)) <:
+ dflc(673,0.89), dflc(1447,0.78), dflc(1811,0.74), dflc(2111,0.63) <:
+ par(i,4,_,0-_) : matrix;
