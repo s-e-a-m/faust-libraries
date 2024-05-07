@@ -27,6 +27,7 @@ smg = library("seam.gerzon.lib");
 // sgn = library("seam.nottoli.lib");
 sjm = library("seam.moorer.lib");
 sms = library("seam.schroeder.lib");
+sfv = library("seam.freeverb.lib");
 
 sff = library("seam.ffunctions.lib");
 

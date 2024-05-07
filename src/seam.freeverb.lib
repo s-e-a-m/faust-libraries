@@ -1,0 +1,69 @@
+declare name "SEAM Freeverb - Library";
+declare version "0.2";
+declare author "Daniele Annese";
+declare author "Anthony Di Furia";
+declare author "Giuseppe Silvi";
+declare author "Francesco Vitucci";
+declare license "CC3";
+
+import("seam.lib");
+
+//==============================================================================
+//================================================================= FREEVERB ===
+//==============================================================================
+//
+sfv = library("seam.freeverb.lib");
+//
+//------------------------------------------------------ SAMPLE RATE ADAPTER ---
+//--- fvSR = 44100 TO ACTUAL SAMPLERATE ----------------------------------------
+adapt(val) = sre.adaptSR(sre.fvSR,val);
+//process = adapt(341);
+//
+//================================ Low-Pass Feedback Comb Filter with filter ===
+lbcf(dl,fb,dmp) = (+ : de.delay(ma.SR,dl))~sfi.eavg2(dmp)*(fb);
+//process = lbcf(1557,0.9,0.5);
+//
+//========================================================= All-Pass Filter ===
+//apf(t,f) = (+ <: de.delay(ma.SR, t),*(f))~*(-f) : mem,_ : +;
+apf(t,f) = sfi.apf2(ma.SR,t,-f);
+//process = apf(225,1/sqrt(2));
+//
+//=================================== Low-Pass Feedback Comb Filter Samples ===
+clbcf = (1557,1617,1491,1422,1277,1356,1188,1116);
+//
+//============================================ All-Pass Filter Coefficients ===
+capf = (225,556,441,341);
+//
+//================================================= Freeverb (Left Channel) ===
+freeverbL(roomsize,damp) = _ <:
+par(i,ba.count(clbcf),lbcf(ba.take(i+1,clbcf),roomsize,damp))
+:> seq(i,ba.count(capf),apf(ba.take(i+1,capf),0.5));
+//process = freeverbL(12,0.5);
+
+//================================================ Freeverb (Right Channel) ===
+freeverbR(roomsize,damp,stsp) = _ <:
+par(i,ba.count(clbcf),lbcf(ba.take(i+1,clbcf)+stsp,roomsize,damp))
+:> seq(i,ba.count(capf),apf(ba.take(i+1,capf)+stsp,0.5));
+//process = freeverbR(12,0.5,0.1);
+
+//=========================================================== Freeverb (LR) ===
+freeverb(roomsize,damp,stsp) =
+hgroup("Freeverb",_ <: freeverbL(roomsize,damp),freeverbR(roomsize,damp,stsp) : *(0.5),*(0.5));
+//process = freeverb(12,0.5,0.1);
+
+//========================================= Adapted Freeverb (Left Channel) ===
+adaptedFreeverbL(roomsize,damp) = _ <:
+par(i,ba.count(clbcf),lbcf(adapt(ba.take(i+1,clbcf)),roomsize,damp))
+:> seq(i,ba.count(capf),apf(adapt(ba.take(i+1,capf)),0.5));
+//process = adaptedFreeverbL(12,0.5);
+
+//======================================== Adapted Freeverb (Right Channel) ===
+adaptedFreeverbR(roomsize,damp,stsp) = _ <:
+par(i,ba.count(clbcf),lbcf(adapt(ba.take(i+1,clbcf)+stsp),roomsize,damp))
+:> seq(i,ba.count(capf),apf(adapt(ba.take(i+1,capf)+stsp),0.5));
+//process = adaptedFreeverbR(12,0.5,0.1);
+
+//=================================================== Adapted Freeverb (LR) ===
+adaptedFreeverb(roomsize,damp,stsp) =
+hgroup("Freeverb",_ <: adaptedFreeverbL(roomsize,damp),adaptedFreeverbR(roomsize,damp,stsp) : *(0.5),*(0.5));
+process = adaptedFreeverb(12,0.5,0.1);

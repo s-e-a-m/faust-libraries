@@ -21,6 +21,7 @@ gain(t60,t) = 10^((60*t)/(-20*t60));
 jcSR = 25000;
 imSR = 25000;
 jdSR = 29761;
+fvSR = 44100;
 //------------------------------------- OLD Samplerate to Current Samplerate ---
 adaptSR(oldSR,samples) = samples * ma.SR / oldSR;
 //process = adaptSR(oldSR,101);
