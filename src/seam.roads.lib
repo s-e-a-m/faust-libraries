@@ -1,0 +1,39 @@
+declare name "SEAM Roads - Library";
+declare version "0.2";
+declare author "Daniele Annese";
+declare author "Anthony Di Furia";
+declare author "Giuseppe Silvi";
+declare author "Francesco Vitucci";
+declare license "CC3";
+
+import("seam.lib");
+
+//==============================================================================
+//============================ CURTIS ROADS' COMPUTER MUSIC TUTORIAL FILTERS ===
+//==============================================================================
+
+scr = library("seam.roads.lib");
+
+//================================================ FIR Comb Positive Filter ===
+firCombPositive(d,g) = _ <: @(d)*(1-g),*(g) : +;
+//process = os.impulse : firCombPositive(0.5,1);
+
+//================================================ FIR Comb Negative Filter ===
+firCombNegative(d,g) = _ <: @(d)*(1-g),*(g) : -;
+//process = os.impulse : firCombNegative(0.5,1);
+
+//========================================================= IIR Comb Filter ===
+iirComb(d,g) = *(1-g) : + ~ (@(d-1) *(g)) : mem;
+//process = os.impulse : iirComb(1,1/sqrt(2));
+
+//========================================================= All-Pass Filter ===
+allPassFilter(d,g) = (+ <: @(d-1),*(-g)) ~ *(g) : mem,_ : +;
+//process = os.impulse : allPassFilter(1,1/sqrt(2));
+
+//========== Schroeder Reverberator With C.R. Filters And J.C. Coefficients ===
+reverberator(x) = x <:
+iirComb(1687,0.773),iirComb(1601,0.802),
+iirComb(2053,0.753),iirComb(2251,0.733)
+:> allPassFilter(347,0.7) : allPassFilter(113,0.7);
+
+//process = os.impulse : reverberator;
