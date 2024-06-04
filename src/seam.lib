@@ -25,6 +25,7 @@ scy = library("seam.cyclone.lib");
 smg = library("seam.gerzon.lib");
 // sln = library("seam.nono.lib");
 // sgn = library("seam.nottoli.lib");
+sml = library("seam.lupone.lib");
 sjm = library("seam.moorer.lib");
 scr = library("seam.roads.lib");
 sms = library("seam.schroeder.lib");

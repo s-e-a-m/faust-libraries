@@ -19,12 +19,12 @@ dfl(t,g) = (+ : @(t))~*(g);
 
 //------------------------------------------- DELAY FEEDBACK IN LOOP - FIXED ---
 // delay compensation, right impulse response
-dflc(t,g) = (+ : @(t-1))~*(g) : mem;
+dflc(t,g) = (+ : @(max(t-1,0)))~*(g) : mem;
 //process = os.impulse : dflc(1,1/sqrt(2));
 
 //-------------------------------- DELAY FEEDBACK IN LOOP - FIXED - VARIABLE ---
 // runtime variable delay - max del required
-dflcv(md,t,g) = (+ : de.delay(md, int(t-1)))~*(g) : mem;
+dflcv(md,t,g) = (+ : de.delay(md, int(max(t-1,0))))~*(g) : mem;
 //process = os.impulse : dflcv(ma.SR,1,1/sqrt(2));
 
 //========================================================== ALL-PASS FILTER ===

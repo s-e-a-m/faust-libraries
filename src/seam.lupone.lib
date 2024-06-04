@@ -1,0 +1,77 @@
+declare name "SEAM Lupone - Library";
+declare version "0.2";
+declare author "Giuseppe Silvi";
+declare license "CC3";
+//
+import("seam.lib");
+//==================================================== MOBILE LOCALE - FLY30 ===
+//==============================================================================
+sml = library("seam.lupone.lib");
+//
+fbk = hslider("Feedback", 0,0,100,1)/100 : si.smoo;
+//
+er = par(i,8,
+     allpass : // 8 posizioni del fronte d'onda
+     delays : // early reflections
+     ro.cross(i+1),si.bus(8-(i+1))) :> si.bus(8)  // ruota gli 8 mic
+     with{
+       allpass = sjm.apfn(8,1,1/sqrt(2));
+       delays = sms.dflcv(ma.SR, sff.np(max(int(ba.sec2samp(0.087)),2)),fbk),
+                sms.dflcv(ma.SR, sff.np(max(int(ba.sec2samp(0.026)),2)),fbk),
+                sms.dflcv(ma.SR, sff.np(max(int(ba.sec2samp(0.032)),2)),fbk),
+                sms.dflcv(ma.SR, sff.np(max(int(ba.sec2samp(0.053)),2)),fbk),
+                sms.dflcv(ma.SR, sff.np(max(int(ba.sec2samp(0.074)),2)),fbk),
+                sms.dflcv(ma.SR, sff.np(max(int(ba.sec2samp(0.047)),2)),fbk),
+                sms.dflcv(ma.SR, sff.np(max(int(ba.sec2samp(0.059)),2)),fbk),
+                sms.dflcv(ma.SR, sff.np(max(int(ba.sec2samp(0.022)),2)),fbk);
+       };
+//process = er;
+//------------------------------------------------------------------------ QA&QF
+qaqf(qa,qf,x) = de.fdelayltv(1,writesize, readindex(qa,qf), x)*(qa)
+  with{
+    poscil(qa,qf) = os.osc(qf) : *(qa) : +(qa);
+    writesize = ba.sec2samp(0.046);
+    readindex(qa,qf) = poscil(qa,qf)*(writesize);
+    };
+//process = par(i,8,qaqf);
+//------------------------------------------------------------------------ WA&ZA
+waza(wag,waf,zag,zaf) = par(i,4,wa(wag,waf)), par(i,4,za(zag,zaf))
+  with{
+    tableSize = 2^14;
+    delsize1 = ba.sec2samp(0.046) : int;
+    // WA
+    recIndex1 = (+(1) : %(delsize1)) ~ *(1);
+    readIndex1 = 1.02246093/float(delsize1) : (+ : ma.decimal) ~ _ : *(float(delsize1)) : int;
+    fdel1 = rwtable(tableSize,0.0,recIndex1,_,readIndex1);
+    wa(wag,waf) = *(wag) : ( ma.sub : fdel1) ~ (*(waf) : de.delay(ma.SR,ba.sec2samp(0.046)));
+    // ZA
+    //delsize2 = ba.sec2samp(0.023) : int;
+    recIndex2 = (+(1) : %(delsize1)) ~ *(1);
+    readIndex2 = 0.99699327/float(delsize1) : (+ : ma.decimal) ~ _ : *(float(delsize1)) : int;
+    fdel2 = rwtable(tableSize,0.0,recIndex2,_,readIndex2);
+    za(zag,zaf) = *(zag) : ( ma.sub : fdel2) ~ (*(zaf) : de.delay(ma.SR,ba.sec2samp(0.023)));
+};
+
+wazai(N,wag,waf,zag,zaf) = par(i,4,wa(N,wag,waf)), par(i,4,za(N,zag,zaf))
+  with{
+    section(i,x,y) = (x-x') * c(i) <: _,+(y);
+    c(i) = (i - fd)/(i+1);
+    fd = o + ma.frac(dmo);
+    dmo = delsize1 - o; // assumed nonnegative [d > (N-1)/2]
+    o = (N-1.00001)/2; // offset to ~center FIR interpolator
+    tableSize = 2^14; // 2^16 equivalent to 1024 @ 22050
+    delsize1 = ba.sec2samp(0.046) : int;
+
+    // WA
+    recIndex1 = (+(1) : %(delsize1)) ~ *(1);
+    readIndex1 = 1.02246093/float(delsize1) : (+ : ma.decimal) ~ _ : *(float(delsize1)) : int;
+    fdel1 = rwtable(tableSize,0.0,recIndex1,_,readIndex1);
+    wa(N,wag,waf) = *(wag) : ( ma.sub : fdel1) ~ (*(waf) : de.delay(ma.SR,ba.sec2samp(0.046)))
+    <: seq(i,N,section(i)) : !,_;
+    // ZA
+    //delsize2 = ba.sec2samp(0.023) : int;
+    recIndex2 = (+(1) : %(delsize1)) ~ *(1);
+    readIndex2 = 0.99699327/float(delsize1) : (+ : ma.decimal) ~ _ : *(float(delsize1)) : int;
+    fdel2 = rwtable(tableSize,0.0,recIndex2,_,readIndex2);
+    za(N,zag,zaf) = *(zag) : ( ma.sub : fdel2) ~ (*(zaf) : de.delay(ma.SR,ba.sec2samp(0.023)))<: seq(i,N,section(i)) : !,_;
+};
