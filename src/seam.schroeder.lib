@@ -54,12 +54,12 @@ apfs(N,md,t,g) = seq(i,N,apfv(md,ba.take(i+1,t),g));
 // N = order
 // t = smallest t
 // m = base for m^i => step (3 for 1/3 ratio)
-apfnp(md,t,m) = seq(i,8,sms.apfv(md,t*m^i : max(sff.np,1), 1/sqrt(2-(i/10))));
+apfnp(md,t,m) = seq(i,8,apfv(md,t*m^i : max(sff.np,1), 1/sqrt(2-(i/10))));
 //process = os.impulse : apfnp(ma.SR,2,3);
 
 //========== MIXING OF DIRECTSOUND AND REVERBERATION - NON-EXPONENTIAL DECAY ===
 mdrned(t,g) = _ <: *(-g)+(((+ : de.delay(ma.SR/2, int(t-1)) :
-              sms.apfnp(ma.SR,2,3))~*(g) : mem)*(1-(g*g)));
+              apfnp(ma.SR,2,3))~*(g) : mem)*(1-(g*g)));
 //process = os.impulse : mdrned(1,1/sqrt(2));
 
 //================================================= THE COMB FILTER APPROACH ===
