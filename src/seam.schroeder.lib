@@ -13,7 +13,7 @@ import("seam.lib");
 //==============================================================================
 sms = library("seam.schroeder.lib");
 //=================================================== DELAY FEEDBACK IN LOOP ---
-// direct implementation, bad impulse response
+// direct implementation, wrong impulse response
 dfl(t,g) = (+ : @(t))~*(g);
 //process = os.impulse : dfl(1,1/sqrt(2));
 
