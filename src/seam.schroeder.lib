@@ -56,7 +56,7 @@ apfnp(md,t,m) = seq(i,8,apfv(md,t*m^i : max(sff.np,1), 1/sqrt(2-(i/10))));
 //process = os.impulse : apfnp(ma.SR,2,3);
 
 //========= MIXING OF DIRECT SOUND AND REVERBERATION - NON-EXPONENTIAL DECAY ===
-mdrned(t,g) = _ <: *(-g)+(((+ : de.delay(ma.SR/2, int(t-1)) :
+mdrned(t,g) = _ <: *(-g) + (((+ : de.delay(ma.SR/2, int(t-1)) :
               apfnp(ma.SR,2,3))~*(g) : mem)*(1-(g*g)));
 //process = os.impulse : mdrned(1,1/sqrt(2));
 
