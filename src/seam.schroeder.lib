@@ -23,7 +23,6 @@ dflc(t,g) = (+ : @(t-1))~*(g) : mem;
 //process = os.impulse : dflc(1,1/sqrt(2));
 
 //-------------------------------- DELAY FEEDBACK IN LOOP - FIXED - VARIABLE ---
-//------------------------- with runtime variable delay - max delay required ---
 dflcv(md,t,g) = (+ : de.delay(md, int(t-1)))~*(g) : mem;
 //process = os.impulse : dflcv(ma.SR,1,1/sqrt(2));
 
@@ -32,7 +31,6 @@ apf(t,g) = _ <: *(-g)+(dflc(t,g)*(1-(g*g)));
 //process = os.impulse : apf(1,1/sqrt(2));
 
 //----------------------------------------------- ALL-PASS FILTER - VARIABLE ---
-// runtime variable delay - max del required
 apfv(md,t,g) = _ <: *(-g)+(dflcv(md,t,g)*(1-(g*g)));
 //process = os.impulse : apfv(ma.SR,1,1/sqrt(2));
 
