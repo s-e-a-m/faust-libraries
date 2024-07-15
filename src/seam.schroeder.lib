@@ -55,7 +55,7 @@ apfs(N,md,t,g) = seq(i,N,apfv(md,ba.take(i+1,t),g));
 apfnp(md,t,m) = seq(i,8,apfv(md,t*m^i : max(sff.np,1), 1/sqrt(2-(i/10))));
 //process = os.impulse : apfnp(ma.SR,2,3);
 
-//========== MIXING OF DIRECTSOUND AND REVERBERATION - NON-EXPONENTIAL DECAY ===
+//========= MIXING OF DIRECT SOUND AND REVERBERATION - NON-EXPONENTIAL DECAY ===
 mdrned(t,g) = _ <: *(-g)+(((+ : de.delay(ma.SR/2, int(t-1)) :
               apfnp(ma.SR,2,3))~*(g) : mem)*(1-(g*g)));
 //process = os.impulse : mdrned(1,1/sqrt(2));
@@ -71,7 +71,7 @@ apfdfl = apf(173,1/sqrt(2)) : apf(229,1/sqrt(2)) <:
 dflf(md,t,g,d) = (+ : de.delay(md,t-1))~sfi.eavg2(d)*(g) : mem;
 //process = os.impulse : dflf(ma.SR,1,1/sqrt(2),0.9);
 
-//================================================ AMBIOPHONIC-REVERBERATION ===
+//================================================ AMBIOPHONIC REVERBERATION ===
 //---------------------------------------------------------- NESTED ALL-PASS ---
 apfn(0,t,g) = _;
 apfn(1,t,g) = apf(t,g);
@@ -80,5 +80,5 @@ apfn(n,t,g) = apf(t,g) <: _,apfn(n-1,t,g);
 matrix = ro.cross(4), si.bus(4) : par(i,8, apfn(2,1,1/sqrt(2)));
 //-------------------------------------------- 16 CH AMBIOPHONIC REV EXAMPLE ---
 ambiorev =  apf(173,1/sqrt(2)) : apf(229,1/sqrt(2)) <:
- dflc(673,0.89), dflc(1447,0.78), dflc(1811,0.74), dflc(2111,0.63) <:
- par(i,4,_,0-_) : matrix;
+            dflc(673,0.89), dflc(1447,0.78), dflc(1811,0.74), dflc(2111,0.63) <:
+            par(i,4,_,0-_) : matrix;
