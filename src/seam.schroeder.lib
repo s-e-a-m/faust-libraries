@@ -23,12 +23,11 @@ dflc(t,g) = (+ : @(t-1))~*(g) : mem;
 //process = os.impulse : dflc(1,1/sqrt(2));
 
 //-------------------------------- DELAY FEEDBACK IN LOOP - FIXED - VARIABLE ---
-//------------------------------ runtime variable delay - max delay required ---
+//------------------------- with runtime variable delay - max delay required ---
 dflcv(md,t,g) = (+ : de.delay(md, int(t-1)))~*(g) : mem;
 //process = os.impulse : dflcv(ma.SR,1,1/sqrt(2));
 
 //========================================================== ALL-PASS FILTER ===
-//---------------------------- direct implementation, wrong impulse response ---
 apf(t,g) = _ <: *(-g)+(dflc(t,g)*(1-(g*g)));
 //process = os.impulse : apf(1,1/sqrt(2));
 
@@ -42,7 +41,7 @@ t60(t,g) = (60/(-20*log10(g)))*t;
 //process = msT60(0.1,1/sqrt(2)); // 2 seconds
 
 //================================================= INCREASE OF ECHO DENSITY ===
-// direct implementation of five all-pass in serie.
+//------------------------- direct implementation of five all-pass in series ---
 ied5 = apf(5507,1/sqrt(2)) : apf(1831,1/sqrt(2)) : apf(613,1/sqrt(2)) :
        apf(199,1/sqrt(2)) : apf(67,1/sqrt(2));
 //process = os.impulse : ied5;
@@ -64,7 +63,8 @@ mdrned(t,g) = _ <: *(-g)+(((+ : de.delay(ma.SR/2, int(t-1)) :
 //process = os.impulse : mdrned(1,1/sqrt(2));
 
 //================================================= THE COMB FILTER APPROACH ===
-dflapf= _ <: dflc(673,0.89), dflc(1447,0.78), dflc(1811,0.74), dflc(2111,0.63)
+dflapf= _ <: dflc(673,0.89), dflc(1447,0.78), 
+             dflc(1811,0.74), dflc(2111,0.63)
         :> apf(173,1/sqrt(2)) : apf(229,1/sqrt(2));
 
 apfdfl = apf(173,1/sqrt(2)) : apf(229,1/sqrt(2)) <:
