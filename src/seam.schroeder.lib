@@ -61,9 +61,8 @@ mdrned(t,g) = _ <: *(-g)+(((+ : de.delay(ma.SR/2, int(t-1)) :
 //process = os.impulse : mdrned(1,1/sqrt(2));
 
 //================================================= THE COMB FILTER APPROACH ===
-dflapf= _ <: dflc(673,0.89), dflc(1447,0.78), 
-             dflc(1811,0.74), dflc(2111,0.63)
-        :> apf(173,1/sqrt(2)) : apf(229,1/sqrt(2));
+dflapf = _ <: dflc(673,0.89), dflc(1447,0.78), dflc(1811,0.74), dflc(2111,0.63)
+         :> apf(173,1/sqrt(2)) : apf(229,1/sqrt(2));
 
 apfdfl = apf(173,1/sqrt(2)) : apf(229,1/sqrt(2)) <:
          dflc(673,0.89), dflc(1447,0.78), dflc(1811,0.74), dflc(2111,0.63);
