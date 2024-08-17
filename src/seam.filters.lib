@@ -143,3 +143,26 @@ BPTPTsvf(K, BW, CF, x) = SVFTPT(K, Q, CF, x*(BW/CF)) : !,!,_,!,!,!,!,!
 // TEST
 //import("stdfaust.lib");
 //process = no.noise : BPTPTsvf(0, 1, 10000);
+//
+// Savitzky-Golay filter
+// https://en.wikipedia.org/wiki/Savitzky-Golay_filter
+// https://www.dsprelated.com/blogimages/JosefHoffmann/sav_golay_Filter.pdf
+/*
+A Savitzky–Golay filter is a digital filter that can be applied to a set of digital data points for the purpose of smoothing the data, that is, to increase the precision of the data without distorting the signal tendency. This is achieved, in a process known as convolution, by fitting successive sub-sets of adjacent data points with a low-degree polynomial by the method of linear least squares. When the data points are equally spaced, an analytical solution to the least-squares equations can be found, in the form of a single set of "convolution coefficients" that can be applied to all data sub-sets, to give estimates of the smoothed signal, (or derivatives of the smoothed signal) at the central point of each sub-set.
+*/
+// Coefficients for smoothing
+// Polynomial Degree
+// quadratic or cubic 2 or 3
+sgsc5 = (-3/35, 12/35, 17/35, 12/35, -3/35);
+sgsc7 = (-2/21, 3/21, 6/21, 7/21, 6/21, 3/21, -2/21);
+sgsc9 = (-21/231, 14/231, 39/231, 54/231, 59/231, 54/231, 39/231, 14/231, -21/231);
+// Coefficients for 1st derivative
+// Polynomial Degree
+// linear or quadratic 1 or 2
+sgfdc3 = (-1/2,0/2,1/2);
+sgfdc5 = (-2/10,-1/10,0/10,1/10,2/10);
+sgfdc7 = (-3/28,-2/28,-1/28,0/28,1/28,2/28,3/28);
+sgfdc9 = (-4/60,-3/60,-2/60,-1/60,0/60,1/60,2/60,3/60,4/60);
+//
+rw = no.pink_noise : si.smooth(.9) : *(10);
+process = os.osc(300)/(2)+rw <: _, fi.conv(sgsc9),  fi.conv(sgfdc9);
