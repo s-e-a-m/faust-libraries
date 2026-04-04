@@ -1,0 +1,81 @@
+declare name "SEAM Ambisonics Library";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare license "CC3";
+//
+// SEAM Ambisonics Library
+//
+// Functions for first-order Ambisonics processing in ACN/SN3D (AmbiX)
+// format, including format conversion from B-format (FuMa) and
+// 3D rotation.
+//
+// Channel ordering follows the ACN convention:
+//   a0 = W (omnidirectional)
+//   a1 = Y (front-back, left-right)
+//   a2 = Z (up-down)
+//   a3 = X (front-back)
+//
+// References:
+//   - Furse-Malham, "A 3-D Sound Primer" (1998)
+//   - Nachbar et al., "ambiX -- A Suggested Ambisonics Format" (2011)
+//   - Gerzon, "Ambisonics. Part two: Studio techniques" (1975)
+//   - Malham, "3-D Sound Spatialization using Ambisonic Techniques" (1999)
+//
+// ─────────────────────────────────────────────────────────────────────
+//
+import("seam.lib");
+//
+sam = library("seam.ambisonics.lib");
+//
+// ───────────────────── B-format to AmbiX conversion ──────────────────
+//
+// Converts a first-order Ambisonics signal from B-format (FuMa)
+// to AmbiX (ACN/SN3D).
+//
+// B-format (FuMa):  W, X, Y, Z -- with W attenuated by 1/sqrt(2)
+// AmbiX (ACN/SN3D): W, Y, Z, X -- with W at unity gain
+//
+// The conversion performs two operations:
+//   1. Rescale W by sqrt(2) to restore unity gain
+//   2. Reorder channels from FuMa (WXYZ) to ACN (WYZX)
+//
+btox(w,x,y,z) = a0, a1, a2, a3
+with {
+    a0 = w * sqrt(2);  // W: restore unity gain
+    a1 = y;            // Y: FuMa -> ACN reorder
+    a2 = z;            // Z: unchanged
+    a3 = x;            // X: FuMa -> ACN reorder
+};
+//
+// ───────────────────── First-order AmbiX rotation ────────────────────
+//
+// Applies 3D rotation to a first-order AmbiX signal.
+// Rotation is applied in intrinsic order: Roll -> Pitch -> Yaw.
+// The resulting matrix is R = Rz(yaw) * Ry(pitch) * Rx(roll).
+//
+//   Roll  (X-axis) -- lateral tilt (left-right vertical plane)
+//   Pitch (Y-axis) -- forward-backward tilt (vertical plane)
+//   Yaw   (Z-axis) -- horizontal rotation (azimuth)
+//
+// Channel W (omnidirectional) is unaffected by rotation.
+//
+// Arguments:
+//   yaw, pitch, roll -- rotation angles in radians
+//   a0, a1, a2, a3   -- input channels in ACN order (W, Y, Z, X)
+//
+rotateYPR(yaw, pitch, roll, a0, a1, a2, a3) =
+    a0, a1_ypr, a2_ypr, a3_ypr
+with {
+    // Roll (X-axis): rotates Y and Z
+    a1_r = a1*cos(roll) - a2*sin(roll);
+    a2_r = a1*sin(roll) + a2*cos(roll);
+    a3_r = a3;
+    // Pitch (Y-axis): rotates Z and X
+    a1_rp = a1_r;
+    a2_rp = a2_r*cos(pitch) + a3_r*sin(pitch);
+    a3_rp = -a2_r*sin(pitch) + a3_r*cos(pitch);
+    // Yaw (Z-axis): rotates Y and X
+    a1_ypr = a1_rp*cos(yaw) - a3_rp*sin(yaw);
+    a2_ypr = a2_rp;
+    a3_ypr = a1_rp*sin(yaw) + a3_rp*cos(yaw);
+};

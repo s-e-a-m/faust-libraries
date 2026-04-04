@@ -1,24 +1,81 @@
-declare name "SEAM Stereophony - Library";
-declare version "0.2";
+declare name "SEAM Stereophony Library";
+declare version "0.3";
 declare author "Giuseppe Silvi";
 declare license "CC3";
 //
+// SEAM Stereophony Library
+//
+// Functions for stereophonic encoding, decoding, and spatial manipulation.
+// Based on the sum-and-difference principle introduced by Alan Blumlein
+// (UK patent 394325, 1933) and extended by Michael Gerzon.
+//
+// ─────────────────────────────────────────────────────────────────────
+//
 import("seam.lib");
-//========================================================== BASIC FUNCTIONS ===
-//==============================================================================
+//
 sst = library("seam.stereophony.lib");
-//------------------------------------------------ SUM AND DIFFERENCE MATRIX ---
-//--------------------------------------- NORMALIZED SUM BETWEEN TWO SIGNALS ---
+//
+// ───────────────────── Sum-and-difference matrix ─────────────────────
+//
+// Normalized sum of two signals.
+// The 1/sqrt(2) factor preserves signal energy.
+//
+//   nsum(L,R) = (L + R) / sqrt(2)
+//
 nsum(x,y) = (x+y)/sqrt(2);
-//-------------------------------- NORMALIZED DIFFERENCE BETWEEN TWO SIGNALS ---
+//
+// Normalized difference of two signals.
+//
+//   ndif(L,R) = (L - R) / sqrt(2)
+//
 ndif(x,y) = (x-y)/sqrt(2);
-//--------------------------------------------------------- LR <-> MS MATRIX ---
+//
+// Sum-and-difference matrix (Blumlein MS matrix).
+// 2 inputs (L,R) -> 2 outputs (M,S).
+//
+// The matrix is involutory (A = A^-1): applying it twice returns
+// the original signal. The same operation encodes LR->MS and
+// decodes MS->LR.
+//
+// Energy preservation: |M|^2 + |S|^2 = |L|^2 + |R|^2
+//
+// References:
+//   - Alan Blumlein, UK patent 394325 (1933)
+//   - Michael Gerzon, "Surround sound from 2-channel stereo" (1970)
+//
 sdmx(x,y) = nsum(x,y), ndif(x,y);
+//
+// Weighted sum-and-difference matrix.
+// Parameter p controls the M/S balance:
+//   p = 0 -> full Mid (mono)
+//   p = 1 -> full Side (difference only)
+//
 sdmxw(p) = sdmx : *(1-p), *(p);
 //
-//-------------------------------------------------------------------- MSPAN ---
+// ───────────────────── Mid-Side panner ───────────────────────────────
+//
+// Mono-to-stereo panner using Mid-Side composition.
+// Synthesizes a virtual stereo microphone pair from a mono signal.
+// The Mid component has a variable polar pattern (figure-8 to omni),
+// positive phase facing front. The Side component is a fixed
+// lateral figure-8, positive phase facing left.
+// The two components are orthogonal.
+//
+//   p   -- polar pattern control (gain):
+//          0   = figure-8 (cos(rad), frontal null at 90 degrees)
+//          0.5 = cardioid
+//          1   = omnidirectional
+//   rad -- polar pattern angle in radians
+//   x   -- mono input signal
+//
+// Returns (mid, side) pair. Pass through sdmx to obtain L,R:
+//   mspan_lr(x,p,rad) = mspan(p,rad,x) : sdmx;
+//
+// Reference:
+//   Silvi & Tedesco, "SEAM Project -- Sustained Stereophony", SMC 2020
+//
 mspan(p,rad,x) = x <: m, s
-  with{
+with {
     m(x) = x*(p) + (x*(1-p)*(cos(rad)));
     s(x) = x*(sin(rad));
 };

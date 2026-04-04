@@ -1,0 +1,71 @@
+declare name "SEAM Discrete Wavelet Transform Library";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare license "CC3";
+//
+// SEAM Discrete Wavelet Transform Library
+//
+// Running-filter implementation of the Haar wavelet transform,
+// operating sample-by-sample without downsampling. Suitable for
+// real-time audio processing and spatial decomposition.
+//
+// The Haar wavelet is the simplest wavelet: a 2-point DFT applied
+// as a running filter pair (Quadrature Mirror Filter):
+//
+//   sum(x) = (x[n] + x[n-1]) / 2   -- lowpass  (DC component)
+//   dif(x) = (x[n] - x[n-1]) / 2   -- highpass (AC component)
+//
+// Applied recursively, the QMF bank decomposes a signal into
+// frequency-ordered sub-bands. The reversed form (dft2r) outputs
+// highpass first, producing sub-bands ordered from highest to
+// lowest frequency.
+//
+// ─────────────────────────────────────────────────────────────────────
+//
+import("seam.lib");
+//
+sdw = library("seam.dwt.lib");
+//
+// ───────────────────── 2-point DFT (Haar wavelet) ────────────────────
+//
+// Running sum/difference filter pair: the simplest QMF.
+// Standard form: lowpass first, highpass second.
+//
+dft2(x) = s(x), d(x)
+with {
+    s(x) = (x + x') / 2;   // lowpass  (DC)
+    d(x) = (x - x') / 2;   // highpass (AC)
+};
+//
+// Reversed form: highpass first, lowpass second.
+// Used in the QMF bank so that outputs are ordered high-to-low,
+// matching the ACN channel convention for spatial decomposition.
+//
+dft2r(x) = dft2(x) : ro.cross(2);
+//
+// ───────────────────── Recursive QMF filter bank ─────────────────────
+//
+// qmf(N) applies dft2r recursively N times, producing N+1 outputs.
+// At each level, the highpass component exits and the lowpass
+// continues into the next decomposition. The result is a set of
+// sub-band signals ordered from highest to lowest frequency.
+//
+qmf(0) = _;
+qmf(1) = dft2r;
+qmf(N) = dft2r : _, qmf(N-1);
+//
+// ───────────────────── Haar spatial decomposition ────────────────────
+//
+// haarmn(N): mono input to (N+1)^2 spatial components.
+// The passthrough (unfiltered signal) occupies channel 0,
+// followed by the QMF sub-bands as directional components
+// ordered from highpass to lowpass.
+//
+// For Ambisonics spatial encoding:
+//   haarmn(0) =  1 output  (mono, no decomposition)
+//   haarmn(1) =  4 outputs (first order)
+//   haarmn(2) =  9 outputs (second order)
+//   haarmn(3) = 16 outputs (third order)
+//
+haarmn(0) = _;
+haarmn(N) = _ <: _, qmf((N+1)^2-2);

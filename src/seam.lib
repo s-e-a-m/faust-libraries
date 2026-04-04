@@ -12,8 +12,9 @@ sma = library("seam.math.lib");
 sfi = library("seam.filters.lib");
 sre = library("seam.reverbs.lib");
 sno = library("seam.noises.lib");
-// ### general ambisonic teory
-// sam = library("seam.ambisonic.lib");
+// ### general Ambisonics theory
+sam = library("seam.ambisonics.lib");
+sdw = library("seam.dwt.lib");
 // ### stereophony and perception
 sst = library("seam.stereophony.lib");
 // shr = library("seam.hrtf.lib");
