@@ -47,6 +47,45 @@ with {
     a3 = x;            // X: FuMa -> ACN reorder
 };
 //
+// ───────────────────── AmbiX → tetrahedral decoder ───────────────────
+//
+// Decodes a first-order AmbiX signal to four loudspeakers placed at
+// the vertices of a tetrahedron inscribed in a cube:
+//
+//   LFU -- Left  Front Up      ( +Y +Z +X )
+//   RFD -- Right Front Down    ( -Y -Z +X )
+//   RBU -- Right Back  Up      ( -Y +Z -X )
+//   LBD -- Left  Back  Down    ( +Y -Z -X )
+//
+// Each output is the sum of W and the three Cartesian components
+// signed according to the corner's position, scaled by 1/2:
+//
+//   LFU = (a0 + a1 + a2 + a3) / 2
+//   RFD = (a0 - a1 - a2 + a3) / 2
+//   RBU = (a0 - a1 + a2 - a3) / 2
+//   LBD = (a0 + a1 - a2 - a3) / 2
+//
+// The matrix is the AmbiX-domain analogue of Gerzon's `bamodule`
+// (FuMa B-format -> tetrahedron) found in seam.gerzon.lib. The two
+// differ only in the input reference system; the same diagonal-cube
+// vertex layout is preserved.
+//
+// Compensation shelving filters (Gerzon 1975) are deliberately
+// omitted: the STONE tetrahedral loudspeaker amplifier handles
+// frequency-domain correction downstream.
+//
+//   References:
+//     - Gerzon, "Ambisonics. Part two: Studio techniques" (1975)
+//     - Malham, "Space in Music -- Music in Space" (1998)
+//
+bamodulex(a0,a1,a2,a3) = lfu, rfd, rbu, lbd
+with {
+    lfu = (a0 + a1 + a2 + a3) / 2;
+    rfd = (a0 - a1 - a2 + a3) / 2;
+    rbu = (a0 - a1 + a2 - a3) / 2;
+    lbd = (a0 + a1 - a2 - a3) / 2;
+};
+//
 // ───────────────────── First-order AmbiX rotation ────────────────────
 //
 // Applies 3D rotation to a first-order AmbiX signal.
