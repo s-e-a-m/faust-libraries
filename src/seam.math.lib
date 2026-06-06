@@ -76,3 +76,8 @@ isos = 331.4; // interior
 //-------------------------------------------------------- METERS TO SAMPLES ---
 emt2samp(mt) = int(mt*ma.SR/esos);
 imt2samp(mt) = int(mt*ma.SR/isos);
+//----------------------------------------------- INTERIOR DISTANCE DELAY ---
+// Pure integer-sample delay for a distance in metres, using the interior
+// speed of sound (isos). Max line 1<<15 samples (~0.68 s at 48 kHz, ~226 m).
+// SEAM-LTM DDELAY plugin (per-channel; the plugin runs four in parallel).
+imdelay(mt) = de.delay(1 << 15, imt2samp(mt));
