@@ -118,3 +118,41 @@ with {
     a2_ypr = a2_rp;
     a3_ypr = a1_rp*sin(yaw) + a3_rp*cos(yaw);
 };
+//
+//--------------------------------------------------------------- UHJ C-FORMAT ---
+// AmbiX (ACN/SN3D) -> UHJ C-format L,R,T,Q.
+// Gerzon, "Ambisonics in Multichannel Broadcasting and Video", JAES 1983.
+// Quadrature all-pass pair re-derived analytically (SEAM-LTM x2uhj, 2026);
+// max phase error 1.36 deg over 20 Hz-20 kHz. Coefficients are the single
+// source of truth in seam-ltm plugins/x2uhj/source/x2uhj_coeffs.h.
+// NB canonical structure: every component passes the real network hR; only the
+// j-terms use the imaginary network hI. The 90 deg is the DIFFERENCE between
+// the two matched networks. Earlier drafts leaving the real path unfiltered
+// are superseded.
+//
+// 2nd-order RBJ all-pass parameterised by (frequency, Q):
+apuhj(f,Q) = fi.tf2(a2, a1, 1.0, a1, a2)
+  with {
+    w     = 2.0*ma.PI*f/ma.SR;
+    alpha = sin(w)/(2.0*Q);
+    n     = 1.0 + alpha;
+    a1    = -2.0*cos(w)/n;
+    a2    = (1.0 - alpha)/n;
+  };
+// Matched quadrature pair (3 sections each):
+hRuhj = apuhj(141.887012,0.201947) : apuhj(671.745773,0.212154) : apuhj(18654.238494,0.303097);
+hIuhj = apuhj(24.003923,0.309038)  : apuhj(2991.937233,0.384766) : apuhj(3219.986192,0.096342);
+// AmbiX ACN inputs in order (W,Y,Z,X) -> UHJ (L,R,T,Q):
+x2uhj(aW,aY,aZ,aX) = L,R,T,Q
+  with {
+    W = aW/sqrt(2.0); X = aX; Y = aY; Z = aZ;     // ACN/SN3D -> FuMa
+    Wr = hRuhj(W); Xr = hRuhj(X); Yr = hRuhj(Y); Zr = hRuhj(Z);
+    Wi = hIuhj(W); Xi = hIuhj(X);
+    S = 0.9396926*Wr + 0.1855740*Xr;
+    D = (-0.3420201*Wi + 0.5098604*Xi) + 0.6554516*Yr;
+    L = 0.5*(S + D);
+    R = 0.5*(S - D);
+    T = (-0.1432*Wi + 0.6512*Xi) - 0.7071*Yr;
+    Q = 0.9772*Zr;
+  };
+//process = x2uhj;
