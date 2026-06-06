@@ -156,3 +156,24 @@ x2uhj(aW,aY,aZ,aX) = L,R,T,Q
     Q = 0.9772*Zr;
   };
 //process = x2uhj;
+//
+//------------------------------------------------- MONO -> AMBIX (HAAR) ---
+// Mono to first-order AmbiX via the Haar wavelet decomposition
+// (sdw.haarmn from seam.dwt.lib). Channel 0 (W) is the passthrough; the
+// QMF sub-bands form the directional components. Rotation, if any, is
+// applied separately with rotateYPR. SEAM-LTM M2XHGR plugin.
+m2xhgr = sdw.haarmn(1);
+//process = no.noise : m2xhgr;
+//
+//----------------------------------------------- STEREO -> AMBIX (HAAR) ---
+// Stereo (L,R) to first-order AmbiX via Haar, with a divergence control.
+// Each channel is Haar-encoded (m2xhgr), rotated by +/-divergence, summed,
+// then globally rotated by yaw. divergence/yaw/pitch/roll in radians.
+// SEAM-LTM LR2XHGR plugin.
+lr2xhgr(divergence, yaw, pitch, roll) =
+    par(i, 2, m2xhgr) :
+    rotateYPR(divergence,   pitch, roll),
+    rotateYPR(0 - divergence, pitch, roll)
+    :> si.bus(4) :
+    rotateYPR(yaw, 0, 0);
+//process = (no.noise, no.noise) : lr2xhgr(ma.PI/2, 0, 0, 0);
