@@ -177,3 +177,17 @@ lr2xhgr(divergence, yaw, pitch, roll) =
     :> si.bus(4) :
     rotateYPR(yaw, 0, 0);
 //process = (no.noise, no.noise) : lr2xhgr(ma.PI/2, 0, 0, 0);
+//
+//------------------------------------------------ A-FORMAT -> AMBIX (ACN) ---
+// Tetrahedral microphone A-format (LFU,RFD,RBU,LBD) -> First-order AmbiX
+// (ACN: a0=W, a1=Y, a2=Z, a3=X). Inverse of bamodulex; the Hadamard/2
+// matrix is involutory (M^2 = I), so the coefficients are identical.
+// SEAM-LTM abmodulex plugin (TETRAREC front-end).
+abmodulex(lfu,rfd,rbu,lbd) = a0, a1, a2, a3
+  with {
+    a0 = (lfu + rfd + rbu + lbd) / 2;
+    a1 = (lfu - rfd - rbu + lbd) / 2;
+    a2 = (lfu - rfd + rbu - lbd) / 2;
+    a3 = (lfu + rfd - rbu - lbd) / 2;
+  };
+//process = sno.multipink(4,0.5) : abmodulex;
