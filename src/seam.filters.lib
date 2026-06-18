@@ -78,6 +78,38 @@ with{
 };
 // process = ap1coeff(24000,1);
 //
+//------------------------------------------------ QUADRATURE / HILBERT PAIR ---
+// Wideband 90-degree quadrature (Hilbert) transformer: mono -> (in-phase, quad).
+// Both outputs are all-pass filtered; their phase difference holds -90 deg over
+// 20 Hz-20 kHz. Neither output is the dry signal: the quadrature relation is a
+// property of the matched pair. Realised in seam-ltm by the hilbert plugin,
+// whose live design engine re-derives the coefficients per sample rate; the
+// coefficients below are the fs = 48 kHz design.
+//
+// (1) RBJ form: matched pair of 2nd-order all-pass biquads, 3 sections per
+//     branch, parameterised by (frequency, Q). Max phase error 1.36 deg @48k.
+aprbj(f,Q) = fi.tf2(a2, a1, 1.0, a1, a2)
+  with {
+    w     = 2.0*ma.PI*f/ma.SR;
+    alpha = sin(w)/(2.0*Q);
+    n     = 1.0 + alpha;
+    a1    = -2.0*cos(w)/n;
+    a2    = (1.0 - alpha)/n;
+  };
+hRhil = aprbj(141.887012,0.201947) : aprbj(671.745773,0.212154) : aprbj(18654.238494,0.303097);
+hIhil = aprbj(24.003923,0.309038)  : aprbj(2991.937233,0.384766) : aprbj(3219.986192,0.096342);
+hilbertRBJ = _ <: hRhil, hIhil;
+// process = os.osc(1000) : hilbertRBJ;
+//
+// (2) Polyphase form: matched pair of 1st-order all-pass sections (Niemitalo),
+//     4 sections per path, with a one-sample relative delay on the quad path.
+//     One multiply per section; max phase error 1.67 deg @48k.
+appoly(a) = fi.tf2(a*a, 0.0, -1.0, 0.0, 0.0 - a*a);
+hAhil = appoly(0.397260394) : appoly(0.853250636) : appoly(0.971682572) : appoly(0.995211876);
+hBhil = appoly(0.687396697) : appoly(0.934674128) : appoly(0.987987539) : appoly(0.998735492);
+hilbertPoly = _ <: hAhil, (hBhil : mem);
+// process = os.osc(1000) : hilbertPoly;
+//
 //----------------- Vadim Zavalishin's TOPOLOGY PRESERVING TRANSFORM FILTERS ---
 // TPT version of the One Pole and SVF Filter by Vadim Zavalishin
 // reference : (by Will Pirkle)
