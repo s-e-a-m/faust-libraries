@@ -1,0 +1,29 @@
+declare name "Siegfried Linkwitz - Library";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare license "CC3";
+//
+import("seam.lib");
+//============================================= SIEGFRIED LINKWITZ TESTING ===
+//============================================================================
+slw = library("seam.linkwitz.lib");
+//
+// shaped tone-burst loudspeaker testing
+// AES preprint 1342 (1978); JAES 28(4):250-258 (1980)
+//
+//   burst (N cycles)        dwell (M cycles)
+//  /\  /\  /\  /\  /\
+// /  \/  \/  \/  \/  \____________________________  repeats every P=N+M cycles
+//
+//--------------------------------------------------------------- shapedburst ---
+// fixed-frequency raised-cosine N-cycle burst, repeated every P=N+M carrier cycles
+shapedburst(f0,N,dwell) = sin(2*ma.PI*P*c) * win
+  with {
+    M   = max(1, int(ceil(dwell*f0)));            // dwell quantised to whole cycles
+    P   = N + M;                                  // total cycles per period
+    c   = os.phasor(1, f0/P);                     // 0..1 over P carrier cycles
+    u   = P*c;                                    // cycle position 0..P
+    win = (u < N) * (0.5 - 0.5*cos(2*ma.PI*u/N)); // Hann over the first N cycles
+  };
+shapedburst5(f0,dwell) = shapedburst(f0,5,dwell); // canonical N=5 wrapper
+//process = slw.shapedburst5(1000, 0.3);
