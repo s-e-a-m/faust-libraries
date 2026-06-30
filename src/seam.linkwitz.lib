@@ -62,3 +62,9 @@ glissburst(N,delta,dmode,fsig) = sin(2*ma.PI*u) * win
     win = (u < N) * (0.5 - 0.5*cos(2*ma.PI*u/N));  // Hann over the first N cycles
   };
 glissburst5(delta,dmode,fsig) = glissburst(5,delta,dmode,fsig); // canonical N=5 wrapper
+//
+//-------------------------------------------------------------- linkwitzglide ---
+// pure composition for testing (p supplied externally, no transport)
+linkwitzglide(f0,f1,smode,N,delta,dmode,p) =
+    glissburst(N,delta,dmode, sweepfreq(f0,f1,smode,p));
+//process = slw.linkwitzglide(20000, 20, 1, 5, 0.3, 1, os.phasor(1, 1/4));
