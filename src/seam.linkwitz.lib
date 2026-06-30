@@ -31,3 +31,34 @@ shapedburst5(f0,dwell) = shapedburst(f0,5,dwell); // canonical N=5 wrapper
 //----------------------------------------------------------------- sweepfreq ---
 // progress p in [0,1] -> frequency (smode 0 = linear, 1 = exponential)
 sweepfreq(f0,f1,smode,p) = select2(smode, f0 + (f1-f0)*p, f0*pow(f1/f0, p));
+//
+//---------------------------------------------------------------- glissburst ---
+// glissando of bursts: fsig = frequency signal (Hz), dmode 0 = passo, 1 = gap.
+// Each grain latches one frequency (sample-and-hold at onset) and stays a
+// single-frequency, constant-Q burst. The grain ramp + held frequency form a
+// structured two-signal feedback; max(20,.) guards the period division on init
+// and the start pulse (1 - 1') latches the sweep at the first sample.
+glissburst(N,delta,dmode,fsig) = sin(2*ma.PI*u) * win
+  with {
+    phase = grain : _,!;                          // grain ramp 0..1
+    fg    = grain : !,_;                          // held grain frequency
+    grain = loop ~ (_,_)
+      with {
+        loop(pphase,pfg) = nphase, nfg
+          with {
+            den    = max(20.0, pfg);              // guard div-by-zero on init
+            Tg     = select2(dmode, max(delta, N/den), N/den + delta);
+            inc    = 1.0/max(1.0, Tg*ma.SR);
+            adv    = pphase + inc;
+            start  = 1 - 1';                      // 1 only at the first sample
+            onset  = (adv >= 1.0) | start;        // wrap, plus a forced start latch
+            nphase = adv - floor(adv);
+            nfg    = select2(onset, pfg, fsig);   // hold; latch fsig at onset
+          };
+      };
+    den = max(20.0, fg);
+    Tg  = select2(dmode, max(delta, N/den), N/den + delta);
+    u   = fg * phase * Tg;                         // cycles since onset
+    win = (u < N) * (0.5 - 0.5*cos(2*ma.PI*u/N));  // Hann over the first N cycles
+  };
+glissburst5(delta,dmode,fsig) = glissburst(5,delta,dmode,fsig); // canonical N=5 wrapper
