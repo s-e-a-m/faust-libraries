@@ -27,3 +27,7 @@ shapedburst(f0,N,dwell) = sin(2*ma.PI*P*c) * win
   };
 shapedburst5(f0,dwell) = shapedburst(f0,5,dwell); // canonical N=5 wrapper
 //process = slw.shapedburst5(1000, 0.3);
+//
+//----------------------------------------------------------------- sweepfreq ---
+// progress p in [0,1] -> frequency (smode 0 = linear, 1 = exponential)
+sweepfreq(f0,f1,smode,p) = select2(smode, f0 + (f1-f0)*p, f0*pow(f1/f0, p));
