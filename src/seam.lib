@@ -24,6 +24,7 @@ scy = library("seam.cyclone.lib");
 // ### author specific literature
 // sds = library("seam.discipio.lib");
 smg = library("seam.gerzon.lib");
+slw = library("seam.linkwitz.lib");
 // sln = library("seam.nono.lib");
 // sgn = library("seam.nottoli.lib");
 sjm = library("seam.moorer.lib");
