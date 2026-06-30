@@ -16,7 +16,8 @@ slw = library("seam.linkwitz.lib");
 // /  \/  \/  \/  \/  \____________________________  repeats every P=N+M cycles
 //
 //--------------------------------------------------------------- shapedburst ---
-// fixed-frequency raised-cosine N-cycle burst, repeated every P=N+M carrier cycles
+// fixed-frequency raised-cosine N-cycle burst, repeated every P=N+M carrier cycles.
+// N should be a whole number so the carrier returns to a zero crossing at the period boundary.
 shapedburst(f0,N,dwell) = sin(2*ma.PI*P*c) * win
   with {
     M   = max(1, int(ceil(dwell*f0)));            // dwell quantised to whole cycles
