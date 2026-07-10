@@ -126,3 +126,30 @@ with {
 };
 // process = env(2048, 1024); // LAR nominal: env~ 2048 (period 1024, L=2) -> level in dB
 // process = env(64, 32);     // small window used in the doc/sketch A/B
+
+//----------------------------------------------------------- line(ms, x) ---
+// Pd source x_time.c (line, control-rate). Help patch: line-help.pd.
+// Pd `line` ramps linearly toward its target and EMITS at a grain interval
+// (DEFAULTLINEGRAIN = 20 ms), a control-rate staircase; it restarts from the
+// current value on each new target (setval). Here ba.line is NOT used: the
+// linear interp is rebuilt as Pd's v = setval + min(elapsed/R,1)*(target-setval)
+// so the tick values match Pd's tau/R exactly, then sAndH on a 20 ms grain
+// pulse imposes the staircase. Same idiom as spd.env (real math + control-rate
+// hold). FAUST vs Pd: reproduces the grain staircase to float precision; the
+// tick PHASE (Pd aligns ticks to message arrival, this to sample 0) is the
+// documented residual, deferred to the block-kernel validation sub-project.
+line(ms, x) = cont : ba.sAndH(ba.pulse(20.0 * ma.SR/1000.0))
+with {
+    R    = ms * ma.SR/1000.0;                 // ramp length in samples
+    chg  = x != x';                           // new target
+    cont = (loop ~ (_,_)) : (_, !)            // continuous interp; keep v, drop counter
+    with {
+        loop(v, e) = nv, ne
+        with {
+            ne = ba.if(chg, 0, e + 1);        // samples elapsed since change (0 at change)
+            sv = ba.sAndH(chg, v);            // setval = output frozen at the change instant
+            nv = sv + min(ne/R, 1.0) * (x - sv);
+        };
+    };
+};
+// process = line(100.0); // 100 ms ramp, 20 ms grain staircase; vs Pd line oracle < 1e-6
