@@ -140,6 +140,9 @@ with {
 // hold). FAUST vs Pd: reproduces the grain staircase to float precision; the
 // tick PHASE (Pd aligns ticks to message arrival, this to sample 0) is the
 // documented residual, deferred to the block-kernel validation sub-project.
+// Near-zero targets (a homeostat gain ~1e-12) cancel to exact 0.0 in float32
+// here (sv + min*(x-sv), x<<sv); Pd's float32 line_tick collapses identically,
+// and both denote gain-off -- faithful to Pd, not a bug.
 line(ms, x) = cont : ba.sAndH(ba.pulse(20.0 * ma.SR/1000.0))
 with {
     R    = ms * ma.SR/1000.0;                 // ramp length in samples
