@@ -216,3 +216,33 @@ with {
 
 //freq = 1000;
 //process = osctri(freq), os.oscsin(freq);
+
+//======================= AGOSTINO DI SCIPIO - MODES OF INTERFERENCE (LAR) ===
+// Self-regulating acoustic-feedback (Larsen) control law reconstructed from
+// Di Scipio's LAR.pd (see the plugins/dslar study). The analysis branch measures
+// the loop's Hann-weighted RMS level and maps it to a loop gain that holds the
+// system at homeostatic equilibrium ("high enough to result into Larsen tones ...
+// but not too high to cause clipping", Di Scipio 2006). Composes the Pd-object
+// clones spd.env / spd.dbtorms; it does NOT re-implement them
+// (memory project_pdclone_library_architecture).
+
+// Hann-weighted RMS at control rate = Pd's LAR analysis chain (env~ -> dbtorms).
+// Algebraically dbtorms(powtodb(ms)) = sqrt(ms) (the dB round-trip cancels), so
+// this IS the Hann-weighted RMS; we compose the real clones so env's control-rate
+// step-hold stays faithful. Pd LAR uses env~ 2048, hence period = npoints/2 = 1024.
+hannrms(npoints, period) = spd.env(npoints, period) : spd.dbtorms;
+
+// Homeostatic loop-gain law (LAR analysis branch:  -reference : abs : pow k):
+//   g = | r - reference | ^ k
+// LAR.pd values: reference = 1, k = 40. Equilibrium sits at LOW r (r in [0, ~0.12]):
+// as the room gets louder r rises toward the reference, |r-reference| -> 0 and the
+// gain collapses (negative feedback); below equilibrium the gain approaches 1.
+// r > reference re-opens |r-reference| (documented edge, LAR study §controllo).
+homeostat(reference, k, r) = abs(r - reference) ^ k;
+
+// Full LAR control brick: loop audio in -> homeostatic loop gain out.
+// (The 200 ms control ramp and the audio loop itself belong to the dslar assembly.)
+larsengain(npoints, period, reference, k) =
+    hannrms(npoints, period) : homeostat(reference, k);
+// process = larsengain(64, 32, 1.0, 40.0);        // compilable demo
+// process = larsengain(2048, 1024, 1.0, 40.0);    // LAR nominal (spec-only window)

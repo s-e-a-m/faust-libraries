@@ -1,0 +1,109 @@
+declare name "PdClone Faust Library";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare license "GPL-3.0";
+//
+// Faithful Faust clones of Pure Data signal objects, verified line-by-line
+// against the Pd source (Miller Puckette). Sibling of seam.cyclone.lib (scy),
+// which clones Max/gen~. Prefix: spd.
+//
+// Di Scipio's idioms (seam.discipio.lib, sds) COMPOSE these primitives; they
+// do not re-implement the Pd math. See memory project_pdclone_library_architecture.
+//
+import("seam.lib");
+//================================================= PURE DATA OBJECT CLONES ===
+//==============================================================================
+spd = library("seam.pdclone.lib");
+
+//--- x_acoustics.c : amplitude <-> decibel converters -------------------------
+// Pd's dB is a 100 dB-offset scale: a power of 1.0 maps to 100 dB and silence
+// clips to 0 (Pd never outputs -inf). LOGTEN = ln(10), so Pd's
+// "100 + 10./LOGTEN*log(f)" is exactly "100 + 10*log10(f)".
+
+//-------------------------------------------------------------- powtodb(p) ---
+// powtodb(p) = 100 + 10*log10(p), clipped at >= 0 ; p <= 0 -> 0.
+// Pd source x_acoustics.c (powtodb). Used by spd.env.
+powtodb(p) = select2(p <= 0.0, max(0.0, 100.0 + 10.0*log10(p)), 0.0);
+// process = powtodb;   // powtodb(1) = 100 ; powtodb(0.01) = 80 ; powtodb(0) = 0
+
+//-------------------------------------------------------------- rmstodb(r) ---
+// rmstodb(r) = 100 + 20*log10(r), clipped at >= 0 ; r <= 0 -> 0.
+rmstodb(r) = select2(r <= 0.0, max(0.0, 100.0 + 20.0*log10(r)), 0.0);
+// process = rmstodb;   // rmstodb(1) = 100 ; rmstodb(0) = 0
+
+//-------------------------------------------------------------- dbtopow(d) ---
+// dbtopow(d) = 10^((d-100)/10), d clamped to <= 870 ; d <= 0 -> 0.
+dbtopow(d) = select2(d <= 0.0, pow(10.0, (min(870.0, d) - 100.0)/10.0), 0.0);
+// process = dbtopow;   // dbtopow(100) = 1 ; dbtopow(0) = 0
+
+//-------------------------------------------------------------- dbtorms(d) ---
+// dbtorms(d) = 10^((d-100)/20), d clamped to <= 485 ; d <= 0 -> 0.
+// Inverse of the (env~ -> powtodb) chain: in the LAR loop, env~ -> dbtorms
+// collapses to r = sqrt(Hann-weighted mean-square) = RMS. Pd source x_acoustics.c.
+dbtorms(d) = select2(d <= 0.0, pow(10.0, (min(485.0, d) - 100.0)/20.0), 0.0);
+// process = dbtorms;   // dbtorms(100) = 1 ; dbtorms(80) = 0.1 ; dbtorms(0) = 0
+
+//--- d_filter.c : hip~ --------------------------------------------------------
+//------------------------------------------------------------------ hip(f) ---
+// One-pole/one-zero high-pass. Pd sighip_perform (compatibilitylevel > 43):
+//   coef   = clip(1 - f*2pi/SR, 0, 1)        (sighip_ft1)
+//   w[n]   = x[n] + coef*w[n-1]              (fi.pole(coef))
+//   y[n]   = normal*(w[n] - w[n-1])          (fi.zero(1) then *normal)
+//   normal = (1 + coef)/2
+// DIFFERS from fi.highpass (Butterworth biquad): this is Pd's exact topology.
+// NOTE: Pd uses the truncated literal 3.14159 for pi (not M_PI); reproduced
+// here so the coefficient is bit-identical to Pd's. f <= 0 gives coef = 1: Pd
+// then copies the input verbatim (its coef==1 branch), and the pole-at-1 form
+// below is algebraically identical (integrator then differencer) though not
+// numerically robust at exact DC -- LAR uses hip~ 100, so coef < 1 always.
+hip(f) = fi.pole(coef) : fi.zero(1) : *(normal)
+with {
+    coef   = 1.0 - f*(2.0*3.14159)/ma.SR : max(0.0) : min(1.0);
+    normal = (1.0 + coef)/2.0;
+};
+// process = hip(100);   // 1-in/1-out DC-blocking loop high-pass (LAR: hip~ 100)
+
+//--- d_ctl.c : env~ -----------------------------------------------------------
+//---------------------------------------------------- env(npoints, period) ---
+// Hann-weighted RMS-power envelope follower, output in Pd dB (via powtodb).
+//
+// Pd splits env~ across two rates:
+//   * FULL RATE  (env_tilde_perform) accumulates, over an npoints window,
+//       result = sum_i buf[i] * x[n-i]^2 ,
+//       buf[i] = (1 - cos(2pi*i/npoints)) / npoints    (normalized Hann, sum = 1);
+//   * CONTROL RATE (env_tilde_tick, a clock callback every `period` samples)
+//       outputs powtodb(result) and HOLDS it until the next tick.
+// We reproduce both: weightedMS is the full-rate (sliding-window) Hann-weighted
+// mean-square; sAndH(ba.pulse(period)) reproduces the control-rate step-hold
+// (this IS the block-kernel behaviour of memory project_pd_vs_faust_block_validation,
+// expressed directly rather than deferred to the A/B). Pd default period = npoints/2.
+//
+// A control-rate hold needs no `ondemand` here: weightedMS must run full rate
+// anyway (every sample's x^2 counts), so ondemand would only save the trivial
+// per-tick powtodb -- sAndH is behaviourally identical and keeps this shared lib
+// on stable faust. (ondemand earns its keep when the gated subgraph is costly and
+// idle between ticks, e.g. ltburst's per-grain oscillator.)
+//
+// npoints is a COMPILE-TIME sample count (Pd semantics: env~ 2048 = 2048 samples,
+// hence SR-dependent). SR-independence (memory project_discipio_sr_independence) is
+// a porting-layer concern: the C++ deliverable sizes the window as
+// round(fs * 2048/44100) at prepare(fs). Nominal Faust spec: spd.env(2048,1024) @ 44100.
+// NOTE: the sliding-FIR weightedMS unrolls to `npoints` taps; it is spec-clear but
+// heavy to compile past a few hundred taps (Pd itself uses cheap overlap-add). Use a
+// modest npoints for the inline test / SVG; the C++ deliverable does overlap-add.
+//
+// Pd uses the truncated literal 3.14159 for pi in the window too; reproduced here.
+// an.* followers do NOT match (rectangular / one-pole windows, 0 dB reference):
+// this is new code, candidate to offer upstream to GRAME (memory project_env_upstream_grame).
+//
+// `period` is explicit (Faust has no arity overloading); Pd's one-arg env~ npoints
+// defaults period = npoints/2, so mirror that as env(npoints, npoints/2) at the call site.
+env(npoints, period) = weightedMS : powtodb : ba.sAndH(clock)
+with {
+    clock      = ba.pulse(period);                           // tick every `period`
+    weightedMS = _ <: sum(i, npoints, tap(i));
+    tap(i)     = @(i) <: * : *(w(i));                        // (x@i)^2 * w(i)
+    w(i)       = (1.0 - cos((2.0*3.14159*i)/npoints)) / npoints;
+};
+// process = env(64, 32);    // Hann env, 64-sample window, output every 32 samples
+// process = env(2048, 1024); // LAR nominal (spec-only: heavy unroll -> C++ overlap-add)

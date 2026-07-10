@@ -21,6 +21,7 @@ sst = library("seam.stereophony.lib");
 // ### CSound and MaxMsp object cloning
 scs = library("seam.csound.lib");
 scy = library("seam.cyclone.lib");
+spd = library("seam.pdclone.lib");
 // ### author specific literature
 // sds = library("seam.discipio.lib");
 smg = library("seam.gerzon.lib");
