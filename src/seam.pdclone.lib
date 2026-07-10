@@ -73,37 +73,56 @@ with {
 //       buf[i] = (1 - cos(2pi*i/npoints)) / npoints    (normalized Hann, sum = 1);
 //   * CONTROL RATE (env_tilde_tick, a clock callback every `period` samples)
 //       outputs powtodb(result) and HOLDS it until the next tick.
-// We reproduce both: weightedMS is the full-rate (sliding-window) Hann-weighted
-// mean-square; sAndH(ba.pulse(period)) reproduces the control-rate step-hold
-// (this IS the block-kernel behaviour of memory project_pd_vs_faust_block_validation,
-// expressed directly rather than deferred to the A/B). Pd default period = npoints/2.
+//     (Pd default period = npoints/2.)
 //
-// A control-rate hold needs no `ondemand` here: weightedMS must run full rate
-// anyway (every sample's x^2 counts), so ondemand would only save the trivial
-// per-tick powtodb -- sAndH is behaviourally identical and keeps this shared lib
-// on stable faust. (ondemand earns its keep when the gated subgraph is costly and
-// idle between ticks, e.g. ltburst's per-grain oscillator.)
+// The one-line spec is a sliding FIR, held at control rate:
+//   env = (_ <: sum(i, npoints, (_@i <: *) * (1-cos(2*3.14159*i/npoints))/npoints))
+//         : powtodb : ba.sAndH(ba.pulse(period));
+// clear, but sum() unrolls to `npoints` taps -- env(2048,*) takes minutes to compile.
+// Pd does NOT do that: env_tilde_perform is OVERLAP-ADD (~L = npoints/period active
+// Hann windows, O(L)/sample). We implement the overlap-add below; it is float-exact
+// vs the FIR above AND vs the Pd env~ oracle (~4e-6 dB, summation-order rounding only)
+// and compiles at env(2048,1024) in ~0.16 s. Derivation + A/B: the plugins/dslar study
+// sketch doc/sketch/env_oa.dsp.
 //
-// npoints is a COMPILE-TIME sample count (Pd semantics: env~ 2048 = 2048 samples,
-// hence SR-dependent). SR-independence (memory project_discipio_sr_independence) is
-// a porting-layer concern: the C++ deliverable sizes the window as
-// round(fs * 2048/44100) at prepare(fs). Nominal Faust spec: spd.env(2048,1024) @ 44100.
-// NOTE: the sliding-FIR weightedMS unrolls to `npoints` taps; it is spec-clear but
-// heavy to compile past a few hundred taps (Pd itself uses cheap overlap-add). Use a
-// modest npoints for the inline test / SVG; the C++ deliverable does overlap-add.
+// Each lane runs a DOWN phase d that reaches 0 at its capture instant (n = off mod
+// npoints); the L lanes are staggered by `period`, so their captures union to the
+// n = 0 mod period grid -- Pd's control-rate clock. At d==0 the weight hann(k) sits on
+// x(n-k), identical to the FIR sum. The step-hold is intrinsic (result changes only at a
+// capture) -- the block-kernel behaviour of memory project_pd_vs_faust_block_validation,
+// expressed directly. No `ondemand` needed: the win is the overlap-add STRUCTURE, not the
+// rate primitive (ondemand stays an optional idiom for the per-hop powtodb).
 //
-// Pd uses the truncated literal 3.14159 for pi in the window too; reproduced here.
-// an.* followers do NOT match (rectangular / one-pole windows, 0 dB reference):
-// this is new code, candidate to offer upstream to GRAME (memory project_env_upstream_grame).
+// CONSTRAINT: npoints % period == 0 (integer overlap L). Pd rounds realperiod to a block
+// multiple; here require exact divisibility (LAR env~ 2048 -> period 1024, L = 2).
+// SR-independence (memory project_discipio_sr_independence) stays a porting concern: the
+// C++ deliverable sizes npoints = round(fs*2048/44100) at prepare(fs). Pd uses the
+// truncated literal 3.14159 for pi; reproduced. an.* followers do NOT match (rectangular /
+// one-pole, 0 dB ref): new code, upstream candidate for GRAME (project_env_upstream_grame).
 //
 // `period` is explicit (Faust has no arity overloading); Pd's one-arg env~ npoints
 // defaults period = npoints/2, so mirror that as env(npoints, npoints/2) at the call site.
-env(npoints, period) = weightedMS : powtodb : ba.sAndH(clock)
+env(npoints, period) = sqr : overlapAdd
 with {
-    clock      = ba.pulse(period);                           // tick every `period`
-    weightedMS = _ <: sum(i, npoints, tap(i));
-    tap(i)     = @(i) <: * : *(w(i));                        // (x@i)^2 * w(i)
-    w(i)       = (1.0 - cos((2.0*3.14159*i)/npoints)) / npoints;
+    sqr(x) = x * x;
+    overlapAdd(x2) = ba.sAndH(anyCap, grabbed) : powtodb
+    with {
+        L          = int(npoints / period);          // overlap factor (LAR: 2048/1024 = 2)
+        wrapmod(a) = (a % npoints + npoints) % npoints;
+        up         = step ~ _ with { step(c) = (c + 1) % npoints; }; // up(n) = (n+1)%npoints
+        d(off)     = wrapmod(off + 1 - up);           // d(off)==0 at n = off (mod npoints)
+        hann(p)    = (1.0 - cos((2.0*3.14159*p)/npoints)) / npoints;
+        lane(off)  = acc
+        with {
+            dd     = d(off);
+            w      = hann(dd);
+            newwin = dd == (npoints - 1);             // first sample of a fresh window
+            acc    = step ~ _ with { step(a) = select2(newwin, a + w*x2, w*x2); };
+        };
+        cap(off)   = d(off) == 0;                     // capture instant for this lane
+        anyCap     = par(l, L, cap(l*period)) :> _ > 0;
+        grabbed    = par(l, L, lane(l*period) * cap(l*period)) :> _;
+    };
 };
-// process = env(64, 32);    // Hann env, 64-sample window, output every 32 samples
-// process = env(2048, 1024); // LAR nominal (spec-only: heavy unroll -> C++ overlap-add)
+// process = env(2048, 1024); // LAR nominal: env~ 2048 (period 1024, L=2) -> level in dB
+// process = env(64, 32);     // small window used in the doc/sketch A/B
