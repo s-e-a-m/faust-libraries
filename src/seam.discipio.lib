@@ -246,3 +246,23 @@ larsengain(npoints, period, reference, k) =
     hannrms(npoints, period) : homeostat(reference, k);
 // process = larsengain(64, 32, 1.0, 40.0);        // compilable demo
 // process = larsengain(2048, 1024, 1.0, 40.0);    // LAR nominal (spec-only window)
+
+//----------------------------------------------------------------- LAR brick ---
+// Feedforward mono LAR processor (LAR.pd). The Larsen loop is ACOUSTIC and
+// external (dac~ -> room -> mic -> adc~); the patch has NO internal feedback, so
+// tab1 is a feedforward delay, not a recursion. See dslar Phase 3 spec + study.
+// Delay buffers are sized once for the worst case (DELMAXMS at SRMAX); the read
+// delay adapts to ma.SR at runtime (de.delay needs a compile-time buffer size).
+SRMAX    = 192000.0;
+DELMAXMS = 200.0;
+delms(ms) = de.delay(int(DELMAXMS*SRMAX/1000.0), int(ms*ma.SR/1000.0 + 0.5));
+lar(gate, drive, ref, k, tsmooth, tab1, tab2, output, x) =
+    audio(fx) * analysisGain(fx) * output          // loop multiplier, then output VCA
+with {
+    fx = x * (gate : spd.line(2000.0));            // adc~ x fade, BEFORE the audio/analysis split
+    audio(s)        = s : spd.hip(100.0) : *(drive) : delms(tab1);
+    analysisGain(s) = s : delms(tab2)
+                        : larsengain(2048, 1024, ref, k)
+                        : spd.line(tsmooth);
+};
+// process = lar(1.0, 1.0, 1.0, 40.0, 200.0, 50.0, 20.0, 1.0);  // LAR nominal
