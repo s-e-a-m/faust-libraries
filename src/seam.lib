@@ -23,7 +23,7 @@ scs = library("seam.csound.lib");
 scy = library("seam.cyclone.lib");
 spd = library("seam.pdclone.lib");
 // ### author specific literature
-// sds = library("seam.discipio.lib");
+sds = library("seam.discipio.lib");
 smg = library("seam.gerzon.lib");
 slw = library("seam.linkwitz.lib");
 // sln = library("seam.nono.lib");
