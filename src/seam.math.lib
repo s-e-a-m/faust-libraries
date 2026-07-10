@@ -64,7 +64,7 @@ rphi(x) = x*(sqrt(5)-1)/2;
 // phi progression
 srphi(0,x) = x;
 srphi(i,x) = rphi(x) : srphi(i-1);
-// process = par(i,16,srphi(i,sba.nyq));
+// process = par(i,16,srphi(i,ma.SR/2));
 //--------------------------------------------------------------- FACTORIALS ---
 factorial(0) = 1;
 factorial(i) = i * factorial(i-1);

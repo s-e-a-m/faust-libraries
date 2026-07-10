@@ -1,46 +1,177 @@
+//############################### seam.basic.lib ###############################
+// SEAM Basics library. Its official prefix is `sba`.
+//
+// Reusable low-level building blocks that EXTEND the standard Faust `basics.lib`:
+// only elements not already provided upstream are kept here.
+//
+// * [Sweep Functions](#sweep-functions)
+// * [List Functions](#list-functions)
+// * [Scaling](#scaling)
+// * [Routing](#routing)
+//
+// #### References
+//
+// * <https://github.com/s-e-a-m/faust-libraries/blob/master/src/seam.basic.lib>
+//##############################################################################
 declare name "SEAM Basic - Library";
-declare version "0.2";
+declare version "0.3";
 declare author "Giuseppe Silvi";
 declare license "CC3";
-//
 import("seam.lib");
-//========================================================== BASIC FUNCTIONS ===
-//==============================================================================
 sba = library("seam.basic.lib");
-//---------------------------------------------------------- SWEEP FUNCTIONS ---
-//----------------------------------------- FAUST BASIC FUNCTION SWEEP FIXES ---
-// It truly counts from 0 to (p*t)-1
+
+//================================ Sweep Functions ============================
+// Ramp/counter generators used across SEAM instruments.
+//============================================================================
+
+//-------------------------------`(sba.)sweep`--------------------------------
+// Repeating sample counter. Differs from `ba.sweep`: it counts from **0** to
+// `(p*t)-1` (via the `1'` seed) rather than starting at 1, and uses `p*t` as
+// the period.
+//
+// #### Usage
+// ```
+// sweep(p,t) : _
+// ```
+// Where:
+//
+// * `p`: base period in samples
+// * `t`: period multiplier (final period is `p*t`)
+//
+// #### Test
+// ```
+// sba = library("seam.basic.lib");
+// sweep_test = sba.sweep(1,10);
+// ```
+//----------------------------------------------------------------------------
 sweep(p,t) = p : %(int(*(t):max(1)))~+(1');
-// process = sweep(1,10);
-//----------------------------------------------- LINEAR SWEEP UP TO NYQUIST ---
+
+//-------------------------------`(sba.)lsweep`-------------------------------
+// Linear sweep from 0 up to Nyquist (`ma.SR/2`), repeating every `sec` seconds.
+//
+// #### Usage
+// ```
+// lsweep(sec,t) : _
+// ```
+// Where:
+//
+// * `sec`: sweep duration in seconds
+// * `t`: period multiplier
+//
+// #### Test
+// ```
+// sba = library("seam.basic.lib");
+// lsweep_test = sba.lsweep(0.01,1);
+// ```
+//----------------------------------------------------------------------------
 lsweep(sec,t) = (ma.SR/2) : %(int(*(t):max(1)))~+((1/sec)');
-// process = lsweep(0.01,1);
-//------------------------------------------------------ ZERO PADDING SWEEP  ---
+
+//-------------------------------`(sba.)zsweep`-------------------------------
+// Zero-padded sweep: a `sweep` of length `p` preceded by `p` samples of zero,
+// yielding a `2p+1` frame useful for zero-padded spectral analysis.
+//
+// #### Usage
+// ```
+// zsweep(p) : _
+// ```
+// Where:
+//
+// * `p`: sweep length in samples
+//
+// #### Test
+// ```
+// sba = library("seam.basic.lib");
+// zsweep_test = sba.zsweep(10);
+// ```
+//----------------------------------------------------------------------------
 zsweep(p) = (sweep((p*2+1),1)<(p)) : sweep(p);
-// process = zsweep(10);
-//----------------------------------------- ONE SAMPLE PULSE @ ZERO CROSSING ---
+
+//-------------------------------`(sba.)zerox`-------------------------------
+// One-sample pulse on a **rising** zero crossing (negative -> non-negative).
+// A directional variant of `ma.zc`, which fires on any crossing.
+//
+// #### Usage
+// ```
+// _ : zerox : _
+// ```
+// Where the input is any signal; output is 1 for one sample at each upward
+// zero crossing, 0 otherwise.
+//
+// #### Test
+// ```
+// os = library("oscillators.lib");
+// sba = library("seam.basic.lib");
+// zerox_test = os.osc(1000) : sba.zerox;
+// ```
+//----------------------------------------------------------------------------
 zerox(x) = (x'<0) & (x>=0);
-// process = os.osc(1000) <: _, zerox;
-//----------------------------------------------------------- LIST FUNCTIONS ---
-//------------------------------------------------- GENERATE A DOWNWARD LIST ---
+
+//================================ List Functions ============================
+//============================================================================
+
+//-------------------------------`(sba.)revlist`-----------------------------
+// Parallel bus of `n` constants counting DOWN: `n, n-1, ... , 1`.
+//
+// #### Usage
+// ```
+// revlist(n)
+// ```
+// Where:
+//
+// * `n`: number of parallel outputs (compile-time constant)
+//
+// #### Test
+// ```
+// sba = library("seam.basic.lib");
+// revlist_test = sba.revlist(23);
+// ```
+//----------------------------------------------------------------------------
 revlist(n) = par(i,n,(n)-i);
-// process = revlist(23);
-//-------------------------------------------------------------------- SCALE ---
-//--------------------------------------------------------- SC SCALE LINENAR ---
-scalel(a,b,c,d,x) = ((x-a)/(b-a))*(d-c);
-// process = os.osc(1000) : scalel(-1,1,0,1);
-//-------------------------------------------------------------------- LOGIC ---
-//-------------------------------------------------------- VST INPUT MANAGER ---
+
+//================================ Scaling ===================================
+//============================================================================
+
+//-------------------------------`(sba.)scalel`------------------------------
+// Linear (affine) rescale of `x` from input range `[a,b]` to output range
+// `[c,d]`.
+//
+// #### Usage
+// ```
+// _ : scalel(a,b,c,d) : _
+// ```
+// Where:
+//
+// * `a`, `b`: input range (min, max)
+// * `c`, `d`: output range (min, max)
+//
+// #### Test
+// ```
+// os = library("oscillators.lib");
+// sba = library("seam.basic.lib");
+// scalel_test = os.osc(1000) : sba.scalel(-1,1,0,1);
+// ```
+//----------------------------------------------------------------------------
+scalel(a,b,c,d,x) = c + ((x-a)/(b-a))*(d-c);
+
+//================================ Routing ===================================
+//============================================================================
+
+//-------------------------------`(sba.)vstin`-------------------------------
+// Input manager: pass the first `y` channels through, block the next `n`.
+//
+// #### Usage
+// ```
+// si.bus(y+n) : vstin(y,n) : si.bus(y)
+// ```
+// Where:
+//
+// * `y`: number of channels to pass
+// * `n`: number of channels to block
+//
+// #### Test
+// ```
+// sba = library("seam.basic.lib");
+// vstin_test = sba.vstin(1,3);
+// ```
+//----------------------------------------------------------------------------
 vstin(y,n) = si.bus(y),si.block(n);
-//process = vstin(1,3);
-//------------------------------------------------------------ LAZY OPERATOR ---
-mille = os.osc(1000);
-//process = mille;
-cento = os.osc(100);
-//process = cento;
-la = os.osc(440);
-//process = la;
-rosa = no.pink_noise;
-//process = rosa;
-nyq = ma.SR/2;
-//process = nyq;

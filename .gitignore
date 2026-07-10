@@ -467,3 +467,6 @@ $RECYCLE.BIN/
 *.lnk
 
 # End of https://www.gitignore.io/api/tex,osx,macos,linux,latex,jekyll,windows
+
+# generated library documentation
+doc/build/
