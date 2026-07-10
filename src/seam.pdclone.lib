@@ -22,7 +22,7 @@ spd = library("seam.pdclone.lib");
 
 //-------------------------------------------------------------- powtodb(p) ---
 // powtodb(p) = 100 + 10*log10(p), clipped at >= 0 ; p <= 0 -> 0.
-// Pd source x_acoustics.c (powtodb). Used by spd.env.
+// Pd source x_acoustics.c (powtodb). Help patch: acoustics-help.pd (vendored under dslar/doc/references/pd-help). Used by spd.env.
 powtodb(p) = select2(p <= 0.0, max(0.0, 100.0 + 10.0*log10(p)), 0.0);
 // process = powtodb;   // powtodb(1) = 100 ; powtodb(0.01) = 80 ; powtodb(0) = 0
 
@@ -45,6 +45,7 @@ dbtorms(d) = select2(d <= 0.0, pow(10.0, (min(485.0, d) - 100.0)/20.0), 0.0);
 
 //--- d_filter.c : hip~ --------------------------------------------------------
 //------------------------------------------------------------------ hip(f) ---
+// Pd source d_filter.c (hip~). Help patch: hip~-help.pd.
 // One-pole/one-zero high-pass. Pd sighip_perform (compatibilitylevel > 43):
 //   coef   = clip(1 - f*2pi/SR, 0, 1)        (sighip_ft1)
 //   w[n]   = x[n] + coef*w[n-1]              (fi.pole(coef))
@@ -65,6 +66,7 @@ with {
 
 //--- d_ctl.c : env~ -----------------------------------------------------------
 //---------------------------------------------------- env(npoints, period) ---
+// Pd source d_ctl.c (env~). Help patch: env~-help.pd.
 // Hann-weighted RMS-power envelope follower, output in Pd dB (via powtodb).
 //
 // Pd splits env~ across two rates:
@@ -153,3 +155,11 @@ with {
     };
 };
 // process = line(100.0); // 100 ms ramp, 20 ms grain staircase; vs Pd line oracle < 1e-6
+
+//------------------------------------------- delread~ / delwrite~ (de.delay) ---
+// Pd source d_delay.c. Help patch: delay-tilde-objects-help.pd.
+// LAR's named lines are single-writer/single-reader (tab1 50 ms loop delay,
+// tab2 20 ms decorrelation tap), so de.delay(n,d,x) = x@min(n,max(0,d)) is an
+// exact match; no spd re-implementation is written. The Pd one-block minimum
+// does not bind (50/20 ms >> 64 samples). Documented here for completeness so
+// every Pd object LAR touches carries its dual source (C source + help patch).
