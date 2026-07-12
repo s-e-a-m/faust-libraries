@@ -1,83 +1,445 @@
+//################################ seam.math.lib ###############################
+// SEAM Math library. Its official prefix is `sma`.
+//
+// General-purpose mathematical helpers used across SEAM instruments: angular
+// and frequency quantities, squared trigonometry, angle and coordinate
+// conversions, the golden ratio, combinatorics, and acoustic distance/delay
+// utilities. Only elements not already provided by the standard Faust
+// `maths.lib` are kept here.
+//
+// * [References](#references)
+// * [Constants and Angular Frequency](#constants-and-angular-frequency)
+// * [Trigonometry](#trigonometry)
+// * [Angle Conversion](#angle-conversion)
+// * [Coordinates](#coordinates)
+// * [Golden Ratio](#golden-ratio)
+// * [Combinatorics](#combinatorics)
+// * [Acoustics](#acoustics)
+//
+// ## References
+//
+// * <https://github.com/s-e-a-m/faust-libraries/blob/master/src/seam.math.lib>
+//##############################################################################
 declare name "SEAM Math - Library";
-declare version "0.1";
+declare version "0.2";
 declare author "Giuseppe Silvi";
 declare license "CC3";
-//
 import("seam.lib");
-//=========================================================== MATH FUNCTIONS ===
-//==============================================================================
 sma = library("seam.math.lib");
-//----------------------------------------------------------------------- PI ---
-//----------------------------------------------- QUAD PRECISION 81 DECIMALS ---
-PIq = 3.14159265358979323846264338327950288419716939937510582097494459230781640;
-// process = PIq;
-PIc = atan(1)*4;
-// process = PIc;
+
+//======================= Constants and Angular Frequency ====================
+// Angular constants and helpers that turn a frequency in Hz into the angular
+// quantities used by oscillators and filter design.
+//============================================================================
+
+//-------------------------------`(sma.)twoPI`-------------------------------
+// The constant `2*pi` (a full turn in radians). Convenience for angular-rate
+// math, where a cycle spans `2*pi` radians.
+//
+// #### Usage
+// ```
+// sma.twoPI : _
+// ```
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// twoPI_test = sma.twoPI;
+// ```
+//----------------------------------------------------------------------------
 twoPI = 2*ma.PI;
-// process = twoPI;
-//-------------------------------------------------------------------- OMEGA ---
+
+//-------------------------------`(sma.)omega`-------------------------------
+// Normalised angular frequency of `fc` in radians per sample:
+// `omega = fc*2*pi/SR`. This is the per-sample phase increment of a sinusoid
+// at `fc` Hz.
+//
+// #### Usage
+// ```
+// omega(fc) : _
+// ```
+// Where:
+//
+// * `fc`: frequency in Hz
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// omega_test = sma.omega(1000);
+// ```
+//----------------------------------------------------------------------------
 omega(fc) = fc*twoPI/ma.SR;
-// process = omega(24000);
-//------------------------------------------------------- BILINEAR TRANSFORM ---
-w(fc) = tan(ma.PI*fc/ma.SR/2);
-// process = w(24000);
-//------------------------------------------------------------ SIN^2 - COS^2 ---
+
+//------------------------------`(sma.)prewarp`------------------------------
+// Bilinear-transform frequency pre-warping: `tan(pi*fc/SR/2)`. Maps a target
+// cutoff `fc` (Hz) to the warped value the bilinear transform expects, so an
+// analog prototype lands on the intended digital frequency. Used by the
+// `seam.filters` designs.
+//
+// #### Usage
+// ```
+// prewarp(fc) : _
+// ```
+// Where:
+//
+// * `fc`: cutoff frequency in Hz
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// prewarp_test = sma.prewarp(1000);
+// ```
+//----------------------------------------------------------------------------
+prewarp(fc) = tan(ma.PI*fc/ma.SR/2);
+
+//================================ Trigonometry ==============================
+// Squared trigonometric helpers (e.g. for equal-power laws and identities).
+//============================================================================
+
+//--------------------------------`(sma.)cosq`-------------------------------
+// Squared cosine: `cos(x)^2`.
+//
+// #### Usage
+// ```
+// cosq(x) : _
+// ```
+// Where:
+//
+// * `x`: angle in radians
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// cosq_test = sma.cosq(ma.PI);
+// ```
+//----------------------------------------------------------------------------
 cosq(x) = cos(x)*cos(x);
-// process = cosq(ma.PI);
+
+//--------------------------------`(sma.)sinq`-------------------------------
+// Squared sine: `sin(x)^2`.
+//
+// #### Usage
+// ```
+// sinq(x) : _
+// ```
+// Where:
+//
+// * `x`: angle in radians
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// sinq_test = sma.sinq(3/2*ma.PI);
+// ```
+//----------------------------------------------------------------------------
 sinq(x) = sin(x)*sin(x);
-// process = sinq(3/2*ma.PI);
-//======================================================== POLAR | CARTESIAN ===
-//==============================================================================
-// https://en.wikipedia.org/wiki/Inverse_trigonometric_functions
-// https://en.wikipedia.org/wiki/Spherical_coordinate_system
-// https://en.wikipedia.org/wiki/Atan2
-//------------------------------------------------------- DEGREES TO RADIANS ---
+
+//============================== Angle Conversion ============================
+//============================================================================
+
+//--------------------------------`(sma.)d2r`--------------------------------
+// Degrees to radians: `d*pi/180`.
+//
+// #### Usage
+// ```
+// d2r(d) : _
+// ```
+// Where:
+//
+// * `d`: angle in degrees
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// d2r_test = sma.d2r(90);
+// ```
+//----------------------------------------------------------------------------
 d2r(d) = d*(ma.PI/180);
-// process = d2r(0);
-//------------------------------------------------------- RADIANS TO DEGREES ---
+
+//--------------------------------`(sma.)r2d`--------------------------------
+// Radians to degrees: `r*180/pi`.
+//
+// #### Usage
+// ```
+// r2d(r) : _
+// ```
+// Where:
+//
+// * `r`: angle in radians
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// r2d_test = sma.r2d(ma.PI);
+// ```
+//----------------------------------------------------------------------------
 r2d(r) = r/ma.PI*180;
-// process = r2d(0);
-//--------------------------------------------------------- AED TO CARTESIAN ---
+
+//================================ Coordinates ==============================
+// Conversions between spherical (azimuth, elevation, distance) and Cartesian
+// (x, y, z) coordinates. Angles are in radians; elevation is measured from
+// the horizontal plane (`e=0` on the plane, `e=pi/2` straight up). `aed2xyz`
+// and `xyz2aed` are exact inverses.
+//============================================================================
+
+//------------------------------`(sma.)aed2xyz`------------------------------
+// Azimuth / elevation / distance to Cartesian `x, y, z`:
+// `x = d*cos(a)*cos(e)`, `y = d*sin(a)*cos(e)`, `z = d*sin(e)`.
+//
+// #### Usage
+// ```
+// aed2xyz(a,e,d) : _,_,_
+// ```
+// Where:
+//
+// * `a`: azimuth in radians
+// * `e`: elevation in radians (from the horizontal plane)
+// * `d`: distance (radius)
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// aed2xyz_test = sma.aed2xyz(0,0,1);
+// ```
+//----------------------------------------------------------------------------
 aed2xyz(a,e,d) = cx(a,e,d), cy(a,e,d), cz(a,e,d)
 with{
   cx(a,e,d) = d*(cos(a)*cos(e));
   cy(a,e,d) = d*(sin(a)*cos(e));
   cz(a,e,d) = d*(sin(e));
 };
-// process = aed2xyz(0,0,1);
-//--------------------------------------------------------- CARTESIAN TO AED ---
+
+//------------------------------`(sma.)xyz2aed`------------------------------
+// Cartesian `x, y, z` to azimuth / elevation / distance:
+// `a = atan2(y,x)`, `e = atan2(z, sqrt(x^2+y^2))`, `d = sqrt(x^2+y^2+z^2)`.
+// The exact inverse of `aed2xyz` (elevation measured from the horizontal
+// plane).
+//
+// #### Usage
+// ```
+// xyz2aed(x,y,z) : _,_,_
+// ```
+// Where:
+//
+// * `x`, `y`, `z`: Cartesian coordinates
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// xyz2aed_test = sma.xyz2aed(1,1,1) : sma.r2d, sma.r2d, _;
+// ```
+//----------------------------------------------------------------------------
 xyz2aed(x,y,z) = a(x,y),e(x,y,z),d(x,y,z)
 with{
   a(x,y)   = atan2(y,x);
-  e(x,y,z) = atan2(sqrt(x^2+y^2),z);
+  e(x,y,z) = atan2(z,sqrt(x^2+y^2));
   d(x,y,z) = sqrt(x^2+y^2+z^2);
 };
-// process = xyz2aed(1,1,1) : r2d, r2d, _;
-//---------------------------------------------------------------------- PHI ---
+
+//================================ Golden Ratio =============================
+//============================================================================
+
+//--------------------------------`(sma.)phi`--------------------------------
+// Scales `x` by the golden ratio `phi = (1+sqrt(5))/2 ~= 1.618`.
+//
+// #### Usage
+// ```
+// phi(x) : _
+// ```
+// Where:
+//
+// * `x`: value to scale
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// phi_test = sma.phi(1);
+// ```
+//----------------------------------------------------------------------------
 phi(x) = x*(1+(sqrt(5)))/2;
-// process = phi(1);
+
+//--------------------------------`(sma.)rphi`-------------------------------
+// Scales `x` by the reciprocal golden ratio `1/phi = (sqrt(5)-1)/2 ~= 0.618`.
 //
-// reciprocal o the golden ratio
+// #### Usage
+// ```
+// rphi(x) : _
+// ```
+// Where:
+//
+// * `x`: value to scale
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// rphi_test = sma.rphi(1);
+// ```
+//----------------------------------------------------------------------------
 rphi(x) = x*(sqrt(5)-1)/2;
-// process = rphi(1);
+
+//--------------------------------`(sma.)srphi`------------------------------
+// Reciprocal-golden progression: applies `rphi` to `x` a total of `i` times,
+// i.e. the `i`-th term of the geometric sequence with ratio `1/phi`.
 //
-// phi progression
+// #### Usage
+// ```
+// srphi(i,x) : _
+// ```
+// Where:
+//
+// * `i`: number of iterations (compile-time integer)
+// * `x`: starting value
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// srphi_test = par(i,16,sma.srphi(i,ma.SR/2));
+// ```
+//----------------------------------------------------------------------------
 srphi(0,x) = x;
 srphi(i,x) = rphi(x) : srphi(i-1);
-// process = par(i,16,srphi(i,ma.SR/2));
-//--------------------------------------------------------------- FACTORIALS ---
+
+//================================ Combinatorics ============================
+//============================================================================
+
+//-----------------------------`(sma.)factorial`----------------------------
+// Factorial `n! = n*(n-1)*...*1` (with `0! = 1`), by compile-time recursion.
+//
+// #### Usage
+// ```
+// factorial(n)
+// ```
+// Where:
+//
+// * `n`: non-negative integer (compile-time constant)
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// factorial_test = sma.factorial(5);
+// ```
+//----------------------------------------------------------------------------
 factorial(0) = 1;
 factorial(i) = i * factorial(i-1);
-// permutazioni possibili senza ricorsioni
-permutation(k,n) = factorial(k)/factorial(n);
-//----------------------------------------------------------- SPEED OF SOUND ---
+
+//----------------------------`(sma.)permutation`---------------------------
+// Number of ordered arrangements of `k` items taken from `n`:
+// `P(n,k) = n!/(n-k)!`. Requires `n >= k >= 0`.
+//
+// #### Usage
+// ```
+// permutation(n,k)
+// ```
+// Where:
+//
+// * `n`: size of the set (compile-time integer)
+// * `k`: number of items chosen (compile-time integer, `<= n`)
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// permutation_test = sma.permutation(5,2);
+// ```
+//----------------------------------------------------------------------------
+permutation(n,k) = factorial(n)/factorial(n-k);
+
+//================================= Acoustics ===============================
+// Speed of sound and distance-to-delay helpers for physical spatialisation.
+// SEAM distinguishes an `exterior` (open-air) and an `interior` (room) speed
+// of sound.
+//============================================================================
+
+//--------------------------------`(sma.)esos`-------------------------------
+// Exterior speed of sound: `344` m/s (open air, ~20 degrees C).
+//
+// #### Usage
+// ```
+// sma.esos : _
+// ```
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// esos_test = sma.esos;
+// ```
+//----------------------------------------------------------------------------
 esos = 344; // exterior
+
+//--------------------------------`(sma.)isos`-------------------------------
+// Interior speed of sound: `331.4` m/s (~0 degrees C reference).
+//
+// #### Usage
+// ```
+// sma.isos : _
+// ```
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// isos_test = sma.isos;
+// ```
+//----------------------------------------------------------------------------
 isos = 331.4; // interior
-//-------------------------------------------------------- METERS TO SAMPLES ---
+
+//------------------------------`(sma.)emt2samp`-----------------------------
+// Metres to whole samples using the exterior speed of sound:
+// `int(mt*SR/esos)`.
+//
+// #### Usage
+// ```
+// emt2samp(mt)
+// ```
+// Where:
+//
+// * `mt`: distance in metres
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// emt2samp_test = sma.emt2samp(3.4);
+// ```
+//----------------------------------------------------------------------------
 emt2samp(mt) = int(mt*ma.SR/esos);
+
+//------------------------------`(sma.)imt2samp`-----------------------------
+// Metres to whole samples using the interior speed of sound:
+// `int(mt*SR/isos)`.
+//
+// #### Usage
+// ```
+// imt2samp(mt)
+// ```
+// Where:
+//
+// * `mt`: distance in metres
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// imt2samp_test = sma.imt2samp(3.4);
+// ```
+//----------------------------------------------------------------------------
 imt2samp(mt) = int(mt*ma.SR/isos);
-//----------------------------------------------- INTERIOR DISTANCE DELAY ---
-// Pure integer-sample delay for a distance in metres, using the interior
-// speed of sound (isos). Max line 1<<15 samples (~0.68 s at 48 kHz, ~226 m).
-// SEAM-LTM DDELAY plugin (per-channel; the plugin runs four in parallel).
+
+//------------------------------`(sma.)imdelay`------------------------------
+// Pure integer-sample delay for a distance `mt` in metres, using the interior
+// speed of sound. The one stateful function in this library. Delay line is
+// `1<<15` samples (~0.68 s at 48 kHz, ~226 m). Used by the SEAM-LTM DDELAY
+// plugin (per channel).
+//
+// #### Usage
+// ```
+// _ : imdelay(mt) : _
+// ```
+// Where:
+//
+// * `mt`: distance in metres
+//
+// #### Test
+// ```
+// no = library("noises.lib");
+// sma = library("seam.math.lib");
+// imdelay_test = no.noise : sma.imdelay(3.4);
+// ```
+//----------------------------------------------------------------------------
 imdelay(mt) = de.delay(1 << 15, imt2samp(mt));

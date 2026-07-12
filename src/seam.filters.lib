@@ -57,7 +57,7 @@ dcblock(x) = x <: (x-seq(i,4,lp1p(5)));
 //
 ap2coeff(fc,q) = g(fc), b0(fc,q), b1(fc,q), b2, a1(fc,q), a2(fc,q)
 with{
-  g(fc) = sma.w(fc);
+  g(fc) = sma.prewarp(fc);
   d(q)  = 1/q;
   k(fc,q)  = 1/(1 + (d(q)*g(fc)) + (g(fc)*g(fc)));
   b0(fc,q) = (1 - (g(fc)*d(q)) + (g(fc)*g(fc))) * k(fc,q);
@@ -69,7 +69,7 @@ with{
 // process = ap2coeff(24000,1);
 ap1coeff(fc,q) = g(fc), b0(fc), b1, b2, a1(fc), a2
 with{
- g(fc) = sma.w(fc);
+ g(fc) = sma.prewarp(fc);
  b0(fc) = (g(fc)-1)/(g(fc)+1);
  b1 = 1;
  b2 = 0;
