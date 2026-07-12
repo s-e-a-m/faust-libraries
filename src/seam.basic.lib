@@ -151,3 +151,54 @@ revlist(n) = par(i,n,(n)-i);
 // ```
 //----------------------------------------------------------------------------
 scalel(a,b,c,d,x) = c + ((x-a)/(b-a))*(d-c);
+
+//-------------------------------`(sba.)scalee`------------------------------
+// Exponential (geometric) rescale of `x` from input range `[a,b]` to output
+// range `[c,d]`. Perceptually uniform — a linear control sounds even — so it
+// is ideal for frequency and gain. The curve is fixed by the ratio `d/c`.
+//
+// Requires `c` and `d` non-zero and of the same sign; for ranges that include
+// zero use `scalec`.
+//
+// #### Usage
+// ```
+// _ : scalee(a,b,c,d) : _
+// ```
+// Where:
+//
+// * `a`, `b`: input range (min, max)
+// * `c`, `d`: output range (min, max), same sign, non-zero
+//
+// #### Test
+// ```
+// os = library("oscillators.lib");
+// sba = library("seam.basic.lib");
+// scalee_test = os.osc(1) : sba.scalee(-1,1,20,20000);
+// ```
+//----------------------------------------------------------------------------
+scalee(a,b,c,d,x) = c * pow(d/c, (x-a)/(b-a));
+
+//-------------------------------`(sba.)scalec`------------------------------
+// Curved (power) rescale of `x` from `[a,b]` to `[c,d]`, shaped by `curve`:
+// `curve=1` is linear, `curve>1` eases in (slow start), `curve<1` eases out
+// (fast start). Works for any output range, including `c=0`. Keep `x` within
+// `[a,b]` (a negative normalized base with a fractional `curve` is undefined).
+//
+// #### Usage
+// ```
+// _ : scalec(a,b,c,d,curve) : _
+// ```
+// Where:
+//
+// * `a`, `b`: input range (min, max)
+// * `c`, `d`: output range (min, max)
+// * `curve`: curvature exponent (>0); 1 = linear
+//
+// #### Test
+// ```
+// os = library("oscillators.lib");
+// sba = library("seam.basic.lib");
+// scalec_test = os.osc(1) : sba.scalec(-1,1,0,1,2);
+// ```
+//----------------------------------------------------------------------------
+scalec(a,b,c,d,curve,x) = c + pow((x-a)/(b-a), curve) * (d-c);
