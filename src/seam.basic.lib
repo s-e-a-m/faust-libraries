@@ -13,7 +13,7 @@
 // * <https://github.com/s-e-a-m/faust-libraries/blob/master/src/seam.basic.lib>
 //##############################################################################
 declare name "SEAM Basic - Library";
-declare version "0.3";
+declare version "0.4";
 declare author "Giuseppe Silvi";
 declare license "CC3";
 import("seam.lib");
@@ -126,6 +126,49 @@ zerox(x) = (x'<0) & (x>=0);
 // ```
 //----------------------------------------------------------------------------
 revlist(n) = par(i,n,(n)-i);
+
+//-------------------------------`(sba.)lrev`--------------------------------
+// Reverse a list-literal: the parallel bus `(x0,x1,...,xn)` becomes
+// `(xn,...,x1,x0)`. Generalizes `revlist` (which only generates a descending
+// counter) to any list of values.
+//
+// #### Usage
+// ```
+// lrev((x0,x1,...,xn))
+// ```
+// Where:
+//
+// * the argument is a list-literal (compile-time parallel expression)
+//
+// #### Test
+// ```
+// sba = library("seam.basic.lib");
+// lrev_test = sba.lrev((10,20,30));
+// ```
+//----------------------------------------------------------------------------
+lrev(l) = par(i, ba.count(l), ba.take(ba.count(l)-i, l));
+
+//-------------------------------`(sba.)lrot`--------------------------------
+// Cyclically rotate a list-literal by `k`: `((1,2,3,4),1)` becomes
+// `(2,3,4,1)`. `k` is taken modulo the list length, so any integer is valid;
+// positive `k` rotates left, negative rotates right.
+//
+// #### Usage
+// ```
+// lrot((x0,x1,...,xn), k)
+// ```
+// Where:
+//
+// * the first argument is a list-literal
+// * `k`: rotation amount (compile-time integer)
+//
+// #### Test
+// ```
+// sba = library("seam.basic.lib");
+// lrot_test = sba.lrot((1,2,3,4),1);
+// ```
+//----------------------------------------------------------------------------
+lrot(l,k) = par(i, ba.count(l), ba.take(((i+k)%ba.count(l)+ba.count(l))%ba.count(l)+1, l));
 
 //================================ Scaling ===================================
 //============================================================================
