@@ -7,7 +7,6 @@
 // * [Sweep Functions](#sweep-functions)
 // * [List Functions](#list-functions)
 // * [Scaling](#scaling)
-// * [Routing](#routing)
 //
 // #### References
 //
@@ -152,26 +151,3 @@ revlist(n) = par(i,n,(n)-i);
 // ```
 //----------------------------------------------------------------------------
 scalel(a,b,c,d,x) = c + ((x-a)/(b-a))*(d-c);
-
-//================================ Routing ===================================
-//============================================================================
-
-//-------------------------------`(sba.)vstin`-------------------------------
-// Input manager: pass the first `y` channels through, block the next `n`.
-//
-// #### Usage
-// ```
-// si.bus(y+n) : vstin(y,n) : si.bus(y)
-// ```
-// Where:
-//
-// * `y`: number of channels to pass
-// * `n`: number of channels to block
-//
-// #### Test
-// ```
-// sba = library("seam.basic.lib");
-// vstin_test = sba.vstin(1,3);
-// ```
-//----------------------------------------------------------------------------
-vstin(y,n) = si.bus(y),si.block(n);
