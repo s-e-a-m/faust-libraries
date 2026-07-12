@@ -4,11 +4,12 @@
 // Reusable low-level building blocks that EXTEND the standard Faust `basics.lib`:
 // only elements not already provided upstream are kept here.
 //
+// * [References](#references)
 // * [Sweep Functions](#sweep-functions)
 // * [List Functions](#list-functions)
 // * [Scaling](#scaling)
 //
-// #### References
+// ## References
 //
 // * <https://github.com/s-e-a-m/faust-libraries/blob/master/src/seam.basic.lib>
 //##############################################################################
