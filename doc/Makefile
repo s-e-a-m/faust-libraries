@@ -8,13 +8,18 @@ SRC := $(shell grep -oE '^[a-z][a-z]* = library\("seam\.[a-z]+\.lib"\)' $(SEAMLI
          | sed -E 's/.*"(seam\.[a-z]+\.lib)".*/\1/')
 MD  := $(SRC:%.lib=$(BUILD)/%.md)
 
-.PHONY: md index list clean
+.PHONY: md svg doc index list clean
 md: $(MD)
 
 $(BUILD)/%.md: $(SEAMLIB)/%.lib
 	@mkdir -p $(BUILD)
 	@echo "  building $<"
 	@cat $< | $(AWK) -f scripts/faustlib2md.awk > $@
+
+svg: md
+	@for f in $(BUILD)/*.md; do python3 scripts/svg-embed.py $$f -I $(SEAMLIB); done
+
+doc: md svg
 
 index: $(BUILD)/index.md
 $(BUILD)/index.md: $(MD)

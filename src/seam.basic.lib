@@ -43,6 +43,8 @@ sba = library("seam.basic.lib");
 // sba = library("seam.basic.lib");
 // sweep_test = sba.sweep(1,10);
 // ```
+//
+// #### Diagram
 //----------------------------------------------------------------------------
 sweep(p,t) = p : %(int(*(t):max(1)))~+(1');
 
@@ -63,6 +65,8 @@ sweep(p,t) = p : %(int(*(t):max(1)))~+(1');
 // sba = library("seam.basic.lib");
 // lsweep_test = sba.lsweep(0.01,1);
 // ```
+//
+// #### Diagram
 //----------------------------------------------------------------------------
 lsweep(sec,t) = (ma.SR/2) : %(int(*(t):max(1)))~+((1/sec)');
 
@@ -83,6 +87,8 @@ lsweep(sec,t) = (ma.SR/2) : %(int(*(t):max(1)))~+((1/sec)');
 // sba = library("seam.basic.lib");
 // zsweep_test = sba.zsweep(10);
 // ```
+//
+// #### Diagram
 //----------------------------------------------------------------------------
 zsweep(p) = (sweep((p*2+1),1)<(p)) : sweep(p);
 
@@ -103,6 +109,8 @@ zsweep(p) = (sweep((p*2+1),1)<(p)) : sweep(p);
 // sba = library("seam.basic.lib");
 // zerox_test = os.osc(1000) : sba.zerox;
 // ```
+//
+// #### Diagram
 //----------------------------------------------------------------------------
 zerox(x) = (x'<0) & (x>=0);
 
@@ -193,6 +201,8 @@ lrot(l,k) = par(i, ba.count(l), ba.take(((i+k)%ba.count(l)+ba.count(l))%ba.count
 // sba = library("seam.basic.lib");
 // scalel_test = os.osc(1000) : sba.scalel(-1,1,0,1);
 // ```
+//
+// #### Diagram
 //----------------------------------------------------------------------------
 scalel(a,b,c,d,x) = c + ((x-a)/(b-a))*(d-c);
 
@@ -219,6 +229,8 @@ scalel(a,b,c,d,x) = c + ((x-a)/(b-a))*(d-c);
 // sba = library("seam.basic.lib");
 // scalee_test = os.osc(1) : sba.scalee(-1,1,20,20000);
 // ```
+//
+// #### Diagram
 //----------------------------------------------------------------------------
 scalee(a,b,c,d,x) = c * pow(d/c, (x-a)/(b-a));
 
@@ -244,5 +256,7 @@ scalee(a,b,c,d,x) = c * pow(d/c, (x-a)/(b-a));
 // sba = library("seam.basic.lib");
 // scalec_test = os.osc(1) : sba.scalec(-1,1,0,1,2);
 // ```
+//
+// #### Diagram
 //----------------------------------------------------------------------------
 scalec(a,b,c,d,curve,x) = c + pow((x-a)/(b-a), curve) * (d-c);
