@@ -73,3 +73,33 @@ with{
 //a = hslider("n cycles", 1, 1, 100, 1);
 ptrack(a,x) = x : fi.dcblockerat(80) : (fi.lowpass(1) : upt(a)) ~ max(100);
 //process = os.osc(1000) : ptrack(10);
+//---------------------------------------------------- STEREO FIELD ANALYZERS --
+// Numeric-only stereo-field descriptors (no GUI). Moving means via one-pole
+// smoothing over a fixed window. Ported by hand into seam-ltm strx_dsp.h.
+sfa_tau = 0.3; // moving-average window (s)
+sfa_avg(x) = x : si.smooth(ba.tau2pole(sfa_tau));
+sfa_eps = 1e-12;
+//
+// Normalized L/R cross-correlation in [-1,1]: mean(l*r)/sqrt(mean(l^2)*mean(r^2)).
+correlation(l, r) = sfa_avg(l*r) / sqrt(max(sfa_eps, sfa_avg(l*l) * sfa_avg(r*r)));
+// process = os.osc(1000) <: _, _ : correlation;   // correlated -> ~1
+//
+// Side/Mid RMS ratio in [0,1] (0 = mono). M=(l+r)/sqrt(2), S=(l-r)/sqrt(2).
+width(l, r) = rmsS / max(sfa_eps, rmsM + rmsS) with {
+  m = (l + r) / sqrt(2);
+  s = (l - r) / sqrt(2);
+  rmsM = sqrt(sfa_avg(m*m));
+  rmsS = sqrt(sfa_avg(s*s));
+};
+// process = os.osc(1000), os.osc(1000)*(-1) : width;   // anti-phase -> ~1
+//
+// L/R energy balance in [-1,1] (0 = centered, +1 = hard right).
+panorama(l, r) = (er - el) / max(sfa_eps, er + el) with {
+  el = sfa_avg(l*l);
+  er = sfa_avg(r*r);
+};
+// process = os.osc(1000), 0 : panorama;   // left only -> ~ -1
+//
+// Principal-axis angle of the L/R covariance (radians); ~pi/4 for in-phase/mono content, 0 when only one channel carries energy.
+vectorangle(l, r) = 0.5 * atan2(2*sfa_avg(l*r), sfa_avg(l*l) - sfa_avg(r*r));
+// process = os.osc(1000) <: _, _ : vectorangle;   // correlated -> ~pi/4
