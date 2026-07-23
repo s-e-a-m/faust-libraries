@@ -162,21 +162,26 @@ x2uhj(aW,aY,aZ,aX) = L,R,T,Q
 // (sdw.haarmn from seam.dwt.lib). Channel 0 (W) is the passthrough; the
 // QMF sub-bands form the directional components. Rotation, if any, is
 // applied separately with rotateYPR. SEAM-LTM M2XHGR plugin.
-m2xhgr = sdw.haarmn(1);
-//process = no.noise : m2xhgr;
+// Harmonic gain trim: A0 (W) passes, A1/A2/A3 are scaled. Linear gains;
+// the dB conversion lives in the GUI/C++ layer (Faust convention).
+hgain(g1, g2, g3) = _, *(g1), *(g2), *(g3);
+
+// Mono to first-order AmbiX via Haar, with per-harmonic gain. Rotation is
+// applied separately by the plugin with rotateYPR. SEAM-LTM M2XHGR plugin.
+m2xhgr(g1, g2, g3) = sdw.haarmn(1) : hgain(g1, g2, g3);
+//process = no.noise : m2xhgr(1, 1, 1);
 //
 //----------------------------------------------- STEREO -> AMBIX (HAAR) ---
-// Stereo (L,R) to first-order AmbiX via Haar, with a divergence control.
-// Each channel is Haar-encoded (m2xhgr), rotated by +/-divergence, summed,
-// then globally rotated by yaw. divergence/yaw/pitch/roll in radians.
-// SEAM-LTM LR2XHGR plugin.
-lr2xhgr(divergence, yaw, pitch, roll) =
-    par(i, 2, m2xhgr) :
+// Stereo (L,R) to first-order AmbiX via Haar. The SAME three gains feed both
+// banks — the sharing rule is the argument forwarding, nothing more.
+// divergence/yaw/pitch/roll in radians. SEAM-LTM LR2XHGR plugin.
+lr2xhgr(divergence, yaw, pitch, roll, g1, g2, g3) =
+    par(i, 2, m2xhgr(g1, g2, g3)) :
     rotateYPR(divergence,   pitch, roll),
     rotateYPR(0 - divergence, pitch, roll)
     :> si.bus(4) :
     rotateYPR(yaw, 0, 0);
-//process = (no.noise, no.noise) : lr2xhgr(ma.PI/2, 0, 0, 0);
+//process = (no.noise, no.noise) : lr2xhgr(ma.PI/2, 0, 0, 0, 1, 1, 1);
 //
 //------------------------------------------------ A-FORMAT -> AMBIX (ACN) ---
 // Tetrahedral microphone A-format (LFU,RFD,RBU,LBD) -> First-order AmbiX
