@@ -147,6 +147,14 @@ tob_fl(n) = tob_fc(n) * (10.0 ^ (-0.05));
 // across sample rates: at 44.1 kHz the 20 kHz band would otherwise ask
 // fi.bandpass6e for a 22.4 kHz corner it cannot design. The top band narrows
 // instead of the filterbank falling apart.
+//
+// A CLAMPED BAND IS NOT A MEASUREMENT. Faust fixes N at compile time, so this
+// keeps the bank standing, but a band whose passband does not sit comfortably
+// below Nyquist reports the sample rate rather than the signal. Measured
+// through this bank on pink noise, by the ratio of the band's nominal upper
+// edge to Nyquist: 0.47 -> +0.15 dB, 0.74 -> +0.20, 0.81 -> -0.12,
+// 0.93 -> -0.65, 1.02 -> -3.01. Anything reading these levels must discard
+// the bands past ~0.85 -- seam-ltm strx_bands.h does it with bandMeasurable().
 tob_fu(n) = min(tob_fc(n) * (10.0 ^ (0.05)), 0.49 * ma.SR);
 tob_bw(n) = tob_fu(n) - tob_fl(n);
 // process = tob_fc(0);   // -> 1000; tob_fc(-17) -> 19.95, tob_fc(13) -> 19952
