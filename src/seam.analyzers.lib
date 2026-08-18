@@ -103,3 +103,111 @@ panorama(l, r) = (er - el) / max(sfa_eps, er + el) with {
 // Principal-axis angle of the L/R covariance (radians); ~pi/4 for in-phase/mono content, 0 when only one channel carries energy.
 vectorangle(l, r) = 0.5 * atan2(2*sfa_avg(l*r), sfa_avg(l*l) - sfa_avg(r*r));
 // process = os.osc(1000) <: _, _ : vectorangle;   // correlated -> ~pi/4
+//
+//------------------------------------- ISO 266 THIRD-OCTAVE BAND ANALYZER ---
+// Band levels on the ISO 266 base-ten grid, each averaged over a time matched
+// to its own bandwidth, and the pink-reference deviation that turns a
+// pink-noise measurement into a loudspeaker equalisation.
+// Written as the spec for seam-ltm strx (STONE calibration read from an
+// AB microphone pair); ported by hand into strx_bands.h.
+//
+// Relation to the standard library: an.mth_octave_spectral_level6e(M,ftop,N,
+// tau,dB_offset) solves the neighbouring problem and differs in three ways
+// that matter once the measurement is read against a pink reference:
+//   1. its band grid is a geometric series anchored at ftop, not the ISO 266
+//      preferred numbers an EQ and an acoustician name their bands by;
+//   2. it averages every band with one global tau;
+//   3. it attaches bargraphs, so the levels are a display and not a value.
+// This section keeps its filterbank (fi.bandpass6e, the same elliptic section
+// an.mth_octave_analyzer6e uses) and changes those three things.
+//
+// NUMERICAL NOTE -- this filterbank REQUIRES double precision. Verified by
+// running it, not by reading it: compiled with the default single precision,
+// every band at or below 160 Hz collapses onto the ma.EPSILON floor, because a
+// 6th-order elliptic bandpass 4.6 Hz wide at 20 Hz is hopelessly ill
+// conditioned in direct form at 32 bits. Compiled with -double the same bank
+// reads pink noise flat to +/-0.7 dB, which is the +/-0.6 dB that BT = 50
+// predicts. Any port keeps its band state in double for the same reason.
+//
+// WHAT THE NUMBERS MEAN -- each value is a BAND-INTEGRATED deviation taken
+// against the mean of the range, so it is the gain for a band filter and not
+// the depth of a narrow notch. A 6 dB dip one third of an octave wide reads
+// about 3.5 dB, and a defect broad enough to move the mean partly hides inside
+// its own reference. Both make the table under-report rather than over-report,
+// which is the safe direction to converge from when the correction is applied
+// and the measurement repeated.
+//
+//--------------------------------------------------------------- THE GRID ---
+// Exact ISO 266 midband frequency of third-octave band n, n = 0 at 1 kHz.
+// The base-ten grid (10^(n/10)) is the one ISO 266 prefers; a base-two grid
+// (2^(n/3)) drifts from it by 0.08% per band.
+tob_fc(n) = 1000.0 * (10.0 ^ (float(n)/10.0));
+tob_fl(n) = tob_fc(n) * (10.0 ^ (-0.05));
+// The upper edge is clamped just under Nyquist so the band count stays fixed
+// across sample rates: at 44.1 kHz the 20 kHz band would otherwise ask
+// fi.bandpass6e for a 22.4 kHz corner it cannot design. The top band narrows
+// instead of the filterbank falling apart.
+//
+// A CLAMPED BAND IS NOT A MEASUREMENT. Faust fixes N at compile time, so this
+// keeps the bank standing, but a band whose passband does not sit comfortably
+// below Nyquist reports the sample rate rather than the signal. Measured
+// through this bank on pink noise, by the ratio of the band's nominal upper
+// edge to Nyquist: 0.47 -> +0.15 dB, 0.74 -> +0.20, 0.81 -> -0.12,
+// 0.93 -> -0.65, 1.02 -> -3.01. Anything reading these levels must discard
+// the bands past ~0.85 -- seam-ltm strx_bands.h does it with bandMeasurable().
+tob_fu(n) = min(tob_fc(n) * (10.0 ^ (0.05)), 0.49 * ma.SR);
+tob_bw(n) = tob_fu(n) - tob_fl(n);
+// process = tob_fc(0);   // -> 1000; tob_fc(-17) -> 19.95, tob_fc(13) -> 19952
+//
+//------------------------------------------------ PER-BAND AVERAGING TIME ---
+// The confidence of a noise level estimate depends on the bandwidth-time
+// product BT, so one global tau leaves the low bands rattling while the high
+// ones lag. tau = BT/B equalises the confidence across the filterbank:
+// ~11 s at 20 Hz, ~0.22 s at 1 kHz. BT = 50 is about +/-0.6 dB. Clamped so no
+// band waits longer than 20 s or reacts faster than 0.1 s (above that the top
+// bands only flicker, with no statistical gain).
+tob_bt = 50.0;
+tob_tau(n) = max(0.1, min(20.0, tob_bt / tob_bw(n)));
+// process = tob_tau(0);   // -> 0.2167 s
+//
+tob_ms(n) = _ <: * : si.smooth(ba.tau2pole(tob_tau(n)));   // mean square
+tob_db    = max(ma.EPSILON) : log10 : *(10.0);             // power -> dB
+//
+//------------------------------------------------------------ BAND LEVELS ---
+// N band levels in dB, starting at band index n0.
+thirdoctave_levels(n0, N) = _ <: par(i, N,
+  fi.bandpass6e(tob_fl(n0+i), tob_fu(n0+i)) : tob_ms(n0+i) : tob_db);
+// process = no.pink_noise : thirdoctave_levels(-17, 31);  // 31 equal levels
+//
+// Same for a spaced microphone pair: the two capsules are averaged in POWER,
+// band by band, and never summed to Mid. Two spaced omnis decorrelate above
+// c/2d (430 Hz at 40 cm spacing), so a Mid sum combs by geometry right where
+// the measurement is being read.
+thirdoctave_levels_ab(n0, N) = par(c, 2, bands) :> par(i, N, _/2.0 : tob_db)
+with {
+  bands = _ <: par(i, N, fi.bandpass6e(tob_fl(n0+i), tob_fu(n0+i)) : tob_ms(n0+i));
+};
+// process = no.pink_noise <: _,_ : thirdoctave_levels_ab(-17, 31);
+//
+//-------------------------------------------------- PINK-REFERENCE ERROR ---
+// Deviation of N band levels from the mean of the ni bands starting at i0.
+// Against pink noise this IS the error curve: pink carries equal energy in
+// every constant-relative-bandwidth band, so a correct loudspeaker reads flat
+// and the mean is the only reference the measurement needs. Absolute level,
+// microphone sensitivity and distance all fall out with the mean -- and so
+// does any smooth error of the microphone itself.
+pinkdev(N, i0, ni) = si.bus(N) <: (si.bus(N), (mean <: si.bus(N)))
+  : ro.interleave(N, 2) : par(i, N, -)
+with {
+  mean = par(i, N, _ * ((i >= i0) & (i < i0+ni))) :> _ / float(ni);
+};
+//
+// The dB to DIAL IN on the amplifier, i.e. minus the deviation. It gets its
+// own function because the sign is the one thing a comment cannot enforce.
+pinkcomp(N, i0, ni) = pinkdev(N, i0, ni) : par(i, N, *(-1.0));
+//
+// The STONE calibration case: 31 bands from 20 Hz (n=-17) to 20 kHz (n=13),
+// zeroed on 31.5 Hz .. 16 kHz (array indices 2..29), so the noisy extreme
+// bands are shown but do not drag the reference.
+stone_pinkcomp = thirdoctave_levels_ab(-17, 31) : pinkcomp(31, 2, 28);
+// process = no.pink_noise <: _,_ : stone_pinkcomp;
