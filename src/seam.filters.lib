@@ -268,6 +268,19 @@ airShelf   = sfihishelf1(5000.0, -6.5);
 // first-order pole-zero pairs spaced geometrically from f0 to f1, mapped with
 // the MATCHED-Z transform: z_pole = exp(-2*PI*f*T).
 //
+// The pole-zero construction is Smith & Smith's, adopted unchanged:
+//   J. O. Smith and H. F. Smith, "Closed Form Fractional Integration and
+//   Differentiation via Real Exponentially Spaced Pole-Zero Pairs",
+//   arXiv:1606.06154 (2016), section VI.C -- poles at p_n = -2*pi*f1*r^(n-1)
+//   and zeros at z_m = p_m*r^(-alpha), which is what fi.spectral_tilt, also
+//   contributed by those authors, implements.
+// What differs here is their section VII alone. The paper digitises with the
+// bilinear transform and prewarping; this function uses matched-Z instead, for
+// the reason measured below. The paper does not discuss matched-Z, and it does
+// not examine the error the bilinear warp leaves in the INTERIOR of the band --
+// only the poles at infinity landing on z = -1 and the constraint on N that
+// keeps f_(N+1) above Nyquist.
+//
 // Matched-Z and not bilinear, and the difference is measurable: the bilinear
 // transform warps the frequency axis, so at 16 kHz with SR = 48 kHz the
 // response is evaluated 0.73 octaves too high and reads -2.19 dB low. This is
