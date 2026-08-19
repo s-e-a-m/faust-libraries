@@ -8,7 +8,7 @@ import("seam.lib");
 //==============================================================================
 sno = library("seam.noises.lib");
 //---------------------------------------- MULTICHANNEL PINK NOISE GENERATOR ---
-multipink(N,g) = no.multinoise(N) : par(i,N,no.pink_filter : *(g));
+multipink(N,g) = no.multinoise(N) : par(i,N,sfi.pink_filter_mz : *(g));
 // process = multipink(4,0.5);
 //
 rndw(f,imin,imax,omin,omax) = no.pink_noise :

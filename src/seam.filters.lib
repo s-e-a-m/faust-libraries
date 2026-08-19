@@ -262,3 +262,86 @@ airCascade = sfihishelf2(3000.0, -0.5) : sfihishelf2(8000.0, -3.4) : sfihishelf2
 airShelf   = sfihishelf1(5000.0, -6.5);
 // process = os.impulse : airCascade;
 // process = os.impulse : airShelf;
+
+//------------------------------------------ MATCHED-Z SPECTRAL TILT ---
+// A constant-slope tilt of alpha nepers/neper built as a cascade of real
+// first-order pole-zero pairs spaced geometrically from f0 to f1, mapped with
+// the MATCHED-Z transform: z_pole = exp(-2*PI*f*T).
+//
+// Matched-Z and not bilinear, and the difference is measurable: the bilinear
+// transform warps the frequency axis, so at 16 kHz with SR = 48 kHz the
+// response is evaluated 0.73 octaves too high and reads -2.19 dB low. This is
+// why fi.spectral_tilt cannot be used for a calibration reference; measured,
+// it misses SMPTE ST 2095-1's +/-0.25 dB by 1.5 to 2.1 dB at every rate.
+// See seam-ltm: plugins/multipink/source/multipink_pink.h,
+// tests/multipink_pink_test.cpp, and
+// docs/superpowers/specs/2026-08-19-pink-filter-mz-design.md
+spectral_tilt_mz(N,f0,f1,alpha) = seq(i,N,sec(i))
+with {
+    r      = (f1/f0)^(1.0/float(N-1));
+    mp(i)  = 2*ma.PI*f0*r^i;                       // analog pole, rad/s
+    mz(i)  = 2*ma.PI*f0*r^(-alpha+i);              // analog zero, rad/s
+    zp(i)  = exp(-mp(i)/ma.SR);
+    zz(i)  = exp(-mz(i)/ma.SR);
+    g(i)   = (1.0-zp(i))/(1.0-zz(i));              // unity gain at DC
+    sec(i) = fi.tf1(g(i), -g(i)*zz(i), -zp(i));
+};
+// process = spectral_tilt_mz(17, 2.0, ma.SR/2, -0.5);
+
+//------------------------------------------------ PINKING FILTER ---
+// A matched-Z ladder at alpha = -1/2, plus one correction section that
+// cancels the aliased tail matched-Z leaves behind. It does not call
+// spectral_tilt_mz above: the ladder is reimplemented inline here because
+// the correction section has to sit inside the same seq as the ladder
+// sections, sharing their fixed maximum depth and their runtime
+// ladder/correction/identity dispatch (see below), which a separate call to
+// spectral_tilt_mz followed by corr could not express. That residual is a
+// function of f/SR ALONE -- verified identical at 48 and 192 kHz to three
+// decimal places -- so its correction has CONSTANT coefficients and must
+// not be redesigned per rate.
+// Fitted 2026-08-19; it takes the residual from 1.48 dB to 0.029 dB.
+//
+// Faust's seq/par repeat counts are resolved at compile time, but the ladder
+// depth here is a function of the runtime sample rate (ma.SR), exactly like
+// PinkDesign::design(fs) on the C++ side. The cascade is therefore built to a
+// fixed maximum depth (NMAX, mirroring PinkDesign::kMaxSections) and every
+// section past the sample rate's actual requirement is switched to the
+// identity pair (b0=1, b1=0, a1=0) -- an exact no-op in IEEE 754, not an
+// approximation. This is a runtime BYPASS, not a runtime SKIP: all NMAX
+// sections are evaluated at every sample regardless of the sample rate, and
+// the unused ones merely compute the identity rather than being omitted from
+// the loop -- inside sno.multipink(4,0.5) that is 4*32 = 128 first-order
+// sections evaluated per sample, not 4*(nladder+1). Structurally this is a
+// fixed array with that runtime bypass, where the C++ is a variable-length
+// loop that never touches unused array slots at all; numerically the two are
+// the same filter, which is what the A/B in tools/faust-pink-ab.sh checks to
+// 1e-12.
+pink_filter_mz = seq(i,NMAX,sec(i))
+with {
+    NMAX    = 32;                                      // = PinkDesign::kMaxSections
+    f0      = 2.0;
+    f1      = ma.SR/2;
+    w0      = 2*ma.PI*f0;
+    nraw    = int(ceil(ma.log2(f1/f0))) + 1;            // one pole per octave
+    nladder = max(2, min(nraw, NMAX-1));                // one slot reserved for the correction
+    r       = (f1/f0)^(1.0/float(nladder-1));
+    czero   = -0.250775213;
+    cpole   = -0.160124183;
+    cg      = (1.0-cpole)/(1.0-czero);
+
+    mp(i) = w0*r^i;                                     // analog pole, rad/s
+    mz(i) = w0*r^(0.5+i);                                // analog zero, rad/s
+    zp(i) = exp(-mp(i)/ma.SR);
+    zz(i) = exp(-mz(i)/ma.SR);
+    gl(i) = (1.0-zp(i))/(1.0-zz(i));                     // unity gain at DC
+
+    isLadder(i) = i < nladder;
+    isCorr(i)   = i == nladder;
+
+    b0(i) = ba.if(isLadder(i), gl(i),        ba.if(isCorr(i), cg,          1.0));
+    b1(i) = ba.if(isLadder(i), 0-gl(i)*zz(i), ba.if(isCorr(i), 0-cg*czero, 0.0));
+    a1(i) = ba.if(isLadder(i), 0-zp(i),       ba.if(isCorr(i), 0-cpole,    0.0));
+
+    sec(i) = fi.tf1(b0(i), b1(i), a1(i));
+};
+// process = no.noise : pink_filter_mz;
