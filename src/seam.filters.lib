@@ -289,10 +289,16 @@ with {
 // process = spectral_tilt_mz(17, 2.0, ma.SR/2, -0.5);
 
 //------------------------------------------------ PINKING FILTER ---
-// The tilt above at alpha = -1/2, plus one correction section that cancels the
-// aliased tail matched-Z leaves behind. That residual is a function of f/SR
-// ALONE -- verified identical at 48 and 192 kHz to three decimal places -- so
-// its correction has CONSTANT coefficients and must not be redesigned per rate.
+// A matched-Z ladder at alpha = -1/2, plus one correction section that
+// cancels the aliased tail matched-Z leaves behind. It does not call
+// spectral_tilt_mz above: the ladder is reimplemented inline here because
+// the correction section has to sit inside the same seq as the ladder
+// sections, sharing their fixed maximum depth and their runtime
+// ladder/correction/identity dispatch (see below), which a separate call to
+// spectral_tilt_mz followed by corr could not express. That residual is a
+// function of f/SR ALONE -- verified identical at 48 and 192 kHz to three
+// decimal places -- so its correction has CONSTANT coefficients and must
+// not be redesigned per rate.
 // Fitted 2026-08-19; it takes the residual from 1.48 dB to 0.029 dB.
 //
 // Faust's seq/par repeat counts are resolved at compile time, but the ladder
@@ -301,9 +307,15 @@ with {
 // fixed maximum depth (NMAX, mirroring PinkDesign::kMaxSections) and every
 // section past the sample rate's actual requirement is switched to the
 // identity pair (b0=1, b1=0, a1=0) -- an exact no-op in IEEE 754, not an
-// approximation. Structurally this is a fixed array with a runtime bypass,
-// where the C++ is a variable-length loop; numerically the two are the same
-// filter, which is what the A/B in tools/faust-pink-ab.sh checks to 1e-9.
+// approximation. This is a runtime BYPASS, not a runtime SKIP: all NMAX
+// sections are evaluated at every sample regardless of the sample rate, and
+// the unused ones merely compute the identity rather than being omitted from
+// the loop -- inside sno.multipink(4,0.5) that is 4*32 = 128 first-order
+// sections evaluated per sample, not 4*(nladder+1). Structurally this is a
+// fixed array with that runtime bypass, where the C++ is a variable-length
+// loop that never touches unused array slots at all; numerically the two are
+// the same filter, which is what the A/B in tools/faust-pink-ab.sh checks to
+// 1e-12.
 pink_filter_mz = seq(i,NMAX,sec(i))
 with {
     NMAX    = 32;                                      // = PinkDesign::kMaxSections
