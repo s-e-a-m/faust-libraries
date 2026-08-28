@@ -54,6 +54,31 @@ for f in "$BUILD"/seam.*.md; do
   echo "  publish $name ($nfun funzioni)"
 done
 
+# --- indice della suite ---------------------------------------------------
+{
+  printf -- '---\n'
+  printf 'title: "Faust Libraries"\n'
+  printf 'permalink: /faust-libraries/\n'
+  printf 'toc: false\n'
+  printf 'generated_from: faust-libraries\n'
+  printf 'generated_rev: %s\n' "$REV"
+  printf 'generated_at: %s\n' "$TODAY"
+  printf -- '---\n\n'
+  printf '<!-- GENERATO — non modificare qui: la fonte sono i .lib di faust-libraries/src/ -->\n'
+  printf '# SEAM Faust Libraries\n\n'
+  printf 'DSP libraries for sustained electroacoustic music.\n'
+  printf 'Every entry below is generated from the comments in its own `.lib` source.\n\n'
+  printf '| Library | Prefix | Description |\n'
+  printf '|---|---|---|\n'
+  for name in $published; do
+    src="$BUILD/seam.$name.md"
+    prefix="$(sed -n 's/.*official prefix is `\([a-z]*\)`.*/\1/p' "$src" | head -1)"
+    desc="$(sed -n '3p' "$src" | sed 's/ Its official prefix is.*//')"
+    printf '| [%s](/faust-libraries/%s/) | `%s` | %s |\n' "$name" "$name" "$prefix" "$desc"
+  done
+  printf '\nThe source is at [github.com/s-e-a-m/faust-libraries](https://github.com/s-e-a-m/faust-libraries).\n'
+} > "$COLL/index.md"
+
 npub="$(echo "$published" | wc -w | tr -d ' ')"
 echo "  copertura: $npub/$total"
 [ -n "$skipped" ] && echo "  non documentate alla fonte:$skipped"
