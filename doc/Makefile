@@ -8,7 +8,7 @@ SRC := $(shell grep -oE '^[a-z][a-z]* = library\("seam\.[a-z]+\.lib"\)' $(SEAMLI
          | sed -E 's/.*"(seam\.[a-z]+\.lib)".*/\1/')
 MD  := $(SRC:%.lib=$(BUILD)/%.md)
 
-.PHONY: md svg doc index list clean
+.PHONY: md svg doc index list clean publish test
 md: $(MD)
 
 $(BUILD)/%.md: $(SEAMLIB)/%.lib
@@ -30,3 +30,13 @@ list:
 
 clean:
 	rm -rf $(BUILD)
+
+# Il Makefile vive in doc/, e `make -C doc` esegue con CWD=doc/:
+# il percorso relativo si conta da lì, non dalla radice del repo.
+SITE ?= ../../../blog/s-e-a-m.github.io
+
+publish: doc
+	@scripts/publish.sh $(SITE)
+
+test:
+	@scripts/test-publish.sh
