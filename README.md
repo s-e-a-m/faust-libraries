@@ -59,3 +59,24 @@ svc = library("seam.vcs3.lib");
 ```text
 process = sma.PIc;
 ```
+
+## Online documentation
+
+The reference is published at <https://s-e-a-m.github.io/faust-libraries/>.
+
+It is regenerated from the sources and copied into the site with:
+
+    make -C doc publish
+
+Only libraries that have functions documented at the source are published, in the Grame banner format:
+
+```faust
+//-------------------------------`(sba.)sweep`--------------------------------
+// What it does, in prose.
+// #### Usage
+```
+
+The command prints the coverage and lists what is missing.
+As of 2026-08-28 the coverage is 2 out of 20 — see `TODO.md`.
+
+`publish` does not commit: the diff in the site repository is meant to be read and accepted by hand.
