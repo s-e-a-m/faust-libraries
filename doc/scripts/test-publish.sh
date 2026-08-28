@@ -10,7 +10,7 @@ mkdir -p "$TMP/_libraries" "$TMP/_data"
 
 "$HERE/publish.sh" "$TMP" > "$TMP/out.txt" 2>&1 || { echo "publish.sh è uscito con errore:"; cat "$TMP/out.txt"; exit 1; }
 
-EXPECTED_CHECKS=13
+EXPECTED_CHECKS=17
 fail=0
 checks=0
 ok()   { checks=$((checks + 1)); echo "  ok   $1"; }
@@ -34,6 +34,14 @@ if grep -q '^permalink: /faust-libraries/$' "$TMP/_libraries/index.md"; then ok 
 if grep -q '\[basic\](/faust-libraries/basic/)' "$TMP/_libraries/index.md"; then ok "indice linka basic"; else bad "indice linka basic"; fi
 if grep -q '`sba`' "$TMP/_libraries/index.md"; then ok "indice riporta il prefisso"; else bad "indice riporta il prefisso"; fi
 if ! grep -q 'filters' "$TMP/_libraries/index.md"; then ok "indice non linka le escluse"; else bad "indice non linka le escluse"; fi
+
+if grep -q '# BEGIN libraries' "$TMP/_data/navigation.yml"; then ok "blocco nav aperto"; else bad "blocco nav aperto"; fi
+if grep -q '# END libraries' "$TMP/_data/navigation.yml"; then ok "blocco nav chiuso"; else bad "blocco nav chiuso"; fi
+if grep -q 'url: /faust-libraries/basic/' "$TMP/_data/navigation.yml"; then ok "nav elenca basic"; else bad "nav elenca basic"; fi
+
+"$HERE/publish.sh" "$TMP" > /dev/null 2>&1
+n="$(grep -c '# BEGIN libraries' "$TMP/_data/navigation.yml")"
+if [ "$n" -eq 1 ]; then ok "publish idempotente sul nav"; else bad "publish idempotente sul nav (blocchi: $n)"; fi
 
 # Un check che non si esprime (per un errore di quoting, per esempio) sparisce
 # senza lasciare traccia e lascia fail=0: contarli è l'unico modo di accorgersene.

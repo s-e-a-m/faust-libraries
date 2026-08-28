@@ -79,6 +79,20 @@ done
   printf '\nThe source is at [github.com/s-e-a-m/faust-libraries](https://github.com/s-e-a-m/faust-libraries).\n'
 } > "$COLL/index.md"
 
+# --- blocco di navigazione ------------------------------------------------
+{
+  printf 'libraries:\n'
+  printf '  - title: "Library Reference"\n'
+  printf '    url: /faust-libraries/\n'
+  printf '    children:\n'
+  for name in $published; do
+    src="$BUILD/seam.$name.md"
+    prefix="$(sed -n 's/.*official prefix is `\([a-z]*\)`.*/\1/p' "$src" | head -1)"
+    printf '      - title: "%s (%s)"\n' "$name" "$prefix"
+    printf '        url: /faust-libraries/%s/\n' "$name"
+  done
+} | python3 "$HERE/navblock.py" "$SITE/_data/navigation.yml" libraries
+
 npub="$(echo "$published" | wc -w | tr -d ' ')"
 echo "  copertura: $npub/$total"
 [ -n "$skipped" ] && echo "  non documentate alla fonte:$skipped"
