@@ -5,6 +5,8 @@
 Only `basic` and `math` have functions documented in the Grame banner format.
 The others generate pages of bare titles and are held back by the coverage gate in `doc/scripts/publish.sh`.
 
+Tracked as [s-e-a-m/faust-libraries#33](https://github.com/s-e-a-m/faust-libraries/issues/33).
+
 Each entry below notes how much prose the generated page already has, as a rough measure of how far it is from being publishable.
 
 - [ ] `seam.filters.lib` — 205 lines of text, no function banners
@@ -28,4 +30,4 @@ Each entry below notes how much prose the generated page already has, as a rough
 
 ## Site
 
-- [ ] Sidebar: "Library Reference" is a heading, not a link — minimal-mistakes only renders `children` as links, so the suite index is reachable only from `/docs/`. Add a first child entry pointing at `/faust-libraries/`.
+- [ ] ([#32](https://github.com/s-e-a-m/faust-libraries/issues/32)) Sidebar: "Library Reference" is a heading, not a link — minimal-mistakes only renders `children` as links, so the suite index is reachable only from `/docs/`. Add a first child entry pointing at `/faust-libraries/`.
