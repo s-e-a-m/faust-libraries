@@ -292,7 +292,19 @@ delrmdyn = *(10) : co.compressor_mono(11, -24, 0.03, 0.04);
 // stunedrev: four independent lines of 42 all-pass sections in series, each
 // line tuned by an irrational ratio k: √2, φ, e, π. The reference is the
 // version played in Pure Data (`stunedrev.dsp`, 42 sections), not the online
-// variant with 81.
+// variant with 81. The Pd patch starts the four lines at 83, 47, 7 and 71 ms.
+//
+// It descends from Giuseppe Silvi's in-phi-rev (Canto alla durata): one ratio,
+// φ, 81 sections in Schroeder's form, times in samples. Davide Tedesco and
+// Giuseppe gave each face of STONED its own step, the four ratios, and the
+// times became milliseconds.
+//
+// A long memory more than a reverberation. Each section returns all the
+// energy it receives, delayed on average by its own t, so the energy of a line
+// arrives on average after the sum of its 42 delays: 106, 69, 17 and 201 s at
+// the starting times (measured 17.19 s on the e line, 17.2 in theory). The
+// direct path is (-g)^42, -126 dB. Intended: each face returns the sound on
+// its own time scale (seam-ltm doc/study/sscdo2/stunedrev-chain/).
 //
 // The all-pass is Moorer's (`sjm.apfv`, 2026-09-29): the original's `apf` was
 // `sjm.apf` with the buffer as a parameter, and that form now lives in
@@ -300,7 +312,7 @@ delrmdyn = *(10) : co.compressor_mono(11, -24, 0.03, 0.04);
 //
 // The delay of section i on line k is (i+1)·k times the slider's time, moved
 // to the next prime (`stdel`). Before the prime the 42 delays of a line are a
-// harmonic series and share factors (358 of 861 pairs at 33 ms, √2, 96 kHz);
+// harmonic series and share factors (313 of 861 pairs at 83 ms, √2, 96 kHz);
 // after it they are 42 distinct primes, pairwise coprime. A prime is prime at
 // one rate only, so each rate has its own set: a feature of the system, kept.
 //==============================================================================
@@ -334,16 +346,16 @@ delrmdyn = *(10) : co.compressor_mono(11, -24, 0.03, 0.04);
 //
 // * `k`: the line's ratio, sqrt(2), (1+sqrt(5))/2, ma.E or ma.PI
 // * `i`: the section, 0 to 41
-// * `ms`: the slider's time, 1 to 100 ms; 33 at the start
+// * `ms`: the slider's time, 1 to 100 ms (83, 47, 7, 71 at the start)
 //
 // #### Test
 // ```
 // sdt = library("seam.tedesco.lib");
-// stdel_test = sdt.stdel(sqrt(2), 0, 33);
+// stdel_test = sdt.stdel(sqrt(2), 0, 83);
 // ```
 //------------------------------------------------------------------------------
 stdel(k, i, ms) = sma.ms2npsamp(ms*(i+1)*k);
-// process = stdel(sqrt(2), 0, 33);
+// process = stdel(sqrt(2), 0, 83);
 
 //-------------------------------`(sdt.)stmd`-----------------------------------
 // The buffer, in samples, of section i on the line of ratio k: the longest
@@ -382,16 +394,16 @@ stmd(k, i) = int(100*(i+1)*k*ma.SR/1000) + 150;
 // Where:
 //
 // * `k`: the line's ratio, sqrt(2), (1+sqrt(5))/2, ma.E or ma.PI
-// * `ms`: the slider's time, 1 to 100 ms; 33 at the start
+// * `ms`: the slider's time, 1 to 100 ms (83, 47, 7, 71 at the start)
 //
 // #### Test
 // ```
 // sdt = library("seam.tedesco.lib");
-// stline_test = os.impulse : sdt.stline(sqrt(2), 33);
+// stline_test = os.impulse : sdt.stline(ma.E, 7);
 // ```
 //------------------------------------------------------------------------------
 stline(k, ms) = seq(i, 42, sjm.apfv(stmd(k, i), stdel(k, i, ms), 1/sqrt(2)));
-// process = os.impulse : stline(sqrt(2), 33);
+// process = os.impulse : stline(ma.E, 7);
 
 //-----------------------------`(sdt.)stunedrev`--------------------------------
 // The four lines, independent, one input and one output each, in the
@@ -403,7 +415,7 @@ stline(k, ms) = seq(i, 42, sjm.apfv(stmd(k, i), stdel(k, i, ms), 1/sqrt(2)));
 // ```
 // Where:
 //
-// * `t1`...`t4`: the time of each line, 1 to 100 ms; 33 at the start
+// * `t1`...`t4`: the time of each line, 1 to 100 ms; 83, 47, 7, 71 at the start
 //------------------------------------------------------------------------------
 stunedrev(t1, t2, t3, t4) = stline(sqrt(2), t1), stline((1+sqrt(5))/2, t2),
                             stline(ma.E, t3), stline(ma.PI, t4);
