@@ -423,9 +423,10 @@ imt2samp(mt) = int(mt*ma.SR/isos);
 
 //------------------------------`(sma.)imdelay`------------------------------
 // Pure integer-sample delay for a distance `mt` in metres, using the interior
-// speed of sound. The one stateful function in this library. Delay line is
-// `1<<15` samples (~0.68 s at 48 kHz, ~226 m). Used by the SEAM-LTM DDELAY
-// plugin (per channel).
+// speed of sound. Delay line is `1<<15` samples (~0.68 s at 48 kHz, ~226 m).
+// The SEAM-LTM DDELAY plugin started from it and then departed from it: it
+// rounds to the millimetre and to the nearest sample, and then to the next
+// prime. Its specification is `imnpdelay`.
 //
 // #### Usage
 // ```
@@ -443,3 +444,60 @@ imt2samp(mt) = int(mt*ma.SR/isos);
 // ```
 //----------------------------------------------------------------------------
 imdelay(mt) = de.delay(1 << 15, imt2samp(mt));
+
+//-----------------------------`(sma.)imt2npsamp`----------------------------
+// Metres to a prime number of samples, as the SEAM-LTM DDELAY plugin computes
+// it: the distance is rounded to the millimetre (the precision of a laser
+// distance meter), converted at the interior speed of sound, rounded to the
+// nearest sample, and moved to the next prime strictly above it (`sff.np`).
+// Values below 2 samples are kept as they are.
+//
+// Prime delays keep several delay lines incommensurable: two instances, or two
+// sources, never share a common period. Written 2026-09-29 so that the
+// specification matches DDELAY's C++ (`ddelay_processor.cpp`,
+// `updateDelaySamples`), verified value by value over 0–30 m at 44.1, 48, 96
+// and 192 kHz; first used by `sdt.delrm`.
+//
+// #### Usage
+// ```
+// imt2npsamp(mt)
+// ```
+// Where:
+//
+// * `mt`: distance in metres
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// imt2npsamp_test = sma.imt2npsamp(7.291);
+// ```
+//----------------------------------------------------------------------------
+imt2npsamp(mt) = select2(n < 2, n : sff.np, n)
+with {
+    mm = floor(mt*1000 + 0.5)/1000;
+    n  = int(floor(mm*ma.SR/isos + 0.5));
+};
+
+//-----------------------------`(sma.)imnpdelay`-----------------------------
+// Pure integer-sample delay of `imt2npsamp(mt)` samples: the DDELAY delay.
+// No interpolation, no smoothing: a change of distance clicks, which suits a
+// delay that is set while tuning and left alone while playing.
+//
+// #### Usage
+// ```
+// _ : imnpdelay(maxdel,mt) : _
+// ```
+// Where:
+//
+// * `maxdel`: maximum delay in samples (a constant; DDELAY uses `1<<15`,
+//   enough for its 30 m at 192 kHz, 17 383 samples)
+// * `mt`: distance in metres
+//
+// #### Test
+// ```
+// no = library("noises.lib");
+// sma = library("seam.math.lib");
+// imnpdelay_test = no.noise : sma.imnpdelay(1 << 15, 7.291);
+// ```
+//----------------------------------------------------------------------------
+imnpdelay(maxdel, mt) = de.delay(maxdel, imt2npsamp(mt));
