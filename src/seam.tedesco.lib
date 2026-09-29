@@ -35,10 +35,20 @@ sdt = library("seam.tedesco.lib");
 
 //================================ SSCDO#2 — LMO ===============================
 // LMO (liveMultiOscs_30000_plain): a four-channel "oscillator" made of noise
-// through a narrow band-pass, one band per driver of the tetrahedral STONED.
-// Only the blocks already discussed are here: the noise source and the band
-// filter. The original's second oscillator, its 1.015 frequency factor, the
-// high-passed direct noise and the output stage wait for Davide's answer.
+// through a narrow band-pass, one band per driver of the tetrahedral STONED,
+// and two such oscillators that beat: `lmoband`, `lmoosc`, `lmo`.
+//
+// What the original had and this version leaves out (2026-09-29):
+// * the 1.015 frequency factor, a by-product of the old two-oscillator formula
+//   (slider/2 + 1.03·slider/2): `f` is the band centre itself, and the cues
+//   that were 96 and 96 → 111 Hz become 97.44 and 97.44 → 112.67 Hz, the
+//   frequencies Davide actually heard;
+// * the high-passed direct noise (volume 0 at start, on no fader: it never
+//   sounded in the performance);
+// * `fi.dcblockerat(20)` at the output, redundant after the 24th-order
+//   highpass inside `lmoband`;
+// * the +6 dB of the duplicated oscillator: `lmo` is normalised to one
+//   oscillator, and the level is set by playing, not by compatibility.
 //==============================================================================
 
 //------------------------------`(sdt.)lmoband`---------------------------------
@@ -78,7 +88,7 @@ sdt = library("seam.tedesco.lib");
 lmoband(f) = fi.highpass(24, f) : fi.lowpass(24, f - 0.0001);
 // process = no.noise : lmoband(97.44);
 
-//--------------------------------`(sdt.)lmo`-----------------------------------
+//-------------------------------`(sdt.)lmoosc`---------------------------------
 // One LMO oscillator on `N` channels: `N` noise streams, each through
 // `lmoband`, channel `i` centred at `f + i` Hz as in the original.
 //
@@ -86,17 +96,17 @@ lmoband(f) = fi.highpass(24, f) : fi.lowpass(24, f - 0.0001);
 // call its streams are decorrelated (max |r| 0.002 over 120 pairs), which is
 // all a tetrahedral source needs. Its seed is fixed at 12345, so a second call
 // returns the same noise: the original's second oscillator, at the same
-// frequency, doubled the first (+6 dB) rather than adding to it.
+// frequency, doubled the first (+6 dB) rather than adding to it (see `lmo`).
 //
 // The independence of the streams is audible. With one stream shared by the
 // four channels, the `+ i` Hz offsets leave them almost identical (r = 0.998
 // between adjacent channels at 1 kHz); with a stream per channel they are
 // uncorrelated (|r| < 0.03) and the source opens up. Heard and measured on
-// 2026-09-29.
+// 2026-09-29 (seam-ltm `doc/study/sscdo2/lmo-streams/`).
 //
 // #### Usage
 // ```
-// lmo(N,f) : si.bus(N)
+// lmoosc(N,f) : si.bus(N)
 // ```
 // Where:
 //
@@ -106,8 +116,50 @@ lmoband(f) = fi.highpass(24, f) : fi.lowpass(24, f - 0.0001);
 // #### Test
 // ```
 // sdt = library("seam.tedesco.lib");
-// lmo_test = sdt.lmo(4, 97.44);
+// lmoosc_test = sdt.lmoosc(4, 97.44);
 // ```
 //------------------------------------------------------------------------------
-lmo(N, f) = no.multinoise(N) : par(i, N, lmoband(f + i));
-// process = lmo(4, 97.44);
+lmoosc(N, f) = no.multinoise(N) : par(i, N, lmoband(f + i));
+// process = lmoosc(4, 97.44);
+
+//--------------------------------`(sdt.)lmo`-----------------------------------
+// The LMO: two oscillators that beat, on `N` channels.
+//
+// The original summed two `lmoosc` whose frequencies both came out at the same
+// value, from the same noise: one oscillator at +6 dB. Davide's intention
+// (2026-09-29): two bands that can beat; at 0 Hz apart they share the
+// frequency and are decorrelated; at a distance `d` each moves `d/2` from the
+// centre. So: `2N` streams from ONE `no.multinoise(2N)` call (two calls would
+// give the same noise twice); streams `0..N-1` feed the bands at
+// `f - d/2 + i`, streams `N..2N-1` those at `f + d/2 + i`; channel `i` sums
+// its two bands. The offset `i` cancels in the difference, so every channel
+// beats at `d`. Two independent noises add in power, hence `1/sqrt(2)`: the
+// level equals one oscillator's at every `d` (within 0.2 dB, measured).
+//
+// A band of noise fluctuates by itself, its envelope carrying energy up to
+// about 11 Hz at 97 Hz. The beat of two bands is a broad bump at `d` riding
+// on that fluctuation: at 97 Hz it stands out by +3 dB at d = 10 Hz, +16 dB at
+// 20 Hz, +35 dB at 40 Hz. Below about 10 Hz the second band widens the sound
+// without beating. In SSCDO#2 `d` spans 0 to 50 Hz, for experiment
+// (seam-ltm `doc/study/sscdo2/lmo-beats/`, with renders).
+//
+// #### Usage
+// ```
+// lmo(N,f,d) : si.bus(N)
+// ```
+// Where:
+//
+// * `N`: number of channels (a constant numerical expression), 4 in SSCDO#2
+// * `f`: centre of channel 0 in Hz
+// * `d`: distance between the two bands in Hz, 0 to 50 in SSCDO#2
+//
+// #### Test
+// ```
+// sdt = library("seam.tedesco.lib");
+// lmo_test = sdt.lmo(4, 97.44, 20);
+// ```
+//------------------------------------------------------------------------------
+lmo(N, f, d) = no.multinoise(2*N)
+             : par(i, N, lmoband(f - d/2 + i)), par(i, N, lmoband(f + d/2 + i))
+             :> par(i, N, /(sqrt(2)));
+// process = lmo(4, 97.44, 20);
