@@ -344,3 +344,66 @@ delrmdyn = *(10) : co.compressor_mono(11, -24, 0.03, 0.04);
 //------------------------------------------------------------------------------
 stdel(k, i, ms) = sma.ms2npsamp(ms*(i+1)*k);
 // process = stdel(sqrt(2), 0, 33);
+
+//-------------------------------`(sdt.)stmd`-----------------------------------
+// The buffer, in samples, of section i on the line of ratio k: the longest
+// delay the slider can ask (100 ms) at the current rate, plus 150 samples for
+// the step to the next prime (the largest gap between primes below the
+// longest delay at 192 kHz, 2 533 393 samples, is 148). Written without the
+// prime: Faust sizes a buffer at compile time and cannot evaluate `sff.np`
+// there. Faust takes the size from ma.SR's upper bound, 192 kHz; the C++
+// sizes each section at the session's rate in `prepare`.
+//
+// The original gave all 42 sections of a line the buffer of the longest one
+// (6, 7, 12 or 14 seconds): 3.94 GiB in double against 588 MiB sized exactly
+// at 96 kHz.
+//
+// #### Usage
+// ```
+// stmd(k, i)
+// ```
+// Where:
+//
+// * `k`: the line's ratio
+// * `i`: the section, 0 to 41
+//------------------------------------------------------------------------------
+stmd(k, i) = int(100*(i+1)*k*ma.SR/1000) + 150;
+
+//-------------------------------`(sdt.)stline`---------------------------------
+// One line of stunedrev: 42 of Moorer's all-pass sections in series, g = 1/√2
+// as in the original, the delay of section i given by `stdel` and its buffer
+// by `stmd`. All-pass by structure, section by section: the line colours the
+// time, not the spectrum.
+//
+// #### Usage
+// ```
+// _ : stline(k, ms) : _
+// ```
+// Where:
+//
+// * `k`: the line's ratio, sqrt(2), (1+sqrt(5))/2, ma.E or ma.PI
+// * `ms`: the slider's time, 1 to 100 ms; 33 at the start
+//
+// #### Test
+// ```
+// sdt = library("seam.tedesco.lib");
+// stline_test = os.impulse : sdt.stline(sqrt(2), 33);
+// ```
+//------------------------------------------------------------------------------
+stline(k, ms) = seq(i, 42, sjm.apfv(stmd(k, i), stdel(k, i, ms), 1/sqrt(2)));
+// process = os.impulse : stline(sqrt(2), 33);
+
+//-----------------------------`(sdt.)stunedrev`--------------------------------
+// The four lines, independent, one input and one output each, in the
+// original's order: √2, φ, e, π.
+//
+// #### Usage
+// ```
+// si.bus(4) : stunedrev(t1, t2, t3, t4) : si.bus(4)
+// ```
+// Where:
+//
+// * `t1`...`t4`: the time of each line, 1 to 100 ms; 33 at the start
+//------------------------------------------------------------------------------
+stunedrev(t1, t2, t3, t4) = stline(sqrt(2), t1), stline((1+sqrt(5))/2, t2),
+                            stline(ma.E, t3), stline(ma.PI, t4);
