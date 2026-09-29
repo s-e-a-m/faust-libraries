@@ -176,7 +176,19 @@ lmo(N, f, d) = no.multinoise(2*N)
 // the setup and left alone during the piece (`sma.imt2npsamp`). The original
 // used seconds through `de.delay` with its arguments swapped (harmless: `min`
 // picked the right one), and the float slider truncated 22 ms to 1055 samples
-// at 48 kHz. The initial 22 ms is 7.291 m here: 1061 samples at 48 kHz.
+// at 48 kHz. The initial 22 ms is 7.291 m here: 2113 samples at 96 kHz.
+//
+// What the original had and this version leaves out (2026-09-29): the
+// `fi.dcblocker` at the end of each channel, and the second one its process
+// puts after the master volume. They held back the DC of the unbounded
+// `fi.integrator`, 9.6 dB below the signal after five minutes of running;
+// with `delrmint` the DC stays 66.5 dB below, and 75 dB on the comb, so delRM
+// ends at the compressor. Their pole is fixed in samples (0.995): at 96 kHz
+// each is a high-pass at 76.59 Hz, and the two took 17.6 dB from the
+// clarinet's 29.7 Hz fundamental. That thinner low end is what the
+// performance sounded like; whether to keep it is a listening decision, and
+// if kept it enters as a declared `fi.dcblockerat(76.59)`, not as a DC
+// blocker (seam-ltm `doc/study/sscdo2/delrm-dcblock/`).
 //==============================================================================
 
 //-----------------------------`(sdt.)delrmcomb`--------------------------------
