@@ -254,7 +254,7 @@ delrmint = sfi.leakyint(1) : *(96000);
 // delrmrm_test = os.osc(29.7) : sdt.delrmrm(7.291);
 // ```
 //------------------------------------------------------------------------------
-delrmrm(mt) = _ <: sma.imnpdelay(1 << 15, mt), _, delrmint : *, _ : *;
+delrmrm(mt) = _ <: de.delay(1 << 15, sma.imt2npsamp(mt)), _, delrmint : *, _ : *;
 // process = os.osc(29.7) : delrmrm(7.291);
 
 //------------------------------`(sdt.)delrmdyn`--------------------------------

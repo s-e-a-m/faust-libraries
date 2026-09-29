@@ -3,9 +3,10 @@
 //
 // General-purpose mathematical helpers used across SEAM instruments: angular
 // and frequency quantities, squared trigonometry, angle and coordinate
-// conversions, the golden ratio, combinatorics, and acoustic distance/delay
-// utilities. Only elements not already provided by the standard Faust
-// `maths.lib` are kept here.
+// conversions, the golden ratio, combinatorics, and acoustic distance-to-
+// samples conversions. Only elements not already provided by the standard
+// Faust `maths.lib` are kept here, and all of them are stateless: a delay line
+// is built where it is used, from `de.delay` and the conversions below.
 //
 // * [References](#references)
 // * [Constants and Angular Frequency](#constants-and-angular-frequency)
@@ -344,7 +345,8 @@ factorial(i) = i * factorial(i-1);
 permutation(n,k) = factorial(n)/factorial(n-k);
 
 //================================= Acoustics ===============================
-// Speed of sound and distance-to-delay helpers for physical spatialisation.
+// Speed of sound and distance-to-samples conversions for physical
+// spatialisation.
 // SEAM distinguishes an `exterior` (open-air) and an `interior` (room) speed
 // of sound.
 //============================================================================
@@ -421,42 +423,25 @@ emt2samp(mt) = int(mt*ma.SR/esos);
 //----------------------------------------------------------------------------
 imt2samp(mt) = int(mt*ma.SR/isos);
 
-//------------------------------`(sma.)imdelay`------------------------------
-// Pure integer-sample delay for a distance `mt` in metres, using the interior
-// speed of sound. Delay line is `1<<15` samples (~0.68 s at 48 kHz, ~226 m).
-// The SEAM-LTM DDELAY plugin started from it and then departed from it: it
-// rounds to the millimetre and to the nearest sample, and then to the next
-// prime. Its specification is `imnpdelay`.
-//
-// #### Usage
-// ```
-// _ : imdelay(mt) : _
-// ```
-// Where:
-//
-// * `mt`: distance in metres
-//
-// #### Test
-// ```
-// no = library("noises.lib");
-// sma = library("seam.math.lib");
-// imdelay_test = no.noise : sma.imdelay(3.4);
-// ```
-//----------------------------------------------------------------------------
-imdelay(mt) = de.delay(1 << 15, imt2samp(mt));
-
 //-----------------------------`(sma.)imt2npsamp`----------------------------
 // Metres to a prime number of samples, as the SEAM-LTM DDELAY plugin computes
 // it: the distance is rounded to the millimetre (the precision of a laser
 // distance meter), converted at the interior speed of sound, rounded to the
 // nearest sample, and moved to the next prime strictly above it (`sff.np`).
-// Values below 2 samples are kept as they are.
+// Values below 2 samples are kept as they are. A delay line of that length is
+// `de.delay(1 << 15, sma.imt2npsamp(mt))`, DDELAY's delay (`1<<15` covers its
+// 30 m at 192 kHz, 17 383 samples).
+//
+// `sff.np` is a foreign function (`src/h/nextprime.h`): this conversion, and
+// what uses it, compiles with the C and C++ backends only, not in the online
+// Faust IDE nor to WebAssembly. It is a study implementation. The standard
+// libraries have `ma.primes`, the n-th prime from a table, but no next prime.
 //
 // Prime delays keep several delay lines incommensurable: two instances, or two
 // sources, never share a common period. Written 2026-09-29 so that the
 // specification matches DDELAY's C++ (`ddelay_processor.cpp`,
 // `updateDelaySamples`), verified value by value over 0–30 m at 44.1, 48, 96
-// and 192 kHz; first used by `sdt.delrm`.
+// and 192 kHz; first used by `sdt.delrmcomb` and `sdt.delrmrm`.
 //
 // #### Usage
 // ```
@@ -478,26 +463,3 @@ with {
     n  = int(floor(mm*ma.SR/isos + 0.5));
 };
 
-//-----------------------------`(sma.)imnpdelay`-----------------------------
-// Pure integer-sample delay of `imt2npsamp(mt)` samples: the DDELAY delay.
-// No interpolation, no smoothing: a change of distance clicks, which suits a
-// delay that is set while tuning and left alone while playing.
-//
-// #### Usage
-// ```
-// _ : imnpdelay(maxdel,mt) : _
-// ```
-// Where:
-//
-// * `maxdel`: maximum delay in samples (a constant; DDELAY uses `1<<15`,
-//   enough for its 30 m at 192 kHz, 17 383 samples)
-// * `mt`: distance in metres
-//
-// #### Test
-// ```
-// no = library("noises.lib");
-// sma = library("seam.math.lib");
-// imnpdelay_test = no.noise : sma.imnpdelay(1 << 15, 7.291);
-// ```
-//----------------------------------------------------------------------------
-imnpdelay(maxdel, mt) = de.delay(maxdel, imt2npsamp(mt));
