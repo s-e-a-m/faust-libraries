@@ -32,6 +32,8 @@ sjm = library("seam.moorer.lib");
 scr = library("seam.roads.lib");
 sms = library("seam.schroeder.lib");
 sfv = library("seam.freeverb.lib");
+// ### composer specific literature
+sdt = library("seam.tedesco.lib");
 
 sff = library("seam.ffunctions.lib");
 

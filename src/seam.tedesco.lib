@@ -1,0 +1,105 @@
+//############################## seam.tedesco.lib ##############################
+// SEAM Davide Tedesco library. Its official prefix is `sdt`.
+//
+// The DSP of Davide Tedesco's works, re-read by SEAM as the specification for
+// their hand-written ports (seam-ltm). Each entry says what the original used
+// and why this version keeps it or departs from it, so that the library
+// speaks both to us and to the composer.
+//
+// First work: *Studio sul Corpo d'Ombra #2* (Alice Cortegiani, Davide
+// Tedesco, 2025), for contrabass clarinet, spherically diffused feedback
+// devices and live electronics. The original is a Pure Data patch hosting
+// Faust externals built with Faust 2.72.14 (`faust2puredata -double`).
+//
+// Requires faustlibraries 0965ea2 or later (filters.lib 1.11.1): compile with
+// `-I <faustlibraries clone>`. The libraries bundled with Faust 2.88.0 still
+// carry the direct-form `fi.lowpass`/`fi.highpass`.
+//
+// * [SSCDO#2 — LMO](#sscdo2-lmo)
+//
+// ## References
+//
+// * <https://github.com/s-e-a-m/faust-libraries/blob/master/src/seam.tedesco.lib>
+// * seam-ltm `logs/2026-09-29-sscdo2-ricognizione.md`: survey and decisions
+// * seam-ltm `doc/study/sscdo2/lmo-bandfilter/`: the band-filter study, with renders
+//##############################################################################
+declare name "SEAM Davide Tedesco - Library";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare author "Davide Tedesco";
+declare license "CC3";
+import("seam.lib");
+sdt = library("seam.tedesco.lib");
+
+//================================ SSCDO#2 — LMO ===============================
+// LMO (liveMultiOscs_30000_plain): a four-channel "oscillator" made of noise
+// through a narrow band-pass, one band per driver of the tetrahedral STONED.
+// Only the blocks already discussed are here: the noise source and the band
+// filter. The original's second oscillator, its 1.015 frequency factor, the
+// high-passed direct noise and the output stage wait for Davide's answer.
+//==============================================================================
+
+//------------------------------`(sdt.)lmoband`---------------------------------
+// The LMO band filter, the original's line unchanged:
+// a 24th-order Butterworth highpass into a 24th-order Butterworth lowpass at
+// the same frequency (the -0.0001 Hz offset is the original's; it moves
+// nothing measurable).
+//
+// Two filters crossing at `f` make a band-pass that peaks at -6.02 dB, with a
+// -3 dB band of 7.35 % of `f` (Q 13.6), -72 dB at half an octave, and a decay
+// to -60 dB of about 0.31 s at 97 Hz: noise coloured into a pitch, with little
+// ringing. `fi.bandpass` with the same edges is a different filter, whatever
+// its order: it lays its skirts out in bandwidths, not in ratios of `f`, and
+// at the same order rings 16 times longer.
+//
+// Since faustlibraries 0965ea2 (2026-09-26, J.O. Smith, issue #262) the
+// sections of `fi.highpass`/`fi.lowpass` are state-variable filters instead of
+// direct-form biquads: the same response, accurate in single precision at low
+// `f`/SR, with no overshoot on frequency steps. The original ran the direct
+// form in double, which was accurate in Pd; on the glissando of cue 2 the two
+// forms differ by -74.7 dB.
+//
+// #### Usage
+// ```
+// _ : lmoband(f) : _
+// ```
+// Where:
+//
+// * `f`: band centre in Hz
+//
+// #### Test
+// ```
+// sdt = library("seam.tedesco.lib");
+// lmoband_test = no.noise : sdt.lmoband(97.44);
+// ```
+//------------------------------------------------------------------------------
+lmoband(f) = fi.highpass(24, f) : fi.lowpass(24, f - 0.0001);
+// process = no.noise : lmoband(97.44);
+
+//--------------------------------`(sdt.)lmo`-----------------------------------
+// One LMO oscillator on `N` channels: `N` noise streams, each through
+// `lmoband`, channel `i` centred at `f + i` Hz as in the original.
+//
+// The noise is the standard `no.multinoise`, as in the original. Within one
+// call its streams are decorrelated (max |r| 0.002 over 120 pairs), which is
+// all a tetrahedral source needs. Its seed is fixed at 12345, so a second call
+// returns the same noise: the original's second oscillator, at the same
+// frequency, doubled the first (+6 dB) rather than adding to it.
+//
+// #### Usage
+// ```
+// lmo(N,f) : si.bus(N)
+// ```
+// Where:
+//
+// * `N`: number of channels (a constant numerical expression), 4 in SSCDO#2
+// * `f`: band centre of channel 0 in Hz
+//
+// #### Test
+// ```
+// sdt = library("seam.tedesco.lib");
+// lmo_test = sdt.lmo(4, 97.44);
+// ```
+//------------------------------------------------------------------------------
+lmo(N, f) = no.multinoise(N) : par(i, N, lmoband(f + i));
+// process = lmo(4, 97.44);
