@@ -256,3 +256,22 @@ delrmint = sfi.leakyint(1) : *(96000);
 //------------------------------------------------------------------------------
 delrmrm(mt) = _ <: sma.imnpdelay(1 << 15, mt), _, delrmint : *, _ : *;
 // process = os.osc(29.7) : delrmrm(7.291);
+
+//------------------------------`(sdt.)delrmdyn`--------------------------------
+// delRM's dynamics after the triple product, channels 2 and 4: a gain of 10
+// (+20 dB) into the standard mono compressor, ratio 11, threshold -24 dB,
+// attack 30 ms, release 40 ms, as in the original. The compressor's detector
+// and time constants are in seconds, so it behaves the same at every rate.
+//
+// The triple product is cubic in the input: 6 dB more from the clarinet is
+// 18 dB more into the compressor, which already receives it about 45 dB above
+// threshold. At 11:1 it works as a limiter near -20 dBFS (measured in seam-ltm
+// doc/study/sscdo2/delrm-rm/): the loudness of channels 2 and 4 hardly follows
+// the playing, and what the playing changes is the texture.
+//
+// #### Usage
+// ```
+// _ : delrmdyn : _
+// ```
+//------------------------------------------------------------------------------
+delrmdyn = *(10) : co.compressor_mono(11, -24, 0.03, 0.04);
