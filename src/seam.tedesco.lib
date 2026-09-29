@@ -16,6 +16,7 @@
 // carry the direct-form `fi.lowpass`/`fi.highpass`.
 //
 // * [SSCDO#2 — LMO](#sscdo2-lmo)
+// * [SSCDO#2 — delRM](#sscdo2-delrm)
 //
 // ## References
 //
@@ -163,3 +164,45 @@ lmo(N, f, d) = no.multinoise(2*N)
              : par(i, N, lmoband(f - d/2 + i)), par(i, N, lmoband(f + d/2 + i))
              :> par(i, N, /(sqrt(2)));
 // process = lmo(4, 97.44, 20);
+
+//=============================== SSCDO#2 — delRM ==============================
+// delRM (delRM_duet): four channels, each processing only its own input from
+// the TETRAREC. Channels 1 and 3 are a feed-forward comb, x + x[n-D]; channels
+// 2 and 4 multiply x[n-D], x and the running sum of x, then compress.
+//
+// The delay D is DDELAY's (agreed with Davide, 2026-09-29, so that the same
+// tool serves Studio sul Corpo d'Ombra #4 with two sources): a distance in
+// metres, converted at 331.4 m/s and rounded to the next prime, tuned during
+// the setup and left alone during the piece (`sma.imt2npsamp`). The original
+// used seconds through `de.delay` with its arguments swapped (harmless: `min`
+// picked the right one), and the float slider truncated 22 ms to 1055 samples
+// at 48 kHz. The initial 22 ms is 7.291 m here: 1061 samples at 48 kHz.
+//==============================================================================
+
+//-----------------------------`(sdt.)delrmcomb`--------------------------------
+// delRM's comb, channels 1 and 3: the input plus itself delayed by DDELAY's
+// prime delay. The standard `fi.ff_comb` with both gains at 1 is exactly the
+// original's `_ <: de.delay(...), _ :> _`.
+//
+// Its response is 2·|cos(pi·f·D/SR)|: peaks of +6.02 dB every SR/D Hz and
+// notches halfway between. At 7.291 m (D = 1061 at 48 kHz) the peaks fall
+// every 45.24 Hz and the notches at 22.62, 67.86, 113.10 Hz...: a dense comb
+// across the register of the contrabass clarinet. On uncorrelated input the
+// power rises by 3.01 dB.
+//
+// #### Usage
+// ```
+// _ : delrmcomb(mt) : _
+// ```
+// Where:
+//
+// * `mt`: distance in metres, 0 to 30 (DDELAY's range); 7.291 at the start
+//
+// #### Test
+// ```
+// sdt = library("seam.tedesco.lib");
+// delrmcomb_test = no.noise : sdt.delrmcomb(7.291);
+// ```
+//------------------------------------------------------------------------------
+delrmcomb(mt) = fi.ff_comb(1 << 15, sma.imt2npsamp(mt), 1, 1);
+// process = no.noise : delrmcomb(7.291);
