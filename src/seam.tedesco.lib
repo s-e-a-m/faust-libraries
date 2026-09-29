@@ -220,6 +220,14 @@ delrmcomb(mt) = fi.ff_comb(1 << 15, sma.imt2npsamp(mt), 1, 1);
 // far below the clarinet's 29.7 Hz fundamental; scaled by 96000 it is the
 // original's sum at 96 kHz above 1 Hz, and the same at any other rate.
 //
+// Why 96000 and not ma.SR: `*(ma.SR)` would cancel the normalisation and give
+// back a sum of samples (a stable `fi.integrator`), identical at 96 kHz but
+// 6 dB lower at 48 kHz before the compressor. The 11:1 compressor absorbs the
+// level (-0.21 dB after it, measured) but not the depth of its work: the
+// dynamics of channels 2 and 4 would change with the session's rate. Anchored
+// at 96 kHz, delRM behaves the same in a 48 kHz rehearsal, in another piece,
+// or in a student's session (the rule already applied to Di Scipio's 44.1 kHz).
+//
 // #### Usage
 // ```
 // _ : delrmint : _
