@@ -20,6 +20,8 @@
 // ## References
 //
 // * <https://github.com/s-e-a-m/faust-libraries/blob/master/src/seam.tedesco.lib>
+// * <https://gitlab.com/DavideTedesco/studio_sul_corpo_dombra_numero_2>:
+//   the original SSCDO#2 materials (Pd patch, Faust sources, score notes)
 // * seam-ltm `logs/2026-09-29-sscdo2-ricognizione.md`: survey and decisions
 // * seam-ltm `doc/study/sscdo2/lmo-bandfilter/`: the band-filter study, with renders
 //##############################################################################
@@ -85,6 +87,12 @@ lmoband(f) = fi.highpass(24, f) : fi.lowpass(24, f - 0.0001);
 // all a tetrahedral source needs. Its seed is fixed at 12345, so a second call
 // returns the same noise: the original's second oscillator, at the same
 // frequency, doubled the first (+6 dB) rather than adding to it.
+//
+// The independence of the streams is audible. With one stream shared by the
+// four channels, the `+ i` Hz offsets leave them almost identical (r = 0.998
+// between adjacent channels at 1 kHz); with a stream per channel they are
+// uncorrelated (|r| < 0.03) and the source opens up. Heard and measured on
+// 2026-09-29.
 //
 // #### Usage
 // ```
