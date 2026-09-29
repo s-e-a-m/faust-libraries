@@ -10,8 +10,16 @@ sjm = library("seam.moorer.lib");
 //------------------------------------------------------- all-pass fig. 1(a) ---
 //apf(t,g,x) = (x+_ : *(-) <: _+x,_ : @(t-1),_)~(0-_) : +; // ir sbagliato
 //apf(t,g,x) = (x+_ : *(-g) <: _+x,_ : @(t-1),_)~(0-_) : mem+_; // ir corretto
-apf(t,g,x) = (x+_ : *(-g) <: _+x,_ : de.delay(ma.SR,t-1),_)~(0-_) : mem+_;
+apf(t,g) = apfv(ma.SR,t,g);
 // process = os.impulse : apf(1,0.7);
+//
+//-------------------------------------------- all-pass fig. 1(a) - VARIABLE ---
+// md = maximum delay in samples, the size of the buffer.
+// One multiplier: the filter is all-pass by structure, for any value g takes
+// after rounding. Schroeder's form (sms.apfv) sums a direct path and a comb,
+// and is all-pass only as long as -g and 1-g^2 cancel exactly.
+apfv(md,t,g,x) = (x+_ : *(-g) <: _+x,_ : de.delay(md,t-1),_)~(0-_) : mem+_;
+// process = os.impulse : apfv(64,1,0.7);
 //
 //----------------------------------------------------------- comb fig. 2(a) ---
 //comb(t,g) = (+ : @(t-1))~*(g) : mem;
