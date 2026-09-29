@@ -287,3 +287,60 @@ delrmrm(mt) = _ <: de.delay(1 << 15, sma.imt2npsamp(mt)), _, delrmint : *, _ : *
 // ```
 //------------------------------------------------------------------------------
 delrmdyn = *(10) : co.compressor_mono(11, -24, 0.03, 0.04);
+
+//============================= SSCDO#2 — stunedrev ============================
+// stunedrev: four independent lines of 42 all-pass sections in series, each
+// line tuned by an irrational ratio k: √2, φ, e, π. The reference is the
+// version played in Pure Data (`stunedrev.dsp`, 42 sections), not the online
+// variant with 81.
+//
+// The all-pass is Moorer's (`sjm.apfv`, 2026-09-29): the original's `apf` was
+// `sjm.apf` with the buffer as a parameter, and that form now lives in
+// `seam.moorer.lib`. One multiplier: all-pass by structure for any g.
+//
+// The delay of section i on line k is (i+1)·k times the slider's time, moved
+// to the next prime (`stdel`). Before the prime the 42 delays of a line are a
+// harmonic series and share factors (358 of 861 pairs at 33 ms, √2, 96 kHz);
+// after it they are 42 distinct primes, pairwise coprime. A prime is prime at
+// one rate only, so each rate has its own set: a feature of the system, kept.
+//==============================================================================
+
+//-------------------------------`(sdt.)stdel`----------------------------------
+// The delay, in samples, of section i (0 to 41) on the line of ratio k: the
+// time ms·(i+1)·k, rounded to the nearest sample and moved to the next prime
+// (`sma.ms2npsamp`). The product comes before the prime, so every section
+// gets a prime of its own.
+//
+// The original converted the slider to samples (`ba.sec2samp`), multiplied,
+// and truncated the float when passing it to `next_pr`; its `nextprime.h`
+// gives the same primes as SEAM's `sff.np` (compared for every n up to
+// 3 000 000). Rounding, SEAM's rule, moves 813 of the 16 800 delays of the
+// slider's range (1–100 ms, 42 sections, 4 lines at 96 kHz) to another prime.
+// When the rounded value is itself a prime `sff.np` steps over it, so the move
+// reaches a whole prime gap: up to 96 samples, 1 ms. The rule is kept for the
+// coherence of SEAM (`sma.imt2npsamp`, DDELAY): the delay is always longer
+// than the exact time, never shorter.
+//
+// No two sections of a line share a prime, with either rule: at 1 ms and √2
+// consecutive sections are 135.8 samples apart, and below 1.3 million no gap
+// between primes exceeds 114. Across lines no rule prevents it: about one
+// slider pair in twenty puts the same prime on two lines (4.96%).
+//
+// #### Usage
+// ```
+// stdel(k, i, ms)
+// ```
+// Where:
+//
+// * `k`: the line's ratio, sqrt(2), (1+sqrt(5))/2, ma.E or ma.PI
+// * `i`: the section, 0 to 41
+// * `ms`: the slider's time, 1 to 100 ms; 33 at the start
+//
+// #### Test
+// ```
+// sdt = library("seam.tedesco.lib");
+// stdel_test = sdt.stdel(sqrt(2), 0, 33);
+// ```
+//------------------------------------------------------------------------------
+stdel(k, i, ms) = sma.ms2npsamp(ms*(i+1)*k);
+// process = stdel(sqrt(2), 0, 33);

@@ -463,3 +463,36 @@ with {
     n  = int(floor(mm*ma.SR/isos + 0.5));
 };
 
+//-----------------------------`(sma.)ms2npsamp`-----------------------------
+// Milliseconds to a prime number of samples: the time is converted at the
+// current rate, rounded to the nearest sample, and moved to the next prime
+// strictly above it (`sff.np`). Values below 2 samples are kept as they are.
+// A rounded value that is already prime is stepped over: the result is always
+// longer than the exact time, by up to a whole prime gap.
+// The same rounding and the same prime as `imt2npsamp`, for a time instead of
+// a distance; the same foreign-function limits apply (C and C++ backends only).
+//
+// A prime is prime at one rate only: the same milliseconds give another set
+// of primes at another rate, and every set stays incommensurable. Written
+// 2026-09-29 for the delays of Davide Tedesco's stunedrev (`sdt.stdel`), whose
+// original truncated the samples instead of rounding them.
+//
+// #### Usage
+// ```
+// ms2npsamp(ms)
+// ```
+// Where:
+//
+// * `ms`: time in milliseconds
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// ms2npsamp_test = sma.ms2npsamp(33);
+// ```
+//----------------------------------------------------------------------------
+ms2npsamp(ms) = select2(n < 2, n : sff.np, n)
+with {
+    n = int(floor(ms*ma.SR/1000 + 0.5));
+};
+
