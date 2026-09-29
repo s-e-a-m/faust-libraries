@@ -206,3 +206,45 @@ lmo(N, f, d) = no.multinoise(2*N)
 //------------------------------------------------------------------------------
 delrmcomb(mt) = fi.ff_comb(1 << 15, sma.imt2npsamp(mt), 1, 1);
 // process = no.noise : delrmcomb(7.291);
+
+//------------------------------`(sdt.)delrmint`--------------------------------
+// delRM's integrator: `sfi.leakyint(1)` scaled by 96000, the rate SSCDO#2 is
+// played at.
+//
+// The original used `fi.integrator`, a sum of samples. On the DC of the real
+// chain (3.22e-6 on the recording used for the study) its state grows
+// linearly, past the note's own integral within a few minutes; a note arriving
+// after five minutes finds the triple product 7 dB louder and 0.88 correlated
+// with the plain 10·x[n-D]·x: channels 2 and 4 turned into another effect with
+// the time the patch had been running. The leaky integrator forgets below 1 Hz,
+// far below the clarinet's 29.7 Hz fundamental; scaled by 96000 it is the
+// original's sum at 96 kHz above 1 Hz, and the same at any other rate.
+//
+// #### Usage
+// ```
+// _ : delrmint : _
+// ```
+//------------------------------------------------------------------------------
+delrmint = sfi.leakyint(1) : *(96000);
+
+//------------------------------`(sdt.)delrmrm`---------------------------------
+// delRM's triple product, channels 2 and 4: the input delayed by DDELAY's
+// prime delay, times the input, times its integral (`delrmint`). The ×10 and
+// the compressor that follow belong to the next block.
+//
+// #### Usage
+// ```
+// _ : delrmrm(mt) : _
+// ```
+// Where:
+//
+// * `mt`: distance in metres, 0 to 30 (DDELAY's range); 7.291 at the start
+//
+// #### Test
+// ```
+// sdt = library("seam.tedesco.lib");
+// delrmrm_test = os.osc(29.7) : sdt.delrmrm(7.291);
+// ```
+//------------------------------------------------------------------------------
+delrmrm(mt) = _ <: sma.imnpdelay(1 << 15, mt), _, delrmint : *, _ : *;
+// process = os.osc(29.7) : delrmrm(7.291);

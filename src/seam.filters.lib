@@ -43,6 +43,42 @@ apf2(md,t,g) = (+ <: de.delay(md,t-1),*(-g))~ *(g) : mem,_ : +;
 dcblock(x) = x <: (x-seq(i,4,lp1p(5)));
 //process = 1 : dcblock;
 //
+//------------------------------`(sfi.)leakyint`------------------------------
+// Leaky integrator, normalised to time: the integral of the input in seconds,
+// which forgets below `fc`.
+//
+// y[n] = x[n]/SR + a*y[n-1], with a = exp(-2*pi*fc/SR). Above `fc` its gain is
+// 1/(2*pi*f), the same at every sample rate; below `fc` it levels off at
+// about 1/(2*pi*fc), so a DC offset or a random walk can no longer grow
+// without bound.
+//
+// `fi.integrator` (+ ~ _) sums samples: its gain is SR/(2*pi*f), it doubles
+// when the rate doubles, and its state grows without limit on any DC. A
+// DC blocker in front of it stops the growth (the blocker's zero at z = 1
+// cancels the integrator's pole there, leaving a leaky integrator at the
+// blocker's corner) but not the dependence on the rate. Written 2026-09-29
+// for SSCDO#2's delRM (seam-ltm doc/study/sscdo2/delrm-rm/), where the chain's
+// own DC made `fi.integrator` outgrow the music within minutes; a composer's
+// sum of samples is recovered by scaling by the rate the piece is played at
+// (`sdt.delrmint`).
+//
+// #### Usage
+// ```
+// _ : leakyint(fc) : _
+// ```
+// Where:
+//
+// * `fc`: corner in Hz, below which the integrator forgets
+//
+// #### Test
+// ```
+// sfi = library("seam.filters.lib");
+// leakyint_test = os.osc(100) : sfi.leakyint(1);
+// ```
+//----------------------------------------------------------------------------
+leakyint(fc) = /(ma.SR) : fi.pole(exp(-2*ma.PI*fc/ma.SR));
+// process = os.osc(100) : leakyint(1);
+//
 //------------------------------------------ ALL-PASS FILTER COEF CALCULATOR ---
 //
 // REFERENCES:
