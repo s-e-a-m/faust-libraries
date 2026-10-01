@@ -89,6 +89,15 @@ sdt = library("seam.tedesco.lib");
 lmoband(f) = fi.highpass(24, f) : fi.lowpass(24, f - 0.0001);
 // process = no.noise : lmoband(97.44);
 
+//------------------------------`(sdt.)lmodens`---------------------------------
+// The density anchor of the LMO: sqrt(ma.SR/96000). A white source of constant
+// RMS spreads its power over SR/2, so a band of fixed width loses 3.01 dB per
+// doubling of the rate. Multiplying by this factor holds the band at its level
+// at 96 kHz, the rate SSCDO#2 is played at (the rule of `delrmint`, applied to
+// a level). Unity at 96 kHz.
+//------------------------------------------------------------------------------
+lmodens = sqrt(ma.SR/96000);
+
 //-------------------------------`(sdt.)lmoosc`---------------------------------
 // One LMO oscillator on `N` channels: `N` noise streams, each through
 // `lmoband`, channel `i` centred at `f + i` Hz as in the original.
@@ -105,6 +114,11 @@ lmoband(f) = fi.highpass(24, f) : fi.lowpass(24, f - 0.0001);
 // uncorrelated (|r| < 0.03) and the source opens up. Heard and measured on
 // 2026-09-29 (seam-ltm `doc/study/sscdo2/lmo-streams/`).
 //
+// The level is anchored at 96 kHz (`lmodens`): white noise spreads a constant
+// power over SR/2, so without it a band would sound 3.01 dB louder at 48 kHz
+// than at 96 kHz. With it, every band has its 96 kHz level at any rate, and at
+// 96 kHz nothing changes (2026-10-01, with the C++ port).
+//
 // #### Usage
 // ```
 // lmoosc(N,f) : si.bus(N)
@@ -120,7 +134,7 @@ lmoband(f) = fi.highpass(24, f) : fi.lowpass(24, f - 0.0001);
 // lmoosc_test = sdt.lmoosc(4, 97.44);
 // ```
 //------------------------------------------------------------------------------
-lmoosc(N, f) = no.multinoise(N) : par(i, N, lmoband(f + i));
+lmoosc(N, f) = no.multinoise(N) : par(i, N, lmoband(f + i) : *(lmodens));
 // process = lmoosc(4, 97.44);
 
 //--------------------------------`(sdt.)lmo`-----------------------------------
@@ -144,6 +158,11 @@ lmoosc(N, f) = no.multinoise(N) : par(i, N, lmoband(f + i));
 // without beating. In SSCDO#2 `d` spans 0 to 50 Hz, for experiment
 // (seam-ltm `doc/study/sscdo2/lmo-beats/`, with renders).
 //
+// The level is anchored at 96 kHz by `lmodens`, as in `lmoosc`. The low band's
+// centre is held at 1 Hz or above: with f near 20 Hz and d near 50 Hz,
+// f - d/2 would be negative and the filters would not be a band-pass any more
+// (2026-10-01, with the C++ port, which does the same).
+//
 // #### Usage
 // ```
 // lmo(N,f,d) : si.bus(N)
@@ -161,8 +180,8 @@ lmoosc(N, f) = no.multinoise(N) : par(i, N, lmoband(f + i));
 // ```
 //------------------------------------------------------------------------------
 lmo(N, f, d) = no.multinoise(2*N)
-             : par(i, N, lmoband(f - d/2 + i)), par(i, N, lmoband(f + d/2 + i))
-             :> par(i, N, /(sqrt(2)));
+             : par(i, N, lmoband(max(1, f - d/2 + i))), par(i, N, lmoband(f + d/2 + i))
+             :> par(i, N, /(sqrt(2)) : *(lmodens));
 // process = lmo(4, 97.44, 20);
 
 //=============================== SSCDO#2 — delRM ==============================
