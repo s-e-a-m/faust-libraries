@@ -205,9 +205,10 @@ lmo(N, f, d) = no.multinoise(2*N)
 // ends at the compressor. Their pole is fixed in samples (0.995): at 96 kHz
 // each is a high-pass at 76.59 Hz, and the two took 17.6 dB from the
 // clarinet's 29.7 Hz fundamental. That thinner low end is what the
-// performance sounded like; whether to keep it is a listening decision, and
-// if kept it enters as a declared `fi.dcblockerat(76.59)`, not as a DC
-// blocker (seam-ltm `doc/study/sscdo2/delrm-dcblock/`).
+// performance sounded like. Decided with Davide (2026-10-02): the port goes
+// without, and the rehearsal's listening judges it; if it is wanted, it
+// enters as a declared `fi.dcblockerat(76.59)`, not as a DC blocker
+// (seam-ltm `doc/study/sscdo2/delrm-dcblock/`).
 //==============================================================================
 
 //-----------------------------`(sdt.)delrmcomb`--------------------------------
