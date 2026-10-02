@@ -99,29 +99,36 @@ lmoband(f) = fi.highpass(24, f) : fi.lowpass(24, f - 0.0001);
 lmodens = sqrt(ma.SR/96000);
 
 //------------------------`(sdt.)lmonoise` `(sdt.)choirnoise`-------------------
-// The noise of SSCDO#2: one `no.multinoise(3N)`, three blocks of `N` streams,
-// read through `sno.multinoiseblock`. Blocks 1 and 2 are LMO's two bands
-// (`lmonoise`, `2N` streams), block 3 is the choir, one stream per voice
-// (`choirnoise`, `N` streams). Each value of the noise goes to one block only,
-// so the choir is decorrelated from LMO by construction, whatever the instant
-// each plugin starts.
+// The noise of SSCDO#2: one `no.multinoise(M)`, read through
+// `sno.multinoiseblock` in three disjoint blocks. Blocks 1 and 2 are LMO's two
+// bands, `N` streams each (`lmonoise`, streams 0 to 2N-1); block 3 is the
+// choir, one stream per band of each voice (`choirnoise`, `N*choirbands`
+// streams, voice c on the `choirbands` streams from 2N + c*choirbands).
+// M = N*(2 + choirbands): 72 for N = 4. Each value of the noise goes to one
+// block only, so the choir is decorrelated from LMO by construction, whatever
+// the instant each plugin starts.
 //
 // Davide and Giuseppe, 2026-10-02: the choir takes a third block, decorrelated
 // from LMO's two, and reuses no LMO generator. In the original every machine
 // called `no.multinoise` from the same state with the same seed: the four
-// choir instances carried the same noise, and each of their streams was an
-// LMO stream taken every other sample (seam-ltm
-// `logs/2026-09-29-sscdo2-ricognizione.md`, "The choir"). One stream per
-// voice: a voice is a breath through its own bank of 16 resonances (source
-// and filter); the original had one stream per band. A study measures one
-// stream per voice against one per band before the choir is built.
+// choir instances carried the same 16 streams, and each of them was an LMO
+// stream taken every other sample (seam-ltm
+// `logs/2026-09-29-sscdo2-ricognizione.md`, "The choir").
 //
-// The generator repeats after 2^32/(3N) samples: 62 min at 96 kHz for N = 4.
+// One stream per band, as in the original within a channel (Giuseppe, after
+// listening, 2026-10-02). One stream per voice was the alternative, and it
+// changes the timbre: the 16 band-passes then form one filter, whose skirts
+// add in amplitude outside the bank (+10.9 dB of broadband noise above the
+// partials) and cancel between the resonances (valleys down to -25.6 dB);
+// with a stream per band they add in power, and the floors stay the
+// original's (seam-ltm `doc/study/sscdo2/choir-noise/`).
+//
+// The generator repeats after 2^32/M samples: 10.4 min at 96 kHz for M = 72.
 //
 // #### Usage
 // ```
 // lmonoise(N) : si.bus(2*N)
-// choirnoise(N) : si.bus(N)
+// choirnoise(N) : si.bus(N*choirbands)
 // ```
 // Where:
 //
@@ -133,8 +140,10 @@ lmodens = sqrt(ma.SR/96000);
 // choirnoise_test = sdt.choirnoise(4);
 // ```
 //------------------------------------------------------------------------------
-lmonoise(N) = sno.multinoiseblock(3*N, 0, 2*N);
-choirnoise(N) = sno.multinoiseblock(3*N, 2*N, N);
+choirbands = 16;
+sscdo2streams(N) = N*(2 + choirbands);
+lmonoise(N) = sno.multinoiseblock(sscdo2streams(N), 0, 2*N);
+choirnoise(N) = sno.multinoiseblock(sscdo2streams(N), 2*N, N*choirbands);
 // process = choirnoise(4);
 
 //-------------------------------`(sdt.)lmoosc`---------------------------------
@@ -199,8 +208,9 @@ lmoosc(N, f) = no.multinoise(N) : par(i, N, lmoband(f + i) : *(lmodens));
 // (seam-ltm `doc/study/sscdo2/lmo-beats/`, with renders).
 //
 // Since 2026-10-02 the `2N` streams are the first two blocks of one
-// `no.multinoise(3N)`, whose third block is the choir's: same statistics as
-// the earlier `no.multinoise(2N)`, another realisation.
+// `no.multinoise(N*(2 + choirbands))`, 72 streams, whose third block is the
+// choir's: same statistics as the earlier `no.multinoise(2N)`, another
+// realisation.
 //
 // The level is anchored at 96 kHz by `lmodens`, as in `lmoosc`. The low band's
 // centre is held at 1 Hz or above: with f near 20 Hz and d near 50 Hz,

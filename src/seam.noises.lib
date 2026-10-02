@@ -28,7 +28,7 @@ sno = library("seam.noises.lib");
 //   another seed gives the same sequence times a constant mod 2^32 (r = -0.25
 //   against twice the seed, +0.34 against three times).
 //
-// The generator repeats after 2^32/M samples: 62 min at 96 kHz for M = 12.
+// The generator repeats after 2^32/M samples: at 96 kHz, 10.4 min for M = 72.
 //
 // #### Usage
 // ```
@@ -43,11 +43,11 @@ sno = library("seam.noises.lib");
 // #### Test
 // ```
 // sno = library("seam.noises.lib");
-// multinoiseblock_test = sno.multinoiseblock(12, 8, 4);
+// multinoiseblock_test = sno.multinoiseblock(72, 8, 64);
 // ```
 //------------------------------------------------------------------------------
 multinoiseblock(M, o, N) = no.multinoise(M) : si.block(o), si.bus(N), si.block(M-o-N);
-// process = multinoiseblock(12, 8, 4);
+// process = multinoiseblock(72, 8, 64);
 //
 //---------------------------------------- MULTICHANNEL PINK NOISE GENERATOR ---
 multipink(N,g) = no.multinoise(N) : par(i,N,sfi.pink_filter_mz : *(g));
