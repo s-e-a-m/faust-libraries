@@ -7,6 +7,48 @@ import("seam.lib");
 //=================================================================== NOISES ===
 //==============================================================================
 sno = library("seam.noises.lib");
+//--------------------------`(sno.)multinoiseblock`-----------------------------
+// A block of `N` streams, `o .. o+N-1`, of one standard `no.multinoise(M)`.
+//
+// `no.multinoise(M)` is one 32-bit linear congruential generator stepped `M`
+// times per sample (seed 12345): its `M` streams are disjoint shares of a
+// single sequence. Machines that must be decorrelated from each other read
+// disjoint blocks of the SAME `M`: each value of the noise goes to one machine
+// only, whatever the instant each machine starts, and the noise keeps the
+// generative, deterministic structure of the standard one.
+//
+// Two shortcuts reuse the same numbers (seam-ltm
+// `logs/2026-09-29-sscdo2-ricognizione.md`, "The choir", 2026-10-02):
+//
+// * a call with another `M`: `no.multinoise(8)` already emits every value of
+//   the generator, so any other call starting from the same state emits those
+//   values again at other instants (`multinoise(16)` is `multinoise(8)` taken
+//   every other sample, bit for bit);
+// * another seed: from the same state the sequence is linear in the seed, so
+//   another seed gives the same sequence times a constant mod 2^32 (r = -0.25
+//   against twice the seed, +0.34 against three times).
+//
+// The generator repeats after 2^32/M samples: 62 min at 96 kHz for M = 12.
+//
+// #### Usage
+// ```
+// multinoiseblock(M,o,N) : si.bus(N)
+// ```
+// Where:
+//
+// * `M`: streams of the shared generator (a constant numerical expression)
+// * `o`: first stream of the block, 0 to M-N
+// * `N`: streams in the block
+//
+// #### Test
+// ```
+// sno = library("seam.noises.lib");
+// multinoiseblock_test = sno.multinoiseblock(12, 8, 4);
+// ```
+//------------------------------------------------------------------------------
+multinoiseblock(M, o, N) = no.multinoise(M) : si.block(o), si.bus(N), si.block(M-o-N);
+// process = multinoiseblock(12, 8, 4);
+//
 //---------------------------------------- MULTICHANNEL PINK NOISE GENERATOR ---
 multipink(N,g) = no.multinoise(N) : par(i,N,sfi.pink_filter_mz : *(g));
 // process = multipink(4,0.5);

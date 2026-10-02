@@ -98,6 +98,45 @@ lmoband(f) = fi.highpass(24, f) : fi.lowpass(24, f - 0.0001);
 //------------------------------------------------------------------------------
 lmodens = sqrt(ma.SR/96000);
 
+//------------------------`(sdt.)lmonoise` `(sdt.)choirnoise`-------------------
+// The noise of SSCDO#2: one `no.multinoise(3N)`, three blocks of `N` streams,
+// read through `sno.multinoiseblock`. Blocks 1 and 2 are LMO's two bands
+// (`lmonoise`, `2N` streams), block 3 is the choir, one stream per voice
+// (`choirnoise`, `N` streams). Each value of the noise goes to one block only,
+// so the choir is decorrelated from LMO by construction, whatever the instant
+// each plugin starts.
+//
+// Davide and Giuseppe, 2026-10-02: the choir takes a third block, decorrelated
+// from LMO's two, and reuses no LMO generator. In the original every machine
+// called `no.multinoise` from the same state with the same seed: the four
+// choir instances carried the same noise, and each of their streams was an
+// LMO stream taken every other sample (seam-ltm
+// `logs/2026-09-29-sscdo2-ricognizione.md`, "The choir"). One stream per
+// voice: a voice is a breath through its own bank of 16 resonances (source
+// and filter); the original had one stream per band. A study measures one
+// stream per voice against one per band before the choir is built.
+//
+// The generator repeats after 2^32/(3N) samples: 62 min at 96 kHz for N = 4.
+//
+// #### Usage
+// ```
+// lmonoise(N) : si.bus(2*N)
+// choirnoise(N) : si.bus(N)
+// ```
+// Where:
+//
+// * `N`: channels (a constant numerical expression), 4 in SSCDO#2
+//
+// #### Test
+// ```
+// sdt = library("seam.tedesco.lib");
+// choirnoise_test = sdt.choirnoise(4);
+// ```
+//------------------------------------------------------------------------------
+lmonoise(N) = sno.multinoiseblock(3*N, 0, 2*N);
+choirnoise(N) = sno.multinoiseblock(3*N, 2*N, N);
+// process = choirnoise(4);
+
 //-------------------------------`(sdt.)lmoosc`---------------------------------
 // One LMO oscillator on `N` channels: `N` noise streams, each through
 // `lmoband`, channel `i` centred at `f + i` Hz as in the original.
@@ -144,9 +183,10 @@ lmoosc(N, f) = no.multinoise(N) : par(i, N, lmoband(f + i) : *(lmodens));
 // value, from the same noise: one oscillator at +6 dB. Davide's intention
 // (2026-09-29): two bands that can beat; at 0 Hz apart they share the
 // frequency and are decorrelated; at a distance `d` each moves `d/2` from the
-// centre. So: `2N` streams from ONE `no.multinoise(2N)` call (two calls would
-// give the same noise twice); streams `0..N-1` feed the bands at
-// `f - d/2 + i`, streams `N..2N-1` those at `f + d/2 + i`; channel `i` sums
+// centre. So: `2N` streams, blocks 1 and 2 of the SSCDO#2 noise (`lmonoise`,
+// two calls of `no.multinoise` would give the same noise twice); streams
+// `0..N-1` feed the bands at `f - d/2 + i`, streams `N..2N-1` those at
+// `f + d/2 + i`; channel `i` sums
 // its two bands. The offset `i` cancels in the difference, so every channel
 // beats at `d`. Two independent noises add in power, hence `1/sqrt(2)`: the
 // level equals one oscillator's at every `d` (within 0.2 dB, measured).
@@ -157,6 +197,10 @@ lmoosc(N, f) = no.multinoise(N) : par(i, N, lmoband(f + i) : *(lmodens));
 // 20 Hz, +35 dB at 40 Hz. Below about 10 Hz the second band widens the sound
 // without beating. In SSCDO#2 `d` spans 0 to 50 Hz, for experiment
 // (seam-ltm `doc/study/sscdo2/lmo-beats/`, with renders).
+//
+// Since 2026-10-02 the `2N` streams are the first two blocks of one
+// `no.multinoise(3N)`, whose third block is the choir's: same statistics as
+// the earlier `no.multinoise(2N)`, another realisation.
 //
 // The level is anchored at 96 kHz by `lmodens`, as in `lmoosc`. The low band's
 // centre is held at 1 Hz or above: with f near 20 Hz and d near 50 Hz,
@@ -179,7 +223,7 @@ lmoosc(N, f) = no.multinoise(N) : par(i, N, lmoband(f + i) : *(lmodens));
 // lmo_test = sdt.lmo(4, 97.44, 20);
 // ```
 //------------------------------------------------------------------------------
-lmo(N, f, d) = no.multinoise(2*N)
+lmo(N, f, d) = lmonoise(N)
              : par(i, N, lmoband(max(1, f - d/2 + i))), par(i, N, lmoband(f + d/2 + i))
              :> par(i, N, /(sqrt(2)) : *(lmodens));
 // process = lmo(4, 97.44, 20);
