@@ -493,3 +493,101 @@ stline(k, ms) = seq(i, 42, sjm.apfv(stmd(k, i), stdel(k, i, ms), 1/sqrt(2)));
 //------------------------------------------------------------------------------
 stunedrev(t1, t2, t3, t4) = stline(sqrt(2), t1), stline((1+sqrt(5))/2, t2),
                             stline(ma.E, t3), stline(ma.PI, t4);
+
+//=============================== SSCDO#2 — choir ==============================
+// The choir (pitchDetectorChoirMcAdams, four instances): on each channel 16
+// bands listen to the input around f·k and make 16 voices of noise sing
+// around f·k^a, each voice as loud as its band of the input. f = 48, 48, 96,
+// 96 Hz and a = 1, 1.01, 1.1, 0.9 on the four channels, Q = 350, release
+// 1.5 s: constants in the performance, set by the patch's initialisation
+// (only the output, CC86, moves). Input: the TETRAREC A, inputs 5-8.
+//
+// The noise is block 3 of the SSCDO#2 noise, one stream per band
+// (`choirnoise`). What changes from the original, decided by Giuseppe on
+// 2026-10-02 (seam-ltm `doc/study/sscdo2/choir-chain/`):
+//
+// * no DC blocker: every product is an envelope times a band-pass with a zero
+//   at DC, so there is no DC to remove; `fi.dcblocker`, a pole at 0.995, took
+//   5.48 dB off the 48 Hz partial at 96 kHz (2.12 dB at 48 kHz). Listening in
+//   rehearsal judges, as for delRM.
+// * the voices are held at their 96 kHz level (`choirdens`), as LMO's bands:
+//   a band of white noise loses 3.01 dB per doubling of the rate.
+// * a band centred at 20 kHz or above is silent (`choirband`): inaudible at
+//   any rate, and `fi.svf.bp` turns unstable above SR/2. The performance's
+//   highest centre is 2017 Hz.
+//
+// The analysis bands at Q 350 ring for seconds (16 s to -60 dB at 48 Hz) and
+// the follower releases in 1.5 s: the choir listens with a memory, at any SR.
+//==============================================================================
+
+//------------------------------`(sdt.)choirdens`-------------------------------
+// The voices at their 96 kHz level: `sqrt(SR/96000)`, as `lmodens`.
+//------------------------------------------------------------------------------
+choirdens = sqrt(ma.SR/96000);
+
+//------------------------------`(sdt.)choirband`-------------------------------
+// One band of the choir, `fi.svf.bp(fc, q)` as in the original, silent when
+// its centre is at 20 kHz or above (the filter is then designed at 19999 Hz,
+// below SR/2 at every rate from 44.1 kHz, so that it stays stable).
+//
+// #### Usage
+// ```
+// _ : choirband(fc,q) : _
+// ```
+//------------------------------------------------------------------------------
+choirband(fc, q) = fi.svf.bp(min(fc, 19999), q) : *(fc < 20000);
+
+//------------------------------`(sdt.)choirchan`-------------------------------
+// One channel of the choir. Inputs: the signal to listen to, then the
+// `choirbands` noise streams of its voices; output: the voices.
+// Band k (0 to choirbands-1): the input through `choirband(f·(k+1), q)` and
+// `an.amp_follower(rel)`, times noise stream k through
+// `choirband(f·(k+1)^a, q)` and `choirdens`; the products summed and divided
+// by q·2π, as in the original.
+//
+// #### Usage
+// ```
+// _, si.bus(choirbands) : choirchan(f,a,q,rel) : _
+// ```
+// Where:
+//
+// * `f`: fundamental of the bands, Hz
+// * `a`: stretch of the voices (f·k^a; 1 = harmonic)
+// * `q`: quality factor of every band, 350 in SSCDO#2
+// * `rel`: release of the followers, s, 1.5 in SSCDO#2
+//------------------------------------------------------------------------------
+choirchan(f, a, q, rel) = (listen, sing) : ro.interleave(choirbands, 2)
+                        : par(k, choirbands, *) :> /(q*2*ma.PI)
+with {
+    listen = _ <: par(k, choirbands, choirband(f*(k+1), q) : an.amp_follower(rel));
+    sing = par(k, choirbands, choirband(f*pow(k+1, a), q) : *(choirdens));
+};
+
+//--------------------------------`(sdt.)choir`---------------------------------
+// The choir on four channels, with its noise: channel c listens to input c
+// and sings on streams c·choirbands … (c+1)·choirbands-1 of `choirnoise`,
+// with f and a from `choirf(c)`, `choira(c)`.
+//
+// #### Usage
+// ```
+// si.bus(4) : choir(q,rel) : si.bus(4)
+// ```
+// Where:
+//
+// * `q`: 350 in SSCDO#2
+// * `rel`: 1.5 s in SSCDO#2
+//
+// #### Test
+// ```
+// sdt = library("seam.tedesco.lib");
+// choir_test = si.bus(4) : sdt.choir(350, 1.5);
+// ```
+//------------------------------------------------------------------------------
+choirf(c) = ba.take(c+1, (48, 48, 96, 96));
+choira(c) = ba.take(c+1, (1, 1.01, 1.1, 0.9));
+choir(q, rel) = si.bus(4), choirnoise(4)
+              : route(4 + 4*choirbands, 4 + 4*choirbands,
+                      par(c, 4, ((c+1, (choirbands+1)*c + 1),
+                                 par(k, choirbands, (4 + choirbands*c + k + 1, (choirbands+1)*c + k + 2)))))
+              : par(c, 4, choirchan(choirf(c), choira(c), q, rel));
+// process = choir(350, 1.5);
