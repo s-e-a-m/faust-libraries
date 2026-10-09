@@ -360,7 +360,31 @@ delrmrm(mt) = _ <: de.delay(1 << 15, sma.imt2npsamp(mt)), _, delrmint : *, _ : *
 // _ : delrmdyn : _
 // ```
 //------------------------------------------------------------------------------
-delrmdyn = *(10) : co.compressor_mono(11, -24, 0.03, 0.04);
+delrmdyn = delrmdynw(10, 11, -24, 0.03, 0.04);
+
+//------------------------------`(sdt.)delrmdynw`-------------------------------
+// delRM's dynamics with the gain and the compressor as live controls (the
+// seam-ltm plugin, one set for channel 2 and one for channel 4).
+//
+// #### Usage
+// ```
+// _ : delrmdynw(drive,ratio,thresh,att,rel) : _
+// ```
+//
+// Where:
+//
+// * `drive`: linear gain into the compressor, 10 in SSCDO#2
+// * `ratio`: 11 in SSCDO#2
+// * `thresh`: dB, -24 in SSCDO#2
+// * `att`, `rel`: seconds, 0.03 and 0.04 in SSCDO#2
+//
+// #### Test
+// ```
+// sdt = library("seam.tedesco.lib");
+// delrmdynw_test = os.osc(29.7) : sdt.delrmrm(7.291) : sdt.delrmdynw(ba.db2linear(30), 4, -12, 0.005, 0.2);
+// ```
+//------------------------------------------------------------------------------
+delrmdynw(drive, ratio, thresh, att, rel) = *(drive) : co.compressor_mono(ratio, thresh, att, rel);
 
 //============================= SSCDO#2 — stunedrev ============================
 // stunedrev: four independent lines of 42 all-pass sections in series, each
