@@ -188,11 +188,25 @@ lr2xhgr(divergence, yaw, pitch, roll, g1, g2, g3) =
 // (ACN: a0=W, a1=Y, a2=Z, a3=X). Inverse of bamodulex; the Hadamard/2
 // matrix is involutory (M^2 = I), so the coefficients are identical.
 // SEAM-LTM abmodulex plugin (TETRAREC front-end).
-abmodulex(lfu,rfd,rbu,lbd) = a0, a1, a2, a3
+abmodulex = abmodulexw(0);
+//
+// abmodulexw(dual): the same four slots read as the upright tetrahedron
+// (dual = 0: LFU RFD RBU LBD) or as its dual (dual = 1: LFD RFU RBD LBU).
+// Each capsule of the dual keeps its azimuth and takes the opposite
+// elevation: the dual is the upright tetrahedron mirrored in the horizontal
+// plane, and the two together are the eight corners of a cube. In AmbiX
+// only the Z row changes sign; W, Y and X are the same. Through bamodulex
+// (diffusion on the upright tetrahedron) the whole chain is
+//   out = M * in,  M = 1/2 * [ 1  1 -1  1 ;  1  1  1 -1 ; -1  1  1  1 ;  1 -1  1  1 ]
+// (rows LFU RFD RBU LBD): an orthogonal matrix, W, X and Y passing and the
+// vertical mode inverted. dual may be a control; the seam-ltm plugin
+// crossfades the Z gain over 25 ms when it changes.
+abmodulexw(dual, lfu, rfd, rbu, lbd) = a0, a1, a2 * (1 - 2*dual), a3
   with {
     a0 = (lfu + rfd + rbu + lbd) / 2;
     a1 = (lfu - rfd - rbu + lbd) / 2;
     a2 = (lfu - rfd + rbu - lbd) / 2;
     a3 = (lfu + rfd - rbu - lbd) / 2;
   };
+//process = sno.multipink(4,0.5) : abmodulexw(1);
 //process = sno.multipink(4,0.5) : abmodulex;
