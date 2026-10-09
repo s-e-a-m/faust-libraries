@@ -556,8 +556,58 @@ choirband(fc, q) = fi.svf.bp(min(fc, 19999), q) : *(fc < 20000);
 // * `q`: quality factor of every band, 350 in SSCDO#2
 // * `rel`: release of the followers, s, 1.5 in SSCDO#2
 //------------------------------------------------------------------------------
-choirchan(f, a, q, rel) = (listen, sing) : ro.interleave(choirbands, 2)
-                        : par(k, choirbands, *) :> /(q*2*ma.PI)
+choirchan(f, a, q, rel) = choirchanw(f, a, q, rel, 0);
+
+//------------------------------`(sdt.)choirpink`-------------------------------
+// The 1/f weight of voice k on a channel of fundamental f and stretch a:
+// `f/fv = (k+1)^-a`, -6 dB per octave of the voice. A band of noise at
+// constant Q holds a power proportional to its centre, and the bands at
+// f·k crowd as the octaves rise: unweighted, the choir climbs 6 dB per
+// octave; weighted, it holds equal power per octave (pink). Added after the
+// rehearsal with STONED (Giuseppe, 2026-10-09): the choir was too bright.
+//
+// #### Usage
+// ```
+// choirpink(f,a,k)
+// ```
+//------------------------------------------------------------------------------
+choirpink(f, a, k) = f/(f*pow(k+1, a));
+
+//-----------------------------`(sdt.)choirmakeup`------------------------------
+// The fixed gain that keeps a channel's power on white noise when the 1/f
+// weight is on. On white noise the envelope of band k holds an amplitude
+// ~sqrt(fl) and its voice a power ~fv, so the product's power is ~fl·fv:
+// `sqrt(sum fl·fv / sum fl·fv·w^2)` over the active bands, independent of q
+// and of the rate. +19.7, +19.9, +21.6, +17.8 dB on SSCDO#2's channels.
+//
+// #### Usage
+// ```
+// choirmakeup(f,a)
+// ```
+//------------------------------------------------------------------------------
+choirmakeup(f, a) = sqrt(plain/weighted)
+with {
+    fl(k) = f*(k+1);
+    fv(k) = f*pow(k+1, a);
+    on(k) = (fl(k) < 20000) * (fv(k) < 20000);
+    plain = sum(k, choirbands, fl(k)*fv(k)*on(k));
+    weighted = sum(k, choirbands, fl(k)*fv(k)*on(k)*choirpink(f, a, k)^2);
+};
+
+//------------------------------`(sdt.)choirchanw`------------------------------
+// `choirchan` with the 1/f weight: product k multiplied by
+// `1 + p·(choirpink·choirmakeup - 1)`, so p = 0 is the score's choir and
+// p = 1 the pink one (the plugin crossfades p in 25 ms).
+//
+// #### Usage
+// ```
+// _, si.bus(choirbands) : choirchanw(f,a,q,rel,p) : _
+// ```
+// Where `p` is the weight's mix, 0 to 1; the rest as `choirchan`.
+//------------------------------------------------------------------------------
+choirchanw(f, a, q, rel, p) = (listen, sing) : ro.interleave(choirbands, 2)
+                            : par(k, choirbands, * : *(1 + p*(choirpink(f, a, k)*choirmakeup(f, a) - 1)))
+                            :> /(q*2*ma.PI)
 with {
     listen = _ <: par(k, choirbands, choirband(f*(k+1), q) : an.amp_follower(rel));
     sing = par(k, choirbands, choirband(f*pow(k+1, a), q) : *(choirdens));
@@ -585,9 +635,26 @@ with {
 //------------------------------------------------------------------------------
 choirf(c) = ba.take(c+1, (48, 48, 96, 96));
 choira(c) = ba.take(c+1, (1, 1.01, 1.1, 0.9));
-choir(q, rel) = si.bus(4), choirnoise(4)
+choir(q, rel) = choirw(q, rel, 0);
+
+//--------------------------------`(sdt.)choirw`--------------------------------
+// The choir with the 1/f weight's mix `p` (0 = `choir`, 1 = pink per
+// octave), and q and rel as live controls (the seam-ltm plugin).
+//
+// #### Usage
+// ```
+// si.bus(4) : choirw(q,rel,p) : si.bus(4)
+// ```
+//
+// #### Test
+// ```
+// sdt = library("seam.tedesco.lib");
+// choirw_test = si.bus(4) : sdt.choirw(100, 0.5, 1);
+// ```
+//------------------------------------------------------------------------------
+choirw(q, rel, p) = si.bus(4), choirnoise(4)
               : route(4 + 4*choirbands, 4 + 4*choirbands,
                       par(c, 4, ((c+1, (choirbands+1)*c + 1),
                                  par(k, choirbands, (4 + choirbands*c + k + 1, (choirbands+1)*c + k + 2)))))
-              : par(c, 4, choirchan(choirf(c), choira(c), q, rel));
+              : par(c, 4, choirchanw(choirf(c), choira(c), q, rel, p));
 // process = choir(350, 1.5);
