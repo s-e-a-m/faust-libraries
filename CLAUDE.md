@@ -1,7 +1,33 @@
 # CLAUDE.md
 
 Guidance for Claude Code working in this repository.
-Workspace-level context (namespace prefixes, build commands, conventions) lives in the `CLAUDE.md` of the `seam` workspace one level up.
+Workspace-level context (org, gotchas) lives in the `CLAUDE.md` of the `seam` workspace two levels up.
+
+## Entry Point
+
+`src/seam.lib` imports `stdfaust.lib` and all active sub-libraries with short namespace prefixes.
+DSP files only need `import("seam.lib")` to access everything.
+
+## Namespace Prefixes
+
+Defined in `src/seam.lib` — read it rather than trusting a copied list.
+
+## Building / Testing
+
+```bash
+faust -svg file.dsp          # SVG block diagram
+faust2jack file.dsp           # JACK standalone
+echo 'import("src/seam.lib"); process = sms.dfl(1,1/sqrt(2));' | faust -  # inline test
+```
+
+Commented-out `//process = ...` lines in `.lib` files are inline tests — uncomment and compile to verify.
+
+## Conventions
+
+- Every `.lib` starts with `declare` metadata + `import("seam.lib")`
+- Each `.lib` re-declares its own prefix for self-referencing
+- Academic citations in reverb/spatialization code must be preserved
+- `src/` = active libs, `temp/` = WIP (commented out in seam.lib)
 
 ## Web publishing
 
