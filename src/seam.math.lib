@@ -383,6 +383,41 @@ esos = 344; // exterior
 //----------------------------------------------------------------------------
 isos = 331.4; // interior
 
+//------------------------------`(sma.)tsos`---------------------------------
+// Speed of sound at temperature `t` (degrees Celsius), in m/s:
+// `331.3*sqrt(1 + t/273.15)`.
+// `isos` (331.4) and `esos` (344) are kept as they are, on purpose:
+// existing pieces depend on them (issue #15, concert 2026-10-30).
+//
+// #### Usage
+// ```
+// t : sma.tsos : _
+// ```
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// tsos_test = 20 : sma.tsos;
+// ```
+//----------------------------------------------------------------------------
+tsos(t) = 331.3*sqrt(1 + t/273.15);
+
+//------------------------------`(sma.)rsos`---------------------------------
+// Room speed of sound: `tsos(20)`, about `343.2146` m/s.
+//
+// #### Usage
+// ```
+// sma.rsos : _
+// ```
+//
+// #### Test
+// ```
+// sma = library("seam.math.lib");
+// rsos_test = sma.rsos;
+// ```
+//----------------------------------------------------------------------------
+rsos = tsos(20);
+
 //------------------------------`(sma.)emt2samp`-----------------------------
 // Metres to whole samples using the exterior speed of sound:
 // `int(mt*SR/esos)`.
