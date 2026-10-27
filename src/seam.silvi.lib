@@ -1,0 +1,191 @@
+//############################## seam.silvi.lib ################################
+// SEAM Giuseppe Silvi library. Its official prefix is `sgs`.
+//
+// The DSP of Giuseppe Silvi's own works, written as the specification for
+// their hand-written ports (seam-ltm), as `seam.tedesco.lib` holds Davide
+// Tedesco's.
+//
+// First work: *canto alla durata*, and its plugin `inphirev`: four faces,
+// each a series of all-pass sections whose delays follow the golden ratio.
+//
+// * [inphirev](#inphirev)
+//
+// ## Lineage
+//
+// The ancestor is `apphirev(N,t) = seq(i,N, sapf(int(t*(i+1)*phi),0.708))`,
+// committed on 2020-07-20 as `in-phi-verb` (commit 4aa6d41) and now only in
+// `temp/seam.reverbs.lib`, which stays as it is: a linear progression,
+// Schroeder's form, g = 0.708, no primes. `seam.tedesco.lib` records that
+// `stunedrev` descends from it. `inphirev` returns to the golden ratio as
+// the ratio of a geometric spiral, phi^(i + k/4), with Moorer's all-pass.
+//
+// ## The argument for g = 1/phi
+//
+// * In Schroeder's reading the section has a comb of gain g and a direct path
+//   of gain 1 - g^2; at g = 1/phi, 1 - g^2 = g: both have the same gain.
+// * The delays and the gain obey the same ratio: a memory that decays by
+//   phi per section as it recedes by phi in time.
+// * Moorer's form (`sjm.apfv`, one multiplier) stays all-pass after rounding
+//   for any g, which matters in a memory lasting minutes.
+//
+// ## References
+//
+// * <https://github.com/s-e-a-m/faust-libraries/blob/master/src/seam.silvi.lib>
+// * seam-ltm `docs/superpowers/specs/2026-10-27-inphirev-plugin-design.md`
+//##############################################################################
+declare name "SEAM Giuseppe Silvi - Library";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare license "GPL-3.0";
+import("seam.lib");
+sgs = library("seam.silvi.lib");
+
+//================================== inphirev ==================================
+// Four independent lines of N all-pass sections in series, one per face of the
+// STONE. Section i of face k lasts d * phi^(i + k/4) / c seconds, d being the
+// STONE's distance and c the speed of sound at 20 C (`sma.rsos`), rounded to
+// the sample and moved to the next prime. The distance lives on a grid per
+// STONE id, so that no two STONEs play the same spiral.
+//==============================================================================
+
+//-------------------------------`(sgs.)ipphase`--------------------------------
+// The phase u of the STONE with the given id (1 to 8) on the golden spiral,
+// in the van der Corput order: 0, 1/2, 1/4, 3/4, 1/8, 5/8, 3/8, 7/8. The
+// first M ids are as far apart as possible for any M. An undeclared id (0)
+// takes phase 0.
+//
+// #### Usage
+// ```
+// ipphase(id)
+// ```
+// Where:
+//
+// * `id`: the STONE's id, 1 to 8; 0 when undeclared
+//
+// #### Test
+// ```
+// sgs = library("seam.silvi.lib");
+// ipphase_test = sgs.ipphase(3);
+// ```
+//------------------------------------------------------------------------------
+ipphase(id) = ba.take(max(id,1), (0, 0.5, 0.25, 0.75, 0.125, 0.625, 0.375, 0.875));
+// process = ipphase(3);
+
+//-------------------------------`(sgs.)ipgrid`---------------------------------
+// The distance in metres of grid point j for the STONE `id`:
+// phi^((j + u_id)/4). Steps of phi^(1/4) (12.8 %) anchored at 1 m; the
+// STONEs of different ids never coincide.
+//
+// #### Usage
+// ```
+// ipgrid(id, j)
+// ```
+// Where:
+//
+// * `id`: the STONE's id, 1 to 8; 0 when undeclared
+// * `j`: the grid point, an integer (j = 10 at id 1 is 3.330 m)
+//
+// #### Test
+// ```
+// sgs = library("seam.silvi.lib");
+// ipgrid_test = sgs.ipgrid(1, 10);
+// ```
+//------------------------------------------------------------------------------
+ipgrid(id, j) = pow(sma.phi(1), (j + ipphase(id))/4);
+// process = ipgrid(1, 10);
+
+//--------------------------------`(sgs.)ipdel`---------------------------------
+// The delay, in samples, of section i of face k at the distance d:
+// n = floor(SR * d * phi^(i + k/4) / c + 0.5), c = `sma.rsos`. Kept when
+// below 2, otherwise moved to the next prime (`sff.np`, strictly above n).
+// With i = 0 and k = 0 this is the acoustic path rounded to the sample and
+// moved to the prime above, as DDELAY does; the grid value is exact by
+// definition, so there is no millimetre rounding.
+//
+// #### Usage
+// ```
+// ipdel(d, i, k)
+// ```
+// Where:
+//
+// * `d`: the distance in metres, a value of `ipgrid`
+// * `i`: the section, 0 to N-1
+// * `k`: the face, 0 to 3
+//
+// #### Test
+// ```
+// sgs = library("seam.silvi.lib");
+// ipdel_test = sgs.ipdel(sgs.ipgrid(1, 10), 0, 0);
+// ```
+//------------------------------------------------------------------------------
+ipdel(d, i, k) = select2(n < 2, n : sff.np, n)
+with {
+    n = int(floor(ma.SR * d * pow(sma.phi(1), i + k/4) / sma.rsos + 0.5));
+};
+// process = ipdel(ipgrid(1, 10), 0, 0);
+
+//--------------------------------`(sgs.)ipmd`----------------------------------
+// The buffer, in samples, of section i of face k: the longest delay asked
+// (`ipgrid(8, 14)`, 5.9 m, the last grid point below 6 m) at 192 kHz, plus
+// 512 samples for the step to the next prime (above the largest prime gap
+// below 2^32, 336). Written without the prime: Faust sizes a buffer at
+// compile time and cannot evaluate `sff.np` there. Faust takes the size from
+// ma.SR's upper bound, 192 kHz; the C++ sizes each section at the session's
+// rate.
+//
+// #### Usage
+// ```
+// ipmd(i, k)
+// ```
+// Where:
+//
+// * `i`: the section, 0 to N-1
+// * `k`: the face, 0 to 3
+//------------------------------------------------------------------------------
+ipmd(i, k) = int(ma.SR * ipgrid(8, 14) * pow(sma.phi(1), i + k/4) / sma.rsos) + 512;
+
+//-------------------------------`(sgs.)ipline`---------------------------------
+// One face of inphirev: N of Moorer's all-pass sections in series, g = 1/phi
+// (`sma.rphi(1)`), the sections in increasing delay. All-pass by structure,
+// section by section.
+//
+// #### Usage
+// ```
+// _ : ipline(N, k, d) : _
+// ```
+// Where:
+//
+// * `N`: the number of sections (1 to 18), a compile-time constant
+// * `k`: the face, 0 to 3
+// * `d`: the distance in metres, a value of `ipgrid`
+//
+// #### Test
+// ```
+// sgs = library("seam.silvi.lib");
+// ipline_test = os.impulse : sgs.ipline(4, 0, sgs.ipgrid(1, 10));
+// ```
+//------------------------------------------------------------------------------
+ipline(N, k, d) = seq(i, N, sjm.apfv(ipmd(i, k), ipdel(d, i, k), sma.rphi(1)));
+
+//-------------------------------`(sgs.)inphirev`-------------------------------
+// The four faces in parallel, each at the distance `ipgrid(id, j)`; face k on
+// channel k.
+//
+// #### Usage
+// ```
+// si.bus(4) : inphirev(N, id, j) : si.bus(4)
+// ```
+// Where:
+//
+// * `N`: the number of sections (1 to 18), a compile-time constant
+// * `id`: the STONE's id, 1 to 8; 0 when undeclared
+// * `j`: the grid point, an integer
+//
+// #### Test
+// ```
+// sgs = library("seam.silvi.lib");
+// inphirev_test = si.bus(4) : sgs.inphirev(4, 1, 10);
+// ```
+//------------------------------------------------------------------------------
+inphirev(N, id, j) = par(k, 4, ipline(N, k, ipgrid(id, j)));
+// process = si.bus(4) : inphirev(4, 1, 10);

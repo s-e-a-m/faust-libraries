@@ -34,6 +34,7 @@ sms = library("seam.schroeder.lib");
 sfv = library("seam.freeverb.lib");
 // ### composer specific literature
 sdt = library("seam.tedesco.lib");
+sgs = library("seam.silvi.lib");
 
 sff = library("seam.ffunctions.lib");
 
