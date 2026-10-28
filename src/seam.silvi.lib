@@ -37,8 +37,8 @@
 //   for any g, which matters in a memory lasting minutes.
 //
 // `alogos` keeps g as a menu: 1/phi, 1/sqrt(2), 1/e, 1/pi and
-// sqrt(sqrt(2) - 1). The direct share of a section is g^2 (the comb of gain g
-// carries g^2 of the energy, the direct path the rest). sqrt(sqrt(2) - 1)
+// sqrt(sqrt(2) - 1). The direct term of a section's impulse response
+// carries g^2 of the energy and the echoes carry the rest (1 - g^2). sqrt(sqrt(2) - 1)
 // = 0.6436 is the gain that peaks the effective number of echoes of the
 // tail, and 1/phi = 0.6180 comes within 1 % of that peak, so the default
 // loses almost nothing against the optimum.
@@ -179,7 +179,9 @@ almd(r, D, i, k) = int(192000 * 6 * pow(r, (i + k/4)/D) / sma.rsos + 0.5) + 1024
 // * `r`: the scale, a compile-time constant
 // * `D`: the density, a compile-time constant
 // * `g`: the gain of the sections (1/phi, 1/sqrt(2), 1/e, 1/pi, sqrt(sqrt(2)-1))
-// * `N`: the number of sections (1 to 128), a compile-time constant
+// * `N`: the number of sections, a compile-time constant, 1 <= N <= N_max: the
+//   largest N whose longest delay (face 3, section N-1) is at most 90 s at the
+//   distance d (the plugin's cap; beyond it almd overflows int)
 // * `k`: the face, 0 to 3
 // * `d`: the distance in metres, a value of `algrid`
 //
@@ -204,7 +206,9 @@ alline(r, D, g, N, k, d) = seq(i, N, sjm.apfv(almd(r, D, i, k), aldel(r, D, d, i
 // * `r`: the scale, a compile-time constant
 // * `D`: the density, a compile-time constant
 // * `g`: the gain of the sections
-// * `N`: the number of sections, a compile-time constant
+// * `N`: the number of sections, a compile-time constant, 1 <= N <= N_max: the
+//   largest N whose longest delay (face 3, section N-1) is at most 90 s at the
+//   distance d (the plugin's cap; beyond it almd overflows int)
 // * `id`: the STONE's id, 1 to 8; 0 when undeclared
 // * `j`: the grid point, an integer
 //
@@ -313,7 +317,9 @@ ipmd(i, k) = almd(sma.phi(1), 1, i, k);
 // ```
 // Where:
 //
-// * `N`: the number of sections (1 to 18), a compile-time constant
+// * `N`: the number of sections, a compile-time constant, 1 <= N <= N_max: the
+//   largest N whose longest delay (face 3, section N-1) is at most 90 s at the
+//   distance d (18 at the largest grid point)
 // * `k`: the face, 0 to 3
 // * `d`: the distance in metres, a value of `ipgrid`
 //
@@ -335,7 +341,9 @@ ipline(N, k, d) = alline(sma.phi(1), 1, sma.rphi(1), N, k, d);
 // ```
 // Where:
 //
-// * `N`: the number of sections (1 to 18), a compile-time constant
+// * `N`: the number of sections, a compile-time constant, 1 <= N <= N_max: the
+//   largest N whose longest delay (face 3, section N-1) is at most 90 s at the
+//   distance d (18 at the largest grid point)
 // * `id`: the STONE's id, 1 to 8; 0 when undeclared
 // * `j`: the grid point, an integer
 //
