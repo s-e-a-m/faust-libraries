@@ -5,9 +5,13 @@
 // their hand-written ports (seam-ltm), as `seam.tedesco.lib` holds Davide
 // Tedesco's.
 //
-// First work: *canto alla durata*, and its plugin `inphirev`: four faces,
-// each a series of all-pass sections whose delays follow the golden ratio.
+// First work: *canto alla durata*, and its plugin `alogos`: four faces, each a
+// series of all-pass sections whose delays follow a geometric spiral of ratio
+// r (phi, sqrt(2), e or pi), at a density D (1, 2 or 4 sections per factor r)
+// and with a gain g. The golden case, r = phi, D = 1, g = 1/phi, is
+// the former plugin `inphirev` and stays here as `inphirev`.
 //
+// * [alogos](#alogos)
 // * [inphirev](#inphirev)
 //
 // ## Lineage
@@ -18,6 +22,10 @@
 // Schroeder's form, g = 0.708, no primes. `seam.tedesco.lib` records that
 // `stunedrev` descends from it. `inphirev` returns to the golden ratio as
 // the ratio of a geometric spiral, phi^(i + k/4), with Moorer's all-pass.
+// `alogos` (2026) generalises it: the ratio r, the density D and the gain g
+// become parameters, and `inphirev` is its first case.
+//
+// apphirev (2020) -> stunedrev -> inphirev -> alogos
 //
 // ## The argument for g = 1/phi
 //
@@ -28,10 +36,18 @@
 // * Moorer's form (`sjm.apfv`, one multiplier) stays all-pass after rounding
 //   for any g, which matters in a memory lasting minutes.
 //
+// `alogos` keeps g as a menu: 1/phi, 1/sqrt(2), 1/e, 1/pi and
+// sqrt(sqrt(2) - 1). The direct term of a section's impulse response
+// carries g^2 of the energy and the echoes carry the rest (1 - g^2). sqrt(sqrt(2) - 1)
+// = 0.6436 is the gain that peaks the effective number of echoes of the
+// tail, and 1/phi = 0.6180 comes within 1 % of that peak, so the default
+// loses almost nothing against the optimum.
+//
 // ## References
 //
 // * <https://github.com/s-e-a-m/faust-libraries/blob/master/src/seam.silvi.lib>
 // * seam-ltm `docs/superpowers/specs/2026-10-27-inphirev-plugin-design.md`
+// * seam-ltm `docs/superpowers/specs/2026-10-27-alogos-plugin-design.md`
 //##############################################################################
 declare name "SEAM Giuseppe Silvi - Library";
 declare version "0.1";
@@ -40,19 +56,179 @@ declare license "GPL-3.0";
 import("seam.lib");
 sgs = library("seam.silvi.lib");
 
-//================================== inphirev ==================================
+//=================================== alogos ===================================
 // Four independent lines of N all-pass sections in series, one per face of the
-// STONE. Section i of face k lasts d * phi^(i + k/4) / c seconds, d being the
-// STONE's distance and c the speed of sound at 20 C (`sma.rsos`), rounded to
-// the sample and moved to the next prime. The distance lives on a grid per
-// STONE id, so that no two STONEs play the same spiral.
+// STONE. Section i of face k lasts d * r^((i + k/4)/D) / c seconds, r being the
+// scale (phi, sqrt(2), e or pi), D the density (1, 2 or 4: sections per factor
+// r), d the STONE's distance and c the speed of sound at 20 C (`sma.rsos`),
+// rounded to the sample and moved to the next prime. The distance lives on a
+// grid per STONE id, so that no two STONEs play the same spiral. r, D, g and N
+// are compile-time constants here; the C++ port takes them at run time.
+//==============================================================================
+
+//-------------------------------`(sgs.)alphase`--------------------------------
+// The phase u of the STONE with the given id (1 to 8) on the spiral, in the
+// van der Corput order: 0, 1/2, 1/4, 3/4, 1/8, 5/8, 3/8, 7/8. The first M ids
+// are as far apart as possible for any M. An undeclared id (0) takes phase 0.
+//
+// #### Usage
+// ```
+// alphase(id)
+// ```
+// Where:
+//
+// * `id`: the STONE's id, 1 to 8; 0 when undeclared
+//
+// #### Test
+// ```
+// sgs = library("seam.silvi.lib");
+// alphase_test = sgs.alphase(3);
+// ```
+//------------------------------------------------------------------------------
+alphase(id) = ba.take(max(id,1), (0, 0.5, 0.25, 0.75, 0.125, 0.625, 0.375, 0.875));
+// process = alphase(3);
+
+//-------------------------------`(sgs.)algrid`---------------------------------
+// The distance in metres of grid point j for the STONE `id`:
+// r^((j + u_id)/(4*D)). Steps of r^(1/(4*D)) anchored at 1 m; the STONEs of
+// different ids never coincide. The grids of different densities do not nest.
+//
+// #### Usage
+// ```
+// algrid(r, D, id, j)
+// ```
+// Where:
+//
+// * `r`: the scale, a compile-time constant (phi, sqrt(2), e or pi)
+// * `D`: the density, a compile-time constant (1, 2 or 4)
+// * `id`: the STONE's id, 1 to 8; 0 when undeclared
+// * `j`: the grid point, an integer (j = 10 at id 1, r = phi, D = 1 is 3.330 m)
+//
+// #### Test
+// ```
+// sgs = library("seam.silvi.lib");
+// algrid_test = sgs.algrid(ma.PI, 2, 1, 3);
+// ```
+//------------------------------------------------------------------------------
+algrid(r, D, id, j) = pow(r, (j + alphase(id))/(4*D));
+// process = algrid(ma.PI, 2, 1, 3);
+
+//--------------------------------`(sgs.)aldel`---------------------------------
+// The delay, in samples, of section i of face k at the distance d:
+// n = floor(SR * d * r^((i + k/4)/D) / c + 0.5), c = `sma.rsos`. Kept when
+// below 2, otherwise moved to the next prime (`sff.np`, strictly above n).
+// With i = 0 and k = 0 this is the acoustic path rounded to the sample and
+// moved to the prime above, as DDELAY does; the grid value is exact by
+// definition, so there is no millimetre rounding.
+//
+// #### Usage
+// ```
+// aldel(r, D, d, i, k)
+// ```
+// Where:
+//
+// * `r`: the scale, a compile-time constant
+// * `D`: the density, a compile-time constant
+// * `d`: the distance in metres, a value of `algrid`
+// * `i`: the section, 0 to N-1
+// * `k`: the face, 0 to 3
+//
+// #### Test
+// ```
+// sgs = library("seam.silvi.lib");
+// aldel_test = sgs.aldel(ma.PI, 2, sgs.algrid(ma.PI, 2, 1, 3), 0, 0);
+// ```
+//------------------------------------------------------------------------------
+aldel(r, D, d, i, k) = select2(n < 2, n : sff.np, n)
+with {
+    n = int(floor(ma.SR * d * pow(r, (i + k/4)/D) / sma.rsos + 0.5));
+};
+// process = aldel(ma.PI, 2, algrid(ma.PI, 2, 1, 3), 0, 0);
+
+//--------------------------------`(sgs.)almd`----------------------------------
+// The buffer, in samples, of section i of face k: the longest delay asked, at
+// 6 m (the farthest distance of the plugin) and 192 kHz, plus 1024 samples
+// for the step to the next prime (above the largest prime gap below 2^32,
+// 336). Written without the prime: Faust sizes a buffer at compile time and
+// cannot evaluate `sff.np` there. The C++ sizes each section at the session's
+// rate.
+//
+// #### Usage
+// ```
+// almd(r, D, i, k)
+// ```
+// Where:
+//
+// * `r`: the scale, a compile-time constant
+// * `D`: the density, a compile-time constant
+// * `i`: the section, 0 to N-1
+// * `k`: the face, 0 to 3
+//------------------------------------------------------------------------------
+almd(r, D, i, k) = int(192000 * 6 * pow(r, (i + k/4)/D) / sma.rsos + 0.5) + 1024;
+
+//-------------------------------`(sgs.)alline`---------------------------------
+// One face of alogos: N of Moorer's all-pass sections of gain g in series, in
+// increasing delay. All-pass by structure, section by section.
+//
+// #### Usage
+// ```
+// _ : alline(r, D, g, N, k, d) : _
+// ```
+// Where:
+//
+// * `r`: the scale, a compile-time constant
+// * `D`: the density, a compile-time constant
+// * `g`: the gain of the sections (1/phi, 1/sqrt(2), 1/e, 1/pi, sqrt(sqrt(2)-1))
+// * `N`: the number of sections, a compile-time constant, 1 <= N <= N_max: the
+//   largest N whose longest delay (face 3, section N-1) is at most 90 s at the
+//   distance d (the plugin's cap; beyond it almd overflows int)
+// * `k`: the face, 0 to 3
+// * `d`: the distance in metres, a value of `algrid`
+//
+// #### Test
+// ```
+// sgs = library("seam.silvi.lib");
+// alline_test = os.impulse : sgs.alline(ma.PI, 2, 1/ma.PI, 4, 0, sgs.algrid(ma.PI, 2, 1, 3));
+// ```
+//------------------------------------------------------------------------------
+alline(r, D, g, N, k, d) = seq(i, N, sjm.apfv(almd(r, D, i, k), aldel(r, D, d, i, k), g));
+
+//--------------------------------`(sgs.)alogos`--------------------------------
+// The four faces in parallel, each at the distance `algrid(r, D, id, j)`; face
+// k on channel k.
+//
+// #### Usage
+// ```
+// si.bus(4) : alogos(r, D, g, N, id, j) : si.bus(4)
+// ```
+// Where:
+//
+// * `r`: the scale, a compile-time constant
+// * `D`: the density, a compile-time constant
+// * `g`: the gain of the sections
+// * `N`: the number of sections, a compile-time constant, 1 <= N <= N_max: the
+//   largest N whose longest delay (face 3, section N-1) is at most 90 s at the
+//   distance d (the plugin's cap; beyond it almd overflows int)
+// * `id`: the STONE's id, 1 to 8; 0 when undeclared
+// * `j`: the grid point, an integer
+//
+// #### Test
+// ```
+// sgs = library("seam.silvi.lib");
+// alogos_test = si.bus(4) : sgs.alogos(ma.PI, 2, 1/ma.PI, 4, 2, 3);
+// ```
+//------------------------------------------------------------------------------
+alogos(r, D, g, N, id, j) = par(k, 4, alline(r, D, g, N, k, algrid(r, D, id, j)));
+// process = si.bus(4) : alogos(ma.PI, 2, 1/ma.PI, 4, 2, 3);
+
+//================================== inphirev ==================================
+// The golden case of alogos: r = phi, D = 1, g = 1/phi. The first form of the
+// plugin, kept as the lineage; its helpers are the general ones with these
+// constants.
 //==============================================================================
 
 //-------------------------------`(sgs.)ipphase`--------------------------------
-// The phase u of the STONE with the given id (1 to 8) on the golden spiral,
-// in the van der Corput order: 0, 1/2, 1/4, 3/4, 1/8, 5/8, 3/8, 7/8. The
-// first M ids are as far apart as possible for any M. An undeclared id (0)
-// takes phase 0.
+// The phase of the STONE `id` on the golden spiral: `alphase`.
 //
 // #### Usage
 // ```
@@ -68,13 +244,12 @@ sgs = library("seam.silvi.lib");
 // ipphase_test = sgs.ipphase(3);
 // ```
 //------------------------------------------------------------------------------
-ipphase(id) = ba.take(max(id,1), (0, 0.5, 0.25, 0.75, 0.125, 0.625, 0.375, 0.875));
+ipphase(id) = alphase(id);
 // process = ipphase(3);
 
 //-------------------------------`(sgs.)ipgrid`---------------------------------
 // The distance in metres of grid point j for the STONE `id`:
-// phi^((j + u_id)/4). Steps of phi^(1/4) (12.8 %) anchored at 1 m; the
-// STONEs of different ids never coincide.
+// phi^((j + u_id)/4), that is `algrid(phi, 1, id, j)`.
 //
 // #### Usage
 // ```
@@ -91,16 +266,12 @@ ipphase(id) = ba.take(max(id,1), (0, 0.5, 0.25, 0.75, 0.125, 0.625, 0.375, 0.875
 // ipgrid_test = sgs.ipgrid(1, 10);
 // ```
 //------------------------------------------------------------------------------
-ipgrid(id, j) = pow(sma.phi(1), (j + ipphase(id))/4);
+ipgrid(id, j) = algrid(sma.phi(1), 1, id, j);
 // process = ipgrid(1, 10);
 
 //--------------------------------`(sgs.)ipdel`---------------------------------
-// The delay, in samples, of section i of face k at the distance d:
-// n = floor(SR * d * phi^(i + k/4) / c + 0.5), c = `sma.rsos`. Kept when
-// below 2, otherwise moved to the next prime (`sff.np`, strictly above n).
-// With i = 0 and k = 0 this is the acoustic path rounded to the sample and
-// moved to the prime above, as DDELAY does; the grid value is exact by
-// definition, so there is no millimetre rounding.
+// The delay, in samples, of section i of face k at the distance d, that is
+// `aldel(phi, 1, d, i, k)`.
 //
 // #### Usage
 // ```
@@ -118,20 +289,11 @@ ipgrid(id, j) = pow(sma.phi(1), (j + ipphase(id))/4);
 // ipdel_test = sgs.ipdel(sgs.ipgrid(1, 10), 0, 0);
 // ```
 //------------------------------------------------------------------------------
-ipdel(d, i, k) = select2(n < 2, n : sff.np, n)
-with {
-    n = int(floor(ma.SR * d * pow(sma.phi(1), i + k/4) / sma.rsos + 0.5));
-};
+ipdel(d, i, k) = aldel(sma.phi(1), 1, d, i, k);
 // process = ipdel(ipgrid(1, 10), 0, 0);
 
 //--------------------------------`(sgs.)ipmd`----------------------------------
-// The buffer, in samples, of section i of face k: the longest delay asked
-// (`ipgrid(8, 14)`, 5.9 m, the last grid point below 6 m) at 192 kHz, plus
-// 512 samples for the step to the next prime (above the largest prime gap
-// below 2^32, 336). Written without the prime: Faust sizes a buffer at
-// compile time and cannot evaluate `sff.np` there. Faust takes the size from
-// ma.SR's upper bound, 192 kHz; the C++ sizes each section at the session's
-// rate.
+// The buffer, in samples, of section i of face k: `almd(phi, 1, i, k)`.
 //
 // #### Usage
 // ```
@@ -142,7 +304,7 @@ with {
 // * `i`: the section, 0 to N-1
 // * `k`: the face, 0 to 3
 //------------------------------------------------------------------------------
-ipmd(i, k) = int(ma.SR * ipgrid(8, 14) * pow(sma.phi(1), i + k/4) / sma.rsos) + 512;
+ipmd(i, k) = almd(sma.phi(1), 1, i, k);
 
 //-------------------------------`(sgs.)ipline`---------------------------------
 // One face of inphirev: N of Moorer's all-pass sections in series, g = 1/phi
@@ -155,7 +317,9 @@ ipmd(i, k) = int(ma.SR * ipgrid(8, 14) * pow(sma.phi(1), i + k/4) / sma.rsos) + 
 // ```
 // Where:
 //
-// * `N`: the number of sections (1 to 18), a compile-time constant
+// * `N`: the number of sections, a compile-time constant, 1 <= N <= N_max: the
+//   largest N whose longest delay (face 3, section N-1) is at most 90 s at the
+//   distance d (18 at the largest grid point)
 // * `k`: the face, 0 to 3
 // * `d`: the distance in metres, a value of `ipgrid`
 //
@@ -165,11 +329,11 @@ ipmd(i, k) = int(ma.SR * ipgrid(8, 14) * pow(sma.phi(1), i + k/4) / sma.rsos) + 
 // ipline_test = os.impulse : sgs.ipline(4, 0, sgs.ipgrid(1, 10));
 // ```
 //------------------------------------------------------------------------------
-ipline(N, k, d) = seq(i, N, sjm.apfv(ipmd(i, k), ipdel(d, i, k), sma.rphi(1)));
+ipline(N, k, d) = alline(sma.phi(1), 1, sma.rphi(1), N, k, d);
 
 //-------------------------------`(sgs.)inphirev`-------------------------------
 // The four faces in parallel, each at the distance `ipgrid(id, j)`; face k on
-// channel k.
+// channel k. It is `alogos(phi, 1, 1/phi, N, id, j)`.
 //
 // #### Usage
 // ```
@@ -177,7 +341,9 @@ ipline(N, k, d) = seq(i, N, sjm.apfv(ipmd(i, k), ipdel(d, i, k), sma.rphi(1)));
 // ```
 // Where:
 //
-// * `N`: the number of sections (1 to 18), a compile-time constant
+// * `N`: the number of sections, a compile-time constant, 1 <= N <= N_max: the
+//   largest N whose longest delay (face 3, section N-1) is at most 90 s at the
+//   distance d (18 at the largest grid point)
 // * `id`: the STONE's id, 1 to 8; 0 when undeclared
 // * `j`: the grid point, an integer
 //
@@ -187,5 +353,5 @@ ipline(N, k, d) = seq(i, N, sjm.apfv(ipmd(i, k), ipdel(d, i, k), sma.rphi(1)));
 // inphirev_test = si.bus(4) : sgs.inphirev(4, 1, 10);
 // ```
 //------------------------------------------------------------------------------
-inphirev(N, id, j) = par(k, 4, ipline(N, k, ipgrid(id, j)));
+inphirev(N, id, j) = alogos(sma.phi(1), 1, sma.rphi(1), N, id, j);
 // process = si.bus(4) : inphirev(4, 1, 10);
