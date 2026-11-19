@@ -1,0 +1,166 @@
+//############################### seam.st.lib ##################################
+// SEAM S.T. library. Its official prefix is `stt`.
+//
+// Material specific to the S.T. family of tetrahedral loudspeaker bodies.
+// General Ambisonic matrices stay in `seam.ambisonics.lib`; here live only the
+// corrections that belong to one body.
+//
+// * [References](#references)
+// * [S.T.OOGE mk2g](#stooge-mk2g)
+//
+// ## References
+//
+// * <https://github.com/s-e-a-m/faust-libraries/blob/master/src/seam.st.lib>
+//##############################################################################
+declare name "SEAM S.T. - Library";
+declare version "0.1";
+declare author "Giuseppe Silvi";
+declare license "GPL-3.0";
+import("seam.lib");
+stt = library("seam.st.lib");
+
+//================================ S.T.OOGE mk2g ==============================
+// BASTOOGE: the correction that precedes `sam.bamodulex` for the S.T.OOGE
+// mk2g body, developed with Francesco Palmieri.
+//
+// Provenance of the table (measurements and fit, 2026-11-18). The private
+// dream-stone repository holds the data file `data/stooge-mk2g-bastooge.dat`
+// and the log `logs/2026-11-18-stooge-mk2g-primo-ruggito.md`. Measurements:
+// 2026-11-18-184027-stone1-W.txt, 2026-11-18-184624-stone1-X.txt,
+// 2026-11-18-185200-stone1-X-ruotato.txt. The body's first-order components
+// follow the model r(f) = x^2/(1+x^2), x = f/f1, with f1 = 359.3 Hz; the fit
+// has RMS 1.16 dB between 200 and 6300 Hz. W is corrected by one bell filter
+// followed by an allpass at the cut frequency; X, Y, Z by a fourth-order
+// Linkwitz-Riley high-pass at the cut (two cascaded second-order Butterworth
+// SVF sections, Q = 1/sqrt(2)), whose phase equals that of the second-order
+// allpass on W.
+//
+// The bell parameters depend on the cut frequency `fc`. The table holds 16
+// rows at fc = 100 * 2.5^(k/15), k = 0..15 (100 to 250 Hz, geometric).
+//============================================================================
+
+mk2g_cut_min = 100;
+mk2g_cut_max = 250;
+mk2g_cut_default = 160;
+
+//-------------------------------`(stt.)mk2g_bell`-----------------------------
+// Bell parameters (centre frequency, Q, gain) of the W correction for a given
+// cut frequency, by interpolation of the 16-row table. The arithmetic is
+// explicit and ordered so that a C++ port reproduces it bit for bit:
+//
+// ```
+// fc = clamp(fc, 100, 250)
+// u  = 15 * log(fc/100) / log(2.5), clamped to [0, 15]
+// i  = int(min(u, 14))              // lower row, 0..14
+// t  = u - i
+// f0 = exp((1-t)*log(f0_i) + t*log(f0_(i+1)))
+// q  = (1-t)*q_i + t*q_(i+1)
+// g  = (1-t)*g_i + t*g_(i+1)
+// ```
+//
+// #### Usage
+// ```
+// mk2g_bell(fc) : f0, q, g_db
+// ```
+// Where:
+//
+// * `fc`: cut frequency in Hz (clamped to 100..250)
+// * `f0`: bell centre frequency in Hz
+// * `q`: bell quality factor
+// * `g_db`: bell gain in dB
+//
+// #### Test
+// ```
+// stt = library("seam.st.lib");
+// mk2g_bell_test = stt.mk2g_bell(160);
+// ```
+//----------------------------------------------------------------------------
+mk2g_bell(fc) = f0, q, g
+with {
+    c = max(mk2g_cut_min, min(mk2g_cut_max, fc));
+    u = max(0, min(15, 15 * log(c / 100) / log(2.5)));
+    i = int(min(u, 14));
+    t = u - i;
+    lo(lst) = lst : ba.selectn(16, i);
+    hi(lst) = lst : ba.selectn(16, i + 1);
+    lerp(a, b) = (1 - t) * a + t * b;
+    f0 = exp(lerp(log(lo(f0_tab)), log(hi(f0_tab))));
+    q = lerp(lo(q_tab), hi(q_tab));
+    g = lerp(lo(g_tab), hi(g_tab));
+    f0_tab = (
+    222.279, 231.823, 241.847, 252.38,
+    263.457, 275.11, 287.379, 300.304,
+    313.929, 328.302, 343.474, 359.499,
+    376.439, 394.357, 413.322, 433.407);
+    q_tab = (
+    0.836531, 0.847386, 0.858033, 0.868433,
+    0.878556, 0.888353, 0.897807, 0.906876,
+    0.915531, 0.923743, 0.931485, 0.938721,
+    0.945439, 0.951616, 0.957251, 0.962313);
+    g_tab = (
+    -4.98392, -4.72051, -4.46347, -4.21306,
+    -3.96957, -3.73324, -3.50434, -3.28311,
+    -3.06976, -2.86449, -2.66749, -2.47886,
+    -2.29875, -2.12721, -1.9643, -1.81001);
+};
+
+//-------------------------------`(stt.)bastooge_w`----------------------------
+// W channel correction: bell (parameters from `mk2g_bell`) followed by an
+// allpass at the cut frequency.
+//
+// #### Usage
+// ```
+// _ : bastooge_w(fc) : _
+// ```
+// Where `fc` is the cut frequency in Hz.
+//----------------------------------------------------------------------------
+bastooge_w(fc) = _ : fi.svf.bell(f0, q, g) : fi.svf.ap(fc, sqrt(0.5))
+with {
+    f0 = mk2g_bell(fc) : _, !, !;
+    q = mk2g_bell(fc) : !, _, !;
+    g = mk2g_bell(fc) : !, !, _;
+};
+
+//-------------------------------`(stt.)bastooge_d`----------------------------
+// Directional channels (X, Y, Z) correction: fourth-order Linkwitz-Riley
+// high-pass at the cut frequency, as two cascaded second-order Butterworth
+// SVF sections (Q = 1/sqrt(2)). Its phase equals that of the second-order
+// allpass in `bastooge_w`, so W and the dipoles stay in phase.
+//
+// #### Usage
+// ```
+// _ : bastooge_d(fc) : _
+// ```
+// Where `fc` is the cut frequency in Hz.
+//----------------------------------------------------------------------------
+bastooge_d(fc) = fi.svf.hp(fc, sqrt(0.5)) : fi.svf.hp(fc, sqrt(0.5));
+
+//-------------------------------`(stt.)bastooge`------------------------------
+// Full BASTOOGE chain: optional test routing, W/directional correction,
+// then the AmbiX tetrahedron matrix `sam.bamodulex`.
+//
+// #### Usage
+// ```
+// a0, a1, a2, a3 : bastooge(fc, test, bypass) : lfu, rfd, rbu, lbd
+// ```
+// Where:
+//
+// * `fc`: cut frequency in Hz
+// * `test`: 0 passes the input; 1..4 selects W, X, Y, Z: `2*a0` is placed on
+//   ACN channel 0, 3, 1, 2 respectively and the others are zero
+// * `bypass`: nonzero skips the filters (test routing and matrix remain)
+//----------------------------------------------------------------------------
+bastooge(fc, test, bypass, a0, a1, a2, a3) = sam.bamodulex(w, a1f, a2f, a3f)
+with {
+    s = 2 * a0;
+    r0 = select2(test == 0, select2(test == 1, 0, s), a0);
+    r1 = select2(test == 0, select2(test == 3, 0, s), a1);
+    r2 = select2(test == 0, select2(test == 4, 0, s), a2);
+    r3 = select2(test == 0, select2(test == 2, 0, s), a3);
+    w = select2(bypass != 0, r0 : bastooge_w(fc), r0);
+    d(v) = select2(bypass != 0, v : bastooge_d(fc), v);
+    // ACN order: a1 = Y, a2 = Z, a3 = X
+    a1f = d(r1);
+    a2f = d(r2);
+    a3f = d(r3);
+};
